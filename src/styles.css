@@ -1564,3 +1564,52 @@ input:focus {
     flex: 1;
   }
 }
+
+.member-directory-controls {
+  flex-wrap: nowrap;
+}
+
+.member-directory-controls .search-box {
+  flex: 1 1 auto;
+}
+
+.member-directory-controls .filter-select {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 700px) {
+  .member-directory-controls {
+    flex-wrap: wrap;
+  }
+
+  .member-directory-controls .search-box {
+    flex: 1 1 100%;
+  }
+
+  .member-directory-controls .filter-select {
+    flex: 1;
+  }
+}
+
+.member-ministries {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ministry-inline-list {
+  overflow: hidden;
+  color: #557775;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.more-ministries-label {
+  flex: 0 0 auto;
+  cursor: help;
+}
+
+.status-sort-header {
+  justify-self: start;
+}

@@ -21,11 +21,6 @@ type Ministry = {
   name: string
 }
 
-type MemberMinistry = {
-  ministry_id: string
-  ministries: Ministry | null
-}
-
 type Member = {
   id: string
   member_number: string
@@ -36,7 +31,10 @@ type Member = {
   status: 'active' | 'inactive'
   qr_token: string
   created_at: string
-  member_ministries: MemberMinistry[]
+  member_ministries: {
+    ministry_id: string
+    ministries: Ministry | null
+  }[]
 }
 
 type MemberForm = {
@@ -51,9 +49,10 @@ type MemberForm = {
 type SortOption =
   | 'name-asc'
   | 'name-desc'
-  | 'added-newest'
   | 'added-oldest'
-  | 'ministry-asc'
+  | 'added-newest'
+  | 'status-active'
+  | 'status-inactive'
 
 const emptyForm: MemberForm = {
   firstName: '',
@@ -67,17 +66,19 @@ const emptyForm: MemberForm = {
 const sortCycle: SortOption[] = [
   'name-asc',
   'name-desc',
-  'added-newest',
   'added-oldest',
-  'ministry-asc',
+  'added-newest',
+  'status-active',
+  'status-inactive',
 ]
 
 const sortLabels: Record<SortOption, string> = {
   'name-asc': 'A–Z',
   'name-desc': 'Z–A',
-  'added-newest': 'Added: newest',
   'added-oldest': 'Added: oldest',
-  'ministry-asc': 'Ministry: A–Z',
+  'added-newest': 'Added: newest',
+  'status-active': 'Status: active first',
+  'status-inactive': 'Status: inactive first',
 }
 
 function normaliseMobile(value: string) {
@@ -414,7 +415,8 @@ export default function MemberManager() {
 
     const duplicate = ministries.some(
       (item) =>
-        item.id !== ministry.id && item.name.toLowerCase() === name.toLowerCase(),
+        item.id !== ministry.id &&
+        item.name.toLowerCase() === name.toLowerCase(),
     )
 
     if (duplicate) {
@@ -537,19 +539,22 @@ export default function MemberManager() {
 
       if (sortBy === 'name-desc') return -nameCompare
 
-      if (sortBy === 'added-newest') {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      }
-
       if (sortBy === 'added-oldest') {
         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       }
 
-      if (sortBy === 'ministry-asc') {
-        const aMinistry = getMemberMinistries(a)[0]?.name ?? 'zzz'
-        const bMinistry = getMemberMinistries(b)[0]?.name ?? 'zzz'
+      if (sortBy === 'added-newest') {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      }
 
-        return aMinistry.localeCompare(bMinistry) || nameCompare
+      if (sortBy === 'status-active') {
+        if (a.status === b.status) return nameCompare
+        return a.status === 'active' ? -1 : 1
+      }
+
+      if (sortBy === 'status-inactive') {
+        if (a.status === b.status) return nameCompare
+        return a.status === 'inactive' ? -1 : 1
       }
 
       return nameCompare
@@ -962,7 +967,9 @@ export default function MemberManager() {
               </button>
 
               <span>Ministries</span>
-              <span>Status</span>
+
+                           <span>Status</span>
+
               <span>Actions</span>
             </div>
 
@@ -971,6 +978,10 @@ export default function MemberManager() {
               const displayedMinistries = memberMinistries.slice(0, 2)
               const remainingMinistryCount =
                 memberMinistries.length - displayedMinistries.length
+              const remainingMinistries = memberMinistries
+                .slice(2)
+                .map((ministry) => ministry.name)
+                .join(', ')
 
               return (
                 <article className="member-row member-management-row" key={member.id}>
@@ -992,22 +1003,20 @@ export default function MemberManager() {
                     )}
                   </div>
 
-                  <div
-                    className="member-ministries"
-                    title={memberMinistries
-                      .map((ministry) => ministry.name)
-                      .join(', ')}
-                  >
+                  <div className="member-ministries">
                     {memberMinistries.length > 0 ? (
                       <>
-                        {displayedMinistries.map((ministry) => (
-                          <span className="group-label" key={ministry.id}>
-                            {ministry.name}
-                          </span>
-                        ))}
+                        <span className="ministry-inline-list">
+                          {displayedMinistries
+                            .map((ministry) => ministry.name)
+                            .join(', ')}
+                        </span>
 
                         {remainingMinistryCount > 0 && (
-                          <span className="more-ministries-label">
+                          <span
+                            className="more-ministries-label"
+                            title={remainingMinistries}
+                          >
                             +{remainingMinistryCount} more
                           </span>
                         )}
