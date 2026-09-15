@@ -302,3 +302,160 @@ input:focus {
   .status { min-width: auto; }
   .search-box { width: 100%; }
 }
+
+.qr-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #bcded9;
+  border-radius: 8px;
+  padding: 7px 10px;
+  color: #0f766e;
+  background: #f2fbf9;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(16, 43, 42, .55);
+}
+
+.qr-modal {
+  position: relative;
+  width: min(100%, 390px);
+  padding: 34px;
+  border-radius: 20px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .25);
+}
+
+.qr-modal .eyebrow {
+  margin: 0 0 8px;
+}
+
+.qr-modal .muted {
+  margin: 6px 0 18px;
+}
+
+.close-button {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: #53706d;
+  background: #eef6f5;
+  cursor: pointer;
+}
+
+.qr-frame {
+  display: inline-flex;
+  margin: 4px 0 16px;
+  padding: 14px;
+  border: 1px solid #dcebea;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.qr-note {
+  margin: 0 0 20px;
+  color: #647a77;
+  font-size: .82rem;
+  line-height: 1.45;
+}
+
+.main-nav {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+  margin-right: 18px;
+}
+
+.main-nav button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #55706d;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.main-nav button.nav-active {
+  color: #0f766e;
+  background: #e8f7f4;
+}
+
+.event-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+  margin-top: 20px;
+}
+
+.event-list {
+  display: grid;
+}
+
+.event-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #edf3f2;
+}
+
+.event-row:last-child {
+  border-bottom: 0;
+}
+
+.event-date {
+  display: grid;
+  width: 58px;
+  place-items: center;
+  padding: 8px;
+  border-radius: 10px;
+  color: #0f766e;
+  background: #e5f5f1;
+  text-align: center;
+}
+
+.event-date strong {
+  font-size: .8rem;
+}
+
+.event-date span {
+  font-size: .72rem;
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    flex-wrap: wrap;
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .main-nav {
+    order: 3;
+    width: 100%;
+    margin: 0;
+  }
+
+  .event-form {
+    grid-template-columns: 1fr;
+  }
+}
