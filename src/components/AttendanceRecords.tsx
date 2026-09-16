@@ -1,5 +1,6 @@
+// Replacement ID: attendance-correction-v1
 import { useEffect, useMemo, useState } from 'react'
-import { Download, FileSearch } from 'lucide-react'
+import { Download, FileSearch, Trash2, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 type AttendanceEvent = {
@@ -38,6 +39,9 @@ export default function AttendanceRecords({ events }: Props) {
   const [loading, setLoading] = useState(true)
   const [eventId, setEventId] = useState('')
   const [date, setDate] = useState('')
+  const [removeTarget, setRemoveTarget] = useState<AttendanceRecord | null>(null)
+  const [removing, setRemoving] = useState(false)
+  const [message, setMessage] = useState('')
 
   useEffect(() => {
     void loadRecords()
@@ -71,6 +75,27 @@ export default function AttendanceRecords({ events }: Props) {
     }
 
     setLoading(false)
+  }
+
+  async function removeCheckIn() {
+    if (!removeTarget) return
+
+    setRemoving(true)
+    setMessage('')
+
+    const { error } = await supabase
+      .from('attendance')
+      .delete()
+      .eq('id', removeTarget.id)
+
+    if (error) {
+      setMessage(error.message)
+    } else {
+      setRemoveTarget(null)
+      await loadRecords()
+    }
+
+    setRemoving(false)
   }
 
   const filteredRecords = useMemo(() => {
@@ -246,8 +271,68 @@ export default function AttendanceRecords({ events }: Props) {
               </span>
 
               <span className="status active">{record.status}</span>
+
+              <button
+                className="record-remove-button"
+                type="button"
+                onClick={() => {
+                  setMessage('')
+                  setRemoveTarget(record)
+                }}
+                title="Remove check-in"
+                aria-label={`Remove check-in for ${record.members ? `${record.members.first_name} ${record.members.last_name}` : 'unknown member'}`}
+              >
+                <Trash2 size={18} />
+              </button>
             </article>
           ))}
+        </div>
+      )}
+
+      {removeTarget && (
+        <div className="modal-backdrop" onMouseDown={() => !removing && setRemoveTarget(null)}>
+          <section
+            className="confirmation-modal attendance-remove-modal"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="close-button"
+              type="button"
+              disabled={removing}
+              onClick={() => setRemoveTarget(null)}
+              aria-label="Close check-in removal confirmation"
+            >
+              <X size={20} />
+            </button>
+            <p className="eyebrow">Attendance correction</p>
+            <h2>Remove this check-in?</h2>
+            <p className="muted">
+              This will remove {removeTarget.members
+                ? `${removeTarget.members.first_name} ${removeTarget.members.last_name}`
+                : 'this member'}’s check-in for {removeTarget.events?.name ?? 'this event'}.
+              The attendance count and CSV export will update immediately.
+            </p>
+            {message && <p className="error-message">{message}</p>}
+            <div className="confirmation-actions">
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={removing}
+                onClick={() => setRemoveTarget(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="danger-button"
+                type="button"
+                disabled={removing}
+                onClick={() => void removeCheckIn()}
+              >
+                <Trash2 size={18} />
+                {removing ? 'Removing…' : 'Remove check-in'}
+              </button>
+            </div>
+          </section>
         </div>
       )}
     </section>

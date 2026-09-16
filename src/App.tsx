@@ -1,4 +1,4 @@
-// Replacement ID: attendance-aware-service-actions-v1
+// Replacement ID: scanner-copy-cleanup-v1
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CalendarDays,
@@ -29,6 +29,7 @@ type AttendanceEvent = {
   starts_at: string
   ends_at: string | null
   location: string | null
+  admin_note: string | null
   is_sunday_service: boolean
   archived_at: string | null
   created_at: string
@@ -39,6 +40,7 @@ const emptyEvent = {
   startsDate: '',
   startsTime: '',
   location: '',
+  adminNote: '',
   isSundayService: false,
 }
 
@@ -185,6 +187,7 @@ export default function App() {
       name: eventForm.name.trim(),
       starts_at: new Date(`${eventForm.startsDate}T${eventForm.startsTime}`).toISOString(),
       location: eventForm.location.trim() || null,
+      admin_note: eventForm.adminNote.trim() || null,
       is_sunday_service: eventForm.isSundayService,
     }
 
@@ -290,6 +293,7 @@ export default function App() {
       startsDate: dateTimeLocal(item.starts_at).slice(0, 10),
       startsTime: dateTimeLocal(item.starts_at).slice(11),
       location: item.location ?? '',
+      adminNote: item.admin_note ?? '',
       isSundayService: item.is_sunday_service,
     })
     setShowEventForm(true)
@@ -462,7 +466,13 @@ export default function App() {
       </header>
 
       <section className="content">
-        {page === 'dashboard' && <Dashboard />}
+        {page === 'dashboard' && (
+          <Dashboard
+            activeScannerEventId={scannerEventId}
+            onOpenScanner={() => setPage('scanner')}
+            onViewRecords={() => setPage('records')}
+          />
+        )}
 
         {page === 'members' && <MemberManager />}
 
@@ -566,6 +576,24 @@ export default function App() {
                         })
                       }
                       placeholder="Main Sanctuary"
+                    />
+                  </label>
+
+                  <label className="wide-field service-note-field">
+                    <span>Service note <em>Optional</em></span>
+                    <small>
+                      Private to admins. Use this to explain unusual attendance later—for example, a combined service, rainy Sunday, or youth outreach.
+                    </small>
+                    <textarea
+                      value={eventForm.adminNote}
+                      onChange={(event) =>
+                        setEventForm({
+                          ...eventForm,
+                          adminNote: event.target.value,
+                        })
+                      }
+                      placeholder="Example: Combined service because of the holiday."
+                      rows={3}
                     />
                   </label>
 
@@ -720,6 +748,12 @@ export default function App() {
                             ? `${attendanceCounts[item.id] ?? 0} / ${activeMemberCount} · ${activeMemberCount ? Math.round(((attendanceCounts[item.id] ?? 0) / activeMemberCount) * 100) : 0}%`
                             : `${attendanceCounts[item.id] ?? 0} check-in${(attendanceCounts[item.id] ?? 0) === 1 ? '' : 's'}`}
                         </small>
+                        {item.admin_note && (
+                          <small className="service-note-preview">
+                            <span>Note</span>
+                            {item.admin_note}
+                          </small>
+                        )}
                       </div>
 
                       <label className="service-sunday-checkbox">
@@ -803,22 +837,34 @@ export default function App() {
 
         {page === 'scanner' && (
           <>
-            <div className="page-heading">
+            <div className="page-heading scanner-page-heading">
               <div>
-                <p className="eyebrow">Live check-in</p>
-                <h1>QR Scanner</h1>
+                <p className="eyebrow">Attendance station</p>
+                <h1>Check in members</h1>
                 <p className="muted">
-                  Select the event, then scan member QR codes using the camera.
+                  Scan a member QR code, or use manual search when needed.
                 </p>
               </div>
             </div>
 
             <section className="scanner-event-picker">
+              <div className="scanner-picker-copy">
+                <p className="card-kicker">Check-in service</p>
+                <h2 title={selectedScannerEvent?.name}>
+                  {selectedScannerEvent?.name ?? 'Choose a service'}
+                </h2>
+                <p>
+                  {selectedScannerEvent
+                    ? `${eventDateTime(selectedScannerEvent.starts_at)}${selectedScannerEvent.location ? ` · ${selectedScannerEvent.location}` : ''}`
+                    : 'Select the service that should receive these check-ins.'}
+                </p>
+              </div>
               <label>
-                Event to check in
                 <select
                   value={scannerEventId}
                   onChange={(event) => setScannerEventId(event.target.value)}
+                  aria-label="Choose check-in service"
+                  title={selectedScannerEvent ? `${selectedScannerEvent.name} — ${eventDateTime(selectedScannerEvent.starts_at)}` : 'Choose a service'}
                 >
                   <option value="">Choose an event</option>
 
