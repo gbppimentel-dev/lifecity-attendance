@@ -1,14 +1,17 @@
+// Replacement ID: attendance-aware-service-actions-v1
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CalendarDays,
+  Archive,
+  ArchiveRestore,
   Camera,
   ChevronDown,
   ClipboardList,
-  Eye,
   LayoutDashboard,
   LogOut,
   Plus,
   Pencil,
+  Trash2,
   Users,
   X,
 } from 'lucide-react'
@@ -27,6 +30,7 @@ type AttendanceEvent = {
   ends_at: string | null
   location: string | null
   is_sunday_service: boolean
+  archived_at: string | null
   created_at: string
 }
 
@@ -73,10 +77,25 @@ function dateTimeLocal(value: string) {
   return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`
 }
 
+function getServiceState(item: AttendanceEvent, now: number) {
+  if (item.archived_at) return { label: 'Archived', className: 'archived' }
+
+  const startsAt = new Date(item.starts_at).getTime()
+  if (now < startsAt) return { label: 'Upcoming', className: 'upcoming' }
+  if (now < startsAt + 3 * 60 * 60 * 1000) {
+    return { label: 'In progress', className: 'in-progress' }
+  }
+
+  return { label: 'Completed', className: 'completed' }
+}
+
 export default function App() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [page, setPage] = useState<Page>('dashboard')
   const [events, setEvents] = useState<AttendanceEvent[]>([])
+  const [currentTime, setCurrentTime] = useState(() => Date.now())
+  const [attendanceCounts, setAttendanceCounts] = useState<Record<string, number>>({})
+  const [activeMemberCount, setActiveMemberCount] = useState(0)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -85,11 +104,11 @@ export default function App() {
   const [eventForm, setEventForm] = useState(emptyEvent)
   const [showEventForm, setShowEventForm] = useState(false)
   const [editingService, setEditingService] = useState<AttendanceEvent | null>(null)
-  const [viewingService, setViewingService] = useState<AttendanceEvent | null>(null)
   const [scannerEventId, setScannerEventId] = useState('')
   const [serviceMonth, setServiceMonth] = useState('')
   const [serviceYear, setServiceYear] = useState('')
   const [serviceSort, setServiceSort] = useState<'recent' | 'oldest'>('recent')
+  const [archiveFilter, setArchiveFilter] = useState<'all' | 'active' | 'archived'>('active')
   const serviceFormRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -105,28 +124,39 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    const interval = window.setInterval(() => setCurrentTime(Date.now()), 60_000)
+    return () => window.clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
     if (userEmail) {
       void loadEvents()
     }
   }, [userEmail])
 
   async function loadEvents() {
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .order('starts_at', { ascending: false })
+    const [eventsResult, attendanceResult, membersResult] = await Promise.all([
+      supabase.from('events').select('*').order('starts_at', { ascending: false }),
+      supabase.from('attendance').select('event_id'),
+      supabase.from('members').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+    ])
 
+    const error = eventsResult.error ?? attendanceResult.error ?? membersResult.error
     if (error) {
       setMessage(error.message)
       return
     }
 
-    const loadedEvents = data as AttendanceEvent[]
+    const loadedEvents = eventsResult.data as AttendanceEvent[]
     setEvents(loadedEvents)
+    setActiveMemberCount(membersResult.count ?? 0)
+    setAttendanceCounts(
+      (attendanceResult.data ?? []).reduce<Record<string, number>>((counts, record) => {
+        counts[record.event_id] = (counts[record.event_id] ?? 0) + 1
+        return counts
+      }, {}),
+    )
 
-    if (!scannerEventId && loadedEvents.length > 0) {
-      setScannerEventId(loadedEvents[0].id)
-    }
   }
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
@@ -192,6 +222,55 @@ export default function App() {
     setLoading(false)
   }
 
+  async function deleteService(item: AttendanceEvent) {
+    setMessage('')
+
+    const { count, error: attendanceError } = await supabase
+      .from('attendance')
+      .select('id', { count: 'exact', head: true })
+      .eq('event_id', item.id)
+
+    if (attendanceError) {
+      setMessage(attendanceError.message)
+      return
+    }
+
+    if ((count ?? 0) > 0) {
+      if (window.confirm('This event has attendance records and cannot be deleted. Archive it instead? You can restore it later.')) {
+        await setServiceArchive(item, true)
+      }
+      return
+    }
+
+    if (!window.confirm(`Delete “${item.name}”? This cannot be undone.`)) {
+      return
+    }
+
+    setLoading(true)
+    const { error } = await supabase.from('events').delete().eq('id', item.id)
+
+    if (error) {
+      setMessage(error.message)
+    } else {
+      await loadEvents()
+    }
+
+    setLoading(false)
+  }
+
+  async function setServiceArchive(item: AttendanceEvent, archived: boolean) {
+    setLoading(true)
+    const { error } = await supabase
+      .from('events')
+      .update({ archived_at: archived ? new Date().toISOString() : null })
+      .eq('id', item.id)
+
+    if (error) setMessage(error.message)
+    else await loadEvents()
+
+    setLoading(false)
+  }
+
   function openCreateService() {
     setMessage('')
     setEditingService(null)
@@ -205,7 +284,6 @@ export default function App() {
 
   function openEditService(item: AttendanceEvent) {
     setMessage('')
-    setViewingService(null)
     setEditingService(item)
     setEventForm({
       name: item.name,
@@ -222,6 +300,11 @@ export default function App() {
         block: 'start',
       })
     })
+  }
+
+  function openScannerForService(item: AttendanceEvent) {
+    setScannerEventId(item.id)
+    setPage('scanner')
   }
 
   async function handleLogout() {
@@ -262,6 +345,9 @@ export default function App() {
         )
 
         return (
+          (archiveFilter === 'all' ||
+            (archiveFilter === 'active' && !item.archived_at) ||
+            (archiveFilter === 'archived' && item.archived_at)) &&
           (!serviceMonth || parts.month === serviceMonth) &&
           (!serviceYear || parts.year === serviceYear)
         )
@@ -271,7 +357,7 @@ export default function App() {
           new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
         return serviceSort === 'recent' ? -difference : difference
       })
-  }, [events, serviceMonth, serviceSort, serviceYear])
+  }, [archiveFilter, events, serviceMonth, serviceSort, serviceYear])
 
   if (!userEmail) {
     return (
@@ -532,6 +618,14 @@ export default function App() {
                 </div>
                 <div className="service-directory-controls">
                   <label className="filter-select">
+                    Status
+                    <select value={archiveFilter} onChange={(event) => setArchiveFilter(event.target.value as 'all' | 'active' | 'archived')}>
+                      <option value="all">All</option>
+                      <option value="active">Active</option>
+                      <option value="archived">Archived</option>
+                    </select>
+                  </label>
+                  <label className="filter-select">
                     Month
                     <select value={serviceMonth} onChange={(event) => setServiceMonth(event.target.value)}>
                       <option value="">All</option>
@@ -581,7 +675,13 @@ export default function App() {
                     <span>Actions</span>
                   </div>
 
-                  {filteredServices.map((item) => (
+                  {filteredServices.map((item) => {
+                    const serviceState = getServiceState(item, currentTime)
+                    const canScan =
+                      serviceState.className === 'upcoming' ||
+                      serviceState.className === 'in-progress'
+
+                    return (
                     <article className="event-row" key={item.id}>
                       <div className="event-date">
                         <strong>
@@ -599,11 +699,27 @@ export default function App() {
                       </div>
 
                       <div className="member-name">
-                        <strong>{item.name}</strong>
+                        {!item.archived_at && (
+                          <span className={`service-state service-state-${serviceState.className}`}>
+                            {serviceState.label}
+                          </span>
+                        )}
+                        <strong className="service-title">
+                          {item.archived_at && <span className="archived-pill">Archived</span>}
+                          {item.name}
+                        </strong>
+                        {canScan && scannerEventId === item.id && (
+                          <span className="current-scanner-indicator">Currently checking in</span>
+                        )}
                         <span>
                           {eventDateTime(item.starts_at)}
                           {item.location ? ` · ${item.location}` : ''}
                         </span>
+                        <small className="service-attendance-summary">
+                          {item.is_sunday_service
+                            ? `${attendanceCounts[item.id] ?? 0} / ${activeMemberCount} · ${activeMemberCount ? Math.round(((attendanceCounts[item.id] ?? 0) / activeMemberCount) * 100) : 0}%`
+                            : `${attendanceCounts[item.id] ?? 0} check-in${(attendanceCounts[item.id] ?? 0) === 1 ? '' : 's'}`}
+                        </small>
                       </div>
 
                       <label className="service-sunday-checkbox">
@@ -619,54 +735,53 @@ export default function App() {
                       <div className="service-row-actions">
                         <button
                           className="service-action-button"
-                          onClick={() => setViewingService(item)}
-                          title="View service"
-                          aria-label={`View ${item.name}`}
-                        >
-                          <Eye size={20} />
-                        </button>
-                        <button
-                          className="service-action-button"
                           onClick={() => openEditService(item)}
                           title="Edit service"
                           aria-label={`Edit ${item.name}`}
                         >
                           <Pencil size={20} />
                         </button>
+                        {item.archived_at ? (
+                          <button className="service-action-button" onClick={() => void setServiceArchive(item, false)} title="Unarchive event" aria-label={`Unarchive ${item.name}`}>
+                            <ArchiveRestore size={19} />
+                          </button>
+                        ) : (
+                          <>
+                            {canScan && (
+                              <button
+                                className="service-action-button service-scan-button"
+                                onClick={() => openScannerForService(item)}
+                                title="Open scanner for this event"
+                                aria-label={`Scan check-ins for ${item.name}`}
+                              >
+                                <Camera size={19} />
+                              </button>
+                            )}
+                            {(attendanceCounts[item.id] ?? 0) === 0 && (
+                              <button
+                                className="service-action-button danger"
+                                onClick={() => void deleteService(item)}
+                                title="Delete event"
+                                aria-label={`Delete ${item.name}`}
+                              >
+                                <Trash2 size={19} />
+                              </button>
+                            )}
+                            {(attendanceCounts[item.id] ?? 0) > 0 && (
+                              <button className="service-action-button" onClick={() => void setServiceArchive(item, true)} title="Archive event" aria-label={`Archive ${item.name}`}>
+                                <Archive size={19} />
+                              </button>
+                            )}
+                          </>
+                        )}
                       </div>
                     </article>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </section>
 
-            {viewingService && (
-              <div className="modal-backdrop" onClick={() => setViewingService(null)}>
-                <section
-                  className="service-view-modal"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <button className="close-button" onClick={() => setViewingService(null)}>
-                    <X size={18} />
-                  </button>
-                  <button
-                    className="service-modal-edit-button"
-                    onClick={() => openEditService(viewingService)}
-                    title="Edit service"
-                    aria-label="Edit service"
-                  >
-                    <Pencil size={19} />
-                  </button>
-                  <p className="eyebrow">Service details</p>
-                  <h2>{viewingService.name}</h2>
-                  <dl className="service-details-list">
-                    <div><dt>Starts at</dt><dd>{eventDateTime(viewingService.starts_at)}</dd></div>
-                    <div><dt>Location</dt><dd>{viewingService.location ?? 'Not specified'}</dd></div>
-                    <div><dt>Sunday Service</dt><dd>{viewingService.is_sunday_service ? 'Yes' : 'No'}</dd></div>
-                  </dl>
-                </section>
-              </div>
-            )}
           </>
         )}
 
@@ -707,7 +822,10 @@ export default function App() {
                 >
                   <option value="">Choose an event</option>
 
-                  {events.map((event) => (
+                  {events.filter((event) => {
+                    const serviceState = getServiceState(event, currentTime)
+                    return serviceState.className === 'upcoming' || serviceState.className === 'in-progress'
+                  }).map((event) => (
                     <option key={event.id} value={event.id}>
                       {event.name} — {eventDateTime(event.starts_at)}
                     </option>

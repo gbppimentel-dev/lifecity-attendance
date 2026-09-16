@@ -1691,6 +1691,18 @@ export default function MemberManager() {
                     >
                       <Pencil size={18} />
                     </button>
+
+                    <button
+                      className="delete-icon-button member-delete-button"
+                      onClick={() => {
+                        setDeleteConfirmation('')
+                        setDeleteTarget(member)
+                      }}
+                      aria-label={`Delete ${memberName(member)}`}
+                      title={`Delete ${memberName(member)}`}
+                    >
+                      <Trash2 size={18} />
+                    </button>
                   </div>
                 </article>
               )
