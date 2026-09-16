@@ -15,6 +15,7 @@ type ImportRow = {
   email: string
   mobile: string
   ministryNames: string[]
+  adminNote: string
   error: string
 }
 
@@ -44,6 +45,10 @@ function normaliseMobile(value: string) {
   return value.replace(/\D/g, '')
 }
 
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.com$/i.test(value)
+}
+
 function parseMinistries(value: string) {
   return [...new Set(
     value
@@ -55,9 +60,9 @@ function parseMinistries(value: string) {
 
 function downloadTemplate() {
   const template = [
-    'first_name,last_name,email,mobile,ministries',
-    'Juan,Dela Cruz,juan@example.com,09171234567,Youth|Worship Team',
-    'Maria,Santos,maria@example.com,09181234567,Adults',
+    'first_name,last_name,email,mobile,ministries,admin_note',
+    'Juan,Dela Cruz,juan@example.com,09171234567,Youth|Worship Team,"New attendee; follow up next month"',
+    'Maria,Santos,maria@example.com,09181234567,Adults,"Prefers an afternoon service"',
   ].join('\n')
 
   const blob = new Blob(['\uFEFF', template], {
@@ -115,6 +120,20 @@ export default function MemberImport({ onImported, onClose }: Props) {
             'group',
             'member_group',
           ])
+          const adminNote = getValue(row, [
+            'admin_note',
+            'admin note',
+            'note',
+          ])
+          let error = ''
+
+          if (!firstName || !lastName) {
+            error = 'First name and last name are required.'
+          } else if (email && !isValidEmail(email)) {
+            error = 'Email must include @ and end in .com.'
+          } else if (mobile && !/^09\d{9}$/.test(mobile)) {
+            error = 'Mobile must be 11 digits and start with 09.'
+          }
 
           return {
             rowNumber: index + 2,
@@ -123,10 +142,8 @@ export default function MemberImport({ onImported, onClose }: Props) {
             email,
             mobile,
             ministryNames: parseMinistries(ministries),
-            error:
-              !firstName || !lastName
-                ? 'First name and last name are required.'
-                : '',
+            adminNote,
+            error,
           }
         })
 
@@ -216,6 +233,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
           last_name: row.lastName,
           email: row.email.trim().toLowerCase() || null,
           mobile: row.mobile.trim() || null,
+          admin_note: row.adminNote.trim() || null,
         })),
       )
       .select('id')
@@ -352,7 +370,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
         <strong>{fileName || 'Choose a CSV file'}</strong>
         <span>
           Required: first_name and last_name · Optional: email, mobile,
-          ministries
+          ministries, admin_note
         </span>
       </label>
 

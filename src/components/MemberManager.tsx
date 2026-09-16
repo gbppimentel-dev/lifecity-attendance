@@ -1,13 +1,18 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Check,
   ChevronDown,
   Download,
+  Eye,
   Pencil,
   Plus,
   QrCode,
   Search,
   Settings2,
+  ListChecks,
+  Star,
+  StickyNote,
+  Trash2,
   UserPlus,
   Users,
   X,
@@ -30,6 +35,8 @@ type Member = {
   mobile: string | null
   status: 'active' | 'inactive'
   qr_token: string
+  is_starred: boolean
+  admin_note: string | null
   created_at: string
   member_ministries: {
     ministry_id: string
@@ -44,6 +51,22 @@ type MemberForm = {
   mobile: string
   status: 'active' | 'inactive'
   ministryIds: string[]
+  adminNote: string
+}
+
+type ContactFieldErrors = {
+  email?: string
+  mobile?: string
+}
+
+type AttendanceRecord = {
+  id: string
+  checked_in_at: string
+  status: 'present' | 'corrected'
+  events: {
+    name: string
+    starts_at: string
+  } | null
 }
 
 type SortOption =
@@ -51,8 +74,6 @@ type SortOption =
   | 'name-desc'
   | 'added-oldest'
   | 'added-newest'
-  | 'status-active'
-  | 'status-inactive'
 
 const emptyForm: MemberForm = {
   firstName: '',
@@ -61,6 +82,7 @@ const emptyForm: MemberForm = {
   mobile: '',
   status: 'active',
   ministryIds: [],
+  adminNote: '',
 }
 
 const sortCycle: SortOption[] = [
@@ -68,8 +90,6 @@ const sortCycle: SortOption[] = [
   'name-desc',
   'added-oldest',
   'added-newest',
-  'status-active',
-  'status-inactive',
 ]
 
 const sortLabels: Record<SortOption, string> = {
@@ -77,12 +97,16 @@ const sortLabels: Record<SortOption, string> = {
   'name-desc': 'Z–A',
   'added-oldest': 'Added: oldest',
   'added-newest': 'Added: newest',
-  'status-active': 'Status: active first',
-  'status-inactive': 'Status: inactive first',
 }
+
+const attendancePageSize = 10
 
 function normaliseMobile(value: string) {
   return value.replace(/\D/g, '')
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.com$/i.test(value)
 }
 
 function memberName(member: Member) {
@@ -105,11 +129,23 @@ function formatDate(value: string) {
   }).format(new Date(value))
 }
 
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat('en-PH', {
+    timeZone: 'Asia/Manila',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value))
+}
+
 export default function MemberManager() {
   const [members, setMembers] = useState<Member[]>([])
   const [ministries, setMinistries] = useState<Ministry[]>([])
   const [search, setSearch] = useState('')
   const [ministryFilter, setMinistryFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState<SortOption>('name-asc')
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(true)
@@ -120,16 +156,47 @@ export default function MemberManager() {
   const [showMinistryManager, setShowMinistryManager] = useState(false)
   const [editingMember, setEditingMember] = useState<Member | null>(null)
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
+  const [detailMember, setDetailMember] = useState<Member | null>(null)
+  const [noteMember, setNoteMember] = useState<Member | null>(null)
+  const [memberAttendance, setMemberAttendance] = useState<AttendanceRecord[]>([])
+  const [attendanceTotal, setAttendanceTotal] = useState(0)
+  const [attendancePage, setAttendancePage] = useState(1)
+  const [detailsLoading, setDetailsLoading] = useState(false)
   const [form, setForm] = useState<MemberForm>(emptyForm)
+  const [contactFieldErrors, setContactFieldErrors] =
+    useState<ContactFieldErrors>({})
   const [newMinistryName, setNewMinistryName] = useState('')
+  const [newManagedMinistryName, setNewManagedMinistryName] = useState('')
   const [renamingMinistryId, setRenamingMinistryId] = useState('')
   const [renameValue, setRenameValue] = useState('')
   const [ministryMessage, setMinistryMessage] = useState('')
   const [blockedMinistryId, setBlockedMinistryId] = useState('')
+  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([])
+  const [deleteTarget, setDeleteTarget] = useState<Member | null>(null)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [showBulkDelete, setShowBulkDelete] = useState(false)
+  const [bulkDeleteConfirmation, setBulkDeleteConfirmation] = useState('')
+  const [bulkSaving, setBulkSaving] = useState(false)
+  const [bulkMode, setBulkMode] = useState(false)
+
+  const importRef = useRef<HTMLDivElement | null>(null)
+  const ministryManagerRef = useRef<HTMLElement | null>(null)
+  const memberFormRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     void loadData()
   }, [])
+
+  function scrollToSection(
+    ref: React.RefObject<HTMLElement | HTMLDivElement | null>,
+  ) {
+    window.requestAnimationFrame(() => {
+      ref.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    })
+  }
 
   async function loadData() {
     setLoading(true)
@@ -146,6 +213,8 @@ export default function MemberManager() {
           mobile,
           status,
           qr_token,
+          is_starred,
+          admin_note,
           created_at,
           member_ministries (
             ministry_id,
@@ -176,14 +245,17 @@ export default function MemberManager() {
 
   function openAddForm() {
     setMessage('')
+    setContactFieldErrors({})
     setEditingMember(null)
     setForm(emptyForm)
     setNewMinistryName('')
     setShowForm(true)
+    scrollToSection(memberFormRef)
   }
 
   function openEditForm(member: Member) {
     setMessage('')
+    setContactFieldErrors({})
     setEditingMember(member)
     setForm({
       firstName: member.first_name,
@@ -191,10 +263,12 @@ export default function MemberManager() {
       email: member.email ?? '',
       mobile: member.mobile ?? '',
       status: member.status,
-      ministryIds: getMemberMinistries(member).map((ministry) => ministry.id),
+          ministryIds: getMemberMinistries(member).map((ministry) => ministry.id),
+          adminNote: member.admin_note ?? '',
     })
     setNewMinistryName('')
     setShowForm(true)
+    scrollToSection(memberFormRef)
   }
 
   function closeForm() {
@@ -203,6 +277,27 @@ export default function MemberManager() {
     setForm(emptyForm)
     setNewMinistryName('')
     setMessage('')
+    setContactFieldErrors({})
+  }
+
+  function toggleImport() {
+    const nextOpen = !showImport
+
+    setShowImport(nextOpen)
+
+    if (nextOpen) {
+      scrollToSection(importRef)
+    }
+  }
+
+  function toggleMinistryManager() {
+    const nextOpen = !showMinistryManager
+
+    setShowMinistryManager(nextOpen)
+
+    if (nextOpen) {
+      scrollToSection(ministryManagerRef)
+    }
   }
 
   function toggleMinistry(ministryId: string) {
@@ -262,6 +357,43 @@ export default function MemberManager() {
     setNewMinistryName('')
   }
 
+  async function addManagedMinistry() {
+    const name = newManagedMinistryName.trim()
+
+    if (!name) return
+
+    const exists = ministries.some(
+      (ministry) => ministry.name.toLowerCase() === name.toLowerCase(),
+    )
+
+    if (exists) {
+      setMinistryMessage('A ministry with that name already exists.')
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('ministries')
+      .insert({ name })
+      .select('id, name')
+      .single()
+
+    if (error) {
+      setMinistryMessage(
+        error.code === '23505'
+          ? 'A ministry with that name already exists.'
+          : error.message,
+      )
+      return
+    }
+
+    const ministry = data as Ministry
+    setMinistries((current) =>
+      [...current, ministry].sort((a, b) => a.name.localeCompare(b.name)),
+    )
+    setNewManagedMinistryName('')
+    setMinistryMessage(`${ministry.name} was added.`)
+  }
+
   async function checkForDuplicates() {
     const email = form.email.trim().toLowerCase()
     const mobile = normaliseMobile(form.mobile)
@@ -319,11 +451,33 @@ export default function MemberManager() {
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setMessage('')
+    setContactFieldErrors({})
+
+    const email = form.email.trim().toLowerCase()
+    const enteredMobile = form.mobile.trim()
+
+    if (email && !isValidEmail(email)) {
+      setContactFieldErrors({
+        email: 'Enter an email address with @ that ends in .com.',
+      })
+      return
+    }
+
+    if (enteredMobile && !/^09\d{9}$/.test(enteredMobile)) {
+      setContactFieldErrors({
+        mobile: 'Use 09 followed by 9 digits.',
+      })
+      return
+    }
 
     const duplicateMessage = await checkForDuplicates()
 
     if (duplicateMessage) {
-      setMessage(duplicateMessage)
+      setContactFieldErrors(
+        duplicateMessage.toLowerCase().includes('email')
+          ? { email: duplicateMessage }
+          : { mobile: duplicateMessage },
+      )
       return
     }
 
@@ -335,6 +489,7 @@ export default function MemberManager() {
       email: form.email.trim().toLowerCase() || null,
       mobile: form.mobile.trim() || null,
       status: form.status,
+      admin_note: form.adminNote.trim() || null,
     }
 
     let memberId = editingMember?.id ?? ''
@@ -388,6 +543,169 @@ export default function MemberManager() {
     await loadData()
     closeForm()
     setSaving(false)
+  }
+
+  async function toggleStar(member: Member) {
+    const { error } = await supabase
+      .from('members')
+      .update({ is_starred: !member.is_starred })
+      .eq('id', member.id)
+
+    if (error) {
+      setMessage(error.message)
+      return
+    }
+
+    setMembers((current) =>
+      current.map((item) =>
+        item.id === member.id
+          ? { ...item, is_starred: !item.is_starred }
+          : item,
+      ),
+    )
+  }
+
+  async function loadMemberAttendance(memberId: string, page = 1) {
+    const { data, error, count } = await supabase
+      .from('attendance')
+      .select(`
+        id,
+        checked_in_at,
+        status,
+        events (
+          name,
+          starts_at
+        )
+      `, { count: 'exact' })
+      .eq('member_id', memberId)
+      .order('checked_in_at', { ascending: false })
+      .range(
+        (page - 1) * attendancePageSize,
+        page * attendancePageSize - 1,
+      )
+
+    if (error) {
+      setMessage(error.message)
+    } else {
+      const records = (data ?? []) as unknown as AttendanceRecord[]
+      setMemberAttendance(records)
+      setAttendanceTotal(count ?? 0)
+    }
+  }
+
+  async function openMemberDetails(member: Member) {
+    setDetailMember(member)
+    setMemberAttendance([])
+    setAttendanceTotal(0)
+    setAttendancePage(1)
+    setDetailsLoading(true)
+
+    await loadMemberAttendance(member.id, 1)
+
+    setDetailsLoading(false)
+  }
+
+  async function goToAttendancePage(page: number) {
+    if (!detailMember) return
+
+    setDetailsLoading(true)
+    await loadMemberAttendance(detailMember.id, page)
+    setAttendancePage(page)
+    setDetailsLoading(false)
+  }
+
+  function toggleMemberSelection(memberId: string) {
+    setSelectedMemberIds((current) =>
+      current.includes(memberId)
+        ? current.filter((id) => id !== memberId)
+        : [...current, memberId],
+    )
+  }
+
+  function toggleVisibleMemberSelection() {
+    const visibleIds = visibleMembers.map((member) => member.id)
+    const everyVisibleMemberIsSelected = visibleIds.every((id) =>
+      selectedMemberIds.includes(id),
+    )
+
+    setSelectedMemberIds((current) =>
+      everyVisibleMemberIsSelected
+        ? current.filter((id) => !visibleIds.includes(id))
+        : [...new Set([...current, ...visibleIds])],
+    )
+  }
+
+  function closeBulkMode() {
+    setSelectedMemberIds([])
+    setBulkMode(false)
+  }
+
+  async function updateSelectedMembersStatus(status: 'active' | 'inactive') {
+    if (selectedMemberIds.length === 0) return
+
+    setBulkSaving(true)
+    const { error } = await supabase
+      .from('members')
+      .update({ status })
+      .in('id', selectedMemberIds)
+
+    if (error) {
+      setMessage(error.message)
+      setBulkSaving(false)
+      return
+    }
+
+    setSelectedMemberIds([])
+    setBulkSaving(false)
+    await loadData()
+  }
+
+  async function deleteMember() {
+    if (!deleteTarget) return
+
+    if (deleteConfirmation.trim() !== memberName(deleteTarget)) return
+
+    setSaving(true)
+    const { error } = await supabase
+      .from('members')
+      .delete()
+      .eq('id', deleteTarget.id)
+
+    if (error) {
+      setMessage(error.message)
+      setSaving(false)
+      return
+    }
+
+    setDeleteTarget(null)
+    setDeleteConfirmation('')
+    setSaving(false)
+    closeForm()
+    await loadData()
+  }
+
+  const bulkDeletePhrase = `DELETE ${selectedMemberIds.length} MEMBERS`
+
+  async function deleteSelectedMembers() {
+    if (bulkDeleteConfirmation.trim() !== bulkDeletePhrase) return
+
+    setBulkSaving(true)
+    const { error } = await supabase
+      .from('members')
+      .delete()
+      .in('id', selectedMemberIds)
+
+    if (error) {
+      setMessage(error.message)
+      setBulkSaving(false)
+      return
+    }
+
+    setSelectedMemberIds([])
+    setBulkDeleteConfirmation('')
+    setShowBulkDelete(false)
+    setBulkSaving(false)
+    await loadData()
   }
 
   function ministryMemberCount(ministryId: string) {
@@ -485,26 +803,139 @@ export default function MemberManager() {
     setSortBy(sortCycle[nextIndex])
   }
 
-  function downloadQrCode(member: Member) {
+  async function downloadMemberId(member: Member, svgId = 'member-qr-code') {
     const svg = document.getElementById(
-      'member-qr-code',
+      svgId,
     ) as SVGSVGElement | null
 
     if (!svg) return
 
     const content = new XMLSerializer().serializeToString(svg)
-    const blob = new Blob([content], {
+    const qrBlob = new Blob([content], {
       type: 'image/svg+xml;charset=utf-8',
     })
+    const qrUrl = URL.createObjectURL(qrBlob)
+    const qrImage = new Image()
 
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
+    try {
+      await new Promise<void>((resolve, reject) => {
+        qrImage.onload = () => resolve()
+        qrImage.onerror = () => reject(new Error('Could not create the member ID.'))
+        qrImage.src = qrUrl
+      })
 
-    link.href = url
-    link.download = `lifecity-qr-${member.member_number}.svg`
-    link.click()
+      const canvas = document.createElement('canvas')
+      canvas.width = 1600
+      canvas.height = 1000
+      const context = canvas.getContext('2d')
 
-    URL.revokeObjectURL(url)
+      if (!context) throw new Error('Could not create the member ID.')
+
+      const roundedRectangle = (
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        radius: number,
+      ) => {
+        context.beginPath()
+        context.roundRect(x, y, width, height, radius)
+      }
+
+      context.fillStyle = '#f7fbfa'
+      context.fillRect(0, 0, canvas.width, canvas.height)
+
+      context.fillStyle = '#167b72'
+      roundedRectangle(0, 0, canvas.width, 180, 0)
+      context.fill()
+
+      context.fillStyle = '#d9f0ec'
+      context.font = '600 28px system-ui, sans-serif'
+      context.fillText('LIFECITY CHURCH', 100, 72)
+      context.fillStyle = '#ffffff'
+      context.font = '700 54px system-ui, sans-serif'
+      context.fillText('MEMBER ID', 100, 128)
+
+      context.fillStyle = '#173f3b'
+      context.font = '700 62px system-ui, sans-serif'
+      const printedName = memberName(member)
+      context.fillText(
+        printedName.length > 25 ? `${printedName.slice(0, 24)}…` : printedName,
+        100,
+        300,
+      )
+      context.fillStyle = '#64817d'
+      context.font = '500 34px system-ui, sans-serif'
+      context.fillText(member.member_number, 100, 350)
+
+      context.fillStyle = '#78908c'
+      context.font = '600 25px system-ui, sans-serif'
+      context.fillText('MEMBER STATUS', 100, 455)
+      roundedRectangle(100, 478, 182, 54, 27)
+      context.fillStyle = member.status === 'active' ? '#e7f8ee' : '#fff3df'
+      context.fill()
+      context.fillStyle = member.status === 'active' ? '#187b4c' : '#9a5a11'
+      context.font = '700 25px system-ui, sans-serif'
+      context.fillText(member.status === 'active' ? 'ACTIVE' : 'INACTIVE', 127, 514)
+
+      context.fillStyle = '#78908c'
+      context.font = '600 25px system-ui, sans-serif'
+      context.fillText('MINISTRIES', 100, 625)
+      const ministryText = getMemberMinistries(member)
+        .map((ministry) => ministry.name)
+        .join(' • ') || 'Not assigned'
+      context.fillStyle = '#365c57'
+      context.font = '500 29px system-ui, sans-serif'
+      context.fillText(ministryText.slice(0, 48), 100, 676)
+
+      context.fillStyle = '#78908c'
+      context.font = '600 25px system-ui, sans-serif'
+      context.fillText('REGISTERED', 100, 790)
+      context.fillStyle = '#365c57'
+      context.font = '500 29px system-ui, sans-serif'
+      context.fillText(formatDate(member.created_at), 100, 840)
+
+      roundedRectangle(790, 200, 720, 680, 28)
+      context.fillStyle = '#ffffff'
+      context.fill()
+      context.strokeStyle = '#dbece9'
+      context.lineWidth = 3
+      context.stroke()
+      context.fillStyle = '#315854'
+      context.font = '700 27px system-ui, sans-serif'
+      context.textAlign = 'center'
+      context.fillText('SCAN FOR ATTENDANCE', 1150, 270)
+      context.drawImage(qrImage, 880, 300, 540, 540)
+      context.fillStyle = '#718985'
+      context.font = '500 22px system-ui, sans-serif'
+      context.fillText('Keep this member ID private.', 1150, 862)
+      context.textAlign = 'left'
+
+      context.fillStyle = '#eaf4f2'
+      context.fillRect(0, 920, canvas.width, 80)
+      context.fillStyle = '#56736f'
+      context.font = '500 22px system-ui, sans-serif'
+      context.fillText('LifeCity Attendance Monitoring  •  Digital member ID', 100, 970)
+
+      const cardBlob = await new Promise<Blob | null>((resolve) =>
+        canvas.toBlob(resolve, 'image/png'),
+      )
+
+      if (!cardBlob) throw new Error('Could not create the member ID.')
+
+      const cardUrl = URL.createObjectURL(cardBlob)
+      const link = document.createElement('a')
+
+      link.href = cardUrl
+      link.download = `lifecity-member-id-${member.member_number}.png`
+      link.click()
+
+      window.setTimeout(() => URL.revokeObjectURL(cardUrl), 1000)
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Could not create the member ID.')
+    } finally {
+      URL.revokeObjectURL(qrUrl)
+    }
   }
 
   const visibleMembers = useMemo(() => {
@@ -529,12 +960,24 @@ export default function MemberManager() {
 
       const matchesMinistry =
         ministryFilter === 'all' ||
-        memberMinistries.some((ministry) => ministry.id === ministryFilter)
+        (ministryFilter === 'none'
+          ? memberMinistries.length === 0
+          : memberMinistries.some((ministry) => ministry.id === ministryFilter))
 
-      return matchesSearch && matchesMinistry
+      const matchesStatus =
+        statusFilter === 'all' ||
+        (statusFilter === 'vip'
+          ? member.is_starred
+          : member.status === statusFilter)
+
+      return matchesSearch && matchesMinistry && matchesStatus
     })
 
     return [...filtered].sort((a, b) => {
+      if (a.is_starred !== b.is_starred) {
+        return a.is_starred ? -1 : 1
+      }
+
       const nameCompare = memberName(a).localeCompare(memberName(b))
 
       if (sortBy === 'name-desc') return -nameCompare
@@ -547,19 +990,9 @@ export default function MemberManager() {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       }
 
-      if (sortBy === 'status-active') {
-        if (a.status === b.status) return nameCompare
-        return a.status === 'active' ? -1 : 1
-      }
-
-      if (sortBy === 'status-inactive') {
-        if (a.status === b.status) return nameCompare
-        return a.status === 'inactive' ? -1 : 1
-      }
-
       return nameCompare
     })
-  }, [members, search, ministryFilter, sortBy])
+  }, [members, search, ministryFilter, statusFilter, sortBy])
 
   return (
     <>
@@ -580,7 +1013,7 @@ export default function MemberManager() {
                 ? 'secondary-button import-open-button'
                 : 'secondary-button'
             }
-            onClick={() => setShowImport((current) => !current)}
+            onClick={toggleImport}
           >
             {showImport ? <X size={18} /> : <Download size={18} />}
             {showImport ? 'Close import' : 'Import CSV'}
@@ -588,7 +1021,7 @@ export default function MemberManager() {
 
           <button
             className="secondary-button"
-            onClick={() => setShowMinistryManager((current) => !current)}
+            onClick={toggleMinistryManager}
           >
             <Settings2 size={18} />
             {showMinistryManager ? 'Close ministries' : 'Manage ministries'}
@@ -602,14 +1035,16 @@ export default function MemberManager() {
       </div>
 
       {showImport && (
-        <MemberImport
-          onImported={loadData}
-          onClose={() => setShowImport(false)}
-        />
+        <div ref={importRef}>
+          <MemberImport
+            onImported={loadData}
+            onClose={() => setShowImport(false)}
+          />
+        </div>
       )}
 
       {showMinistryManager && (
-        <section className="ministry-manager-card">
+        <section className="ministry-manager-card" ref={ministryManagerRef}>
           <div className="ministry-manager-heading">
             <div>
               <p className="eyebrow">Directory settings</p>
@@ -627,6 +1062,28 @@ export default function MemberManager() {
               aria-label="Close ministry management"
             >
               <X size={20} />
+            </button>
+          </div>
+
+          <div className="ministry-create-row">
+            <input
+              value={newManagedMinistryName}
+              onChange={(event) => setNewManagedMinistryName(event.target.value)}
+              placeholder="Add a ministry, e.g. Worship Team"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  void addManagedMinistry()
+                }
+              }}
+            />
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => void addManagedMinistry()}
+            >
+              <Plus size={17} />
+              Add ministry
             </button>
           </div>
 
@@ -710,12 +1167,12 @@ export default function MemberManager() {
 
                           <button
                             className="delete-icon-button"
-                            onClick={() => void deleteMinistry(ministry)}
-                            aria-label={`Delete ${ministry.name}`}
-                            title="Delete ministry"
-                          >
-                            <X size={18} />
-                          </button>
+                              onClick={() => void deleteMinistry(ministry)}
+                              aria-label={`Delete ${ministry.name}`}
+                              title="Delete ministry"
+                            >
+                              <Trash2 size={18} />
+                            </button>
                         </>
                       )}
                     </div>
@@ -728,7 +1185,7 @@ export default function MemberManager() {
       )}
 
       {showForm && (
-        <section className="form-card member-editor-card">
+        <section className="form-card member-editor-card" ref={memberFormRef}>
           <div className="member-editor-heading">
             <div>
               <p className="eyebrow">
@@ -753,7 +1210,9 @@ export default function MemberManager() {
 
           <form className="member-form" onSubmit={handleSave}>
             <label>
-              First name
+              <span className="field-label-text">
+                First name <span className="required-mark">*</span>
+              </span>
               <input
                 value={form.firstName}
                 onChange={(event) =>
@@ -764,7 +1223,9 @@ export default function MemberManager() {
             </label>
 
             <label>
-              Last name
+              <span className="field-label-text">
+                Last name <span className="required-mark">*</span>
+              </span>
               <input
                 value={form.lastName}
                 onChange={(event) =>
@@ -775,23 +1236,47 @@ export default function MemberManager() {
             </label>
 
             <label>
-              Email <span>Optional</span>
+              <span className="contact-field-label">
+                <span>Email</span>
+                {contactFieldErrors.email && (
+                  <span className="field-error">{contactFieldErrors.email}</span>
+                )}
+              </span>
               <input
                 type="email"
                 value={form.email}
-                onChange={(event) =>
+                onChange={(event) => {
                   setForm({ ...form, email: event.target.value })
-                }
+                  setContactFieldErrors((current) => ({
+                    ...current,
+                    email: undefined,
+                  }))
+                }}
+                className={contactFieldErrors.email ? 'input-error' : ''}
+                aria-invalid={Boolean(contactFieldErrors.email)}
               />
             </label>
 
             <label>
-              Mobile number <span>Optional</span>
+              <span className="contact-field-label">
+                <span>Mobile #</span>
+                {contactFieldErrors.mobile && (
+                  <span className="field-error">{contactFieldErrors.mobile}</span>
+                )}
+              </span>
               <input
                 value={form.mobile}
-                onChange={(event) =>
+                onChange={(event) => {
                   setForm({ ...form, mobile: event.target.value })
-                }
+                  setContactFieldErrors((current) => ({
+                    ...current,
+                    mobile: undefined,
+                  }))
+                }}
+                inputMode="numeric"
+                maxLength={11}
+                className={contactFieldErrors.mobile ? 'input-error' : ''}
+                aria-invalid={Boolean(contactFieldErrors.mobile)}
               />
             </label>
 
@@ -821,6 +1306,22 @@ export default function MemberManager() {
                 <strong>{form.status === 'active' ? 'Active' : 'Inactive'}</strong>
               </label>
             </section>
+
+            <label className="wide-field admin-note-field">
+              <span className="field-label-text">Admin note</span>
+              <span className="admin-note-help">
+                Private to admins. This will not appear on the member ID.
+              </span>
+              <textarea
+                value={form.adminNote}
+                onChange={(event) =>
+                  setForm({ ...form, adminNote: event.target.value })
+                }
+                placeholder="Add a helpful reminder about this member"
+                rows={3}
+                maxLength={1000}
+              />
+            </label>
 
             <section className="ministry-picker wide-field">
               <div className="ministry-picker-heading">
@@ -882,6 +1383,20 @@ export default function MemberManager() {
             {message && <p className="error-message wide-field">{message}</p>}
 
             <div className="form-actions wide-field">
+              {editingMember && (
+                <button
+                  type="button"
+                  className="danger-button form-delete-button"
+                  onClick={() => {
+                    setDeleteConfirmation('')
+                    setDeleteTarget(editingMember)
+                  }}
+                >
+                  <Trash2 size={18} />
+                  Delete member
+                </button>
+              )}
+
               <button
                 type="button"
                 className="secondary-button"
@@ -929,6 +1444,7 @@ export default function MemberManager() {
                 onChange={(event) => setMinistryFilter(event.target.value)}
               >
                 <option value="all">All ministries</option>
+                <option value="none">No ministry</option>
                 {ministries.map((ministry) => (
                   <option key={ministry.id} value={ministry.id}>
                     {ministry.name}
@@ -936,8 +1452,74 @@ export default function MemberManager() {
                 ))}
               </select>
             </label>
+
+            <label className="filter-select">
+              <Star size={17} />
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+              >
+                <option value="all">All members</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="vip">VIP</option>
+              </select>
+            </label>
+
+            <button
+              className={`bulk-mode-button ${bulkMode ? 'is-active' : ''}`}
+              type="button"
+              onClick={() => (bulkMode ? closeBulkMode() : setBulkMode(true))}
+            >
+              <ListChecks size={17} />
+              {bulkMode ? 'Done' : 'Bulk actions'}
+            </button>
           </div>
         </div>
+
+        {bulkMode && (
+          <div className="bulk-action-bar">
+            <span className="bulk-selection-count">
+              {selectedMemberIds.length === 0
+                ? 'Select members to begin'
+                : `${selectedMemberIds.length} selected`}
+            </span>
+            {selectedMemberIds.length > 0 && (
+              <>
+                <button
+                  className="bulk-action-button"
+                  disabled={bulkSaving}
+                  onClick={() => void updateSelectedMembersStatus('active')}
+                >
+                  Mark active
+                </button>
+                <button
+                  className="bulk-action-button"
+                  disabled={bulkSaving}
+                  onClick={() => void updateSelectedMembersStatus('inactive')}
+                >
+                  Mark inactive
+                </button>
+                <button
+                  className="bulk-delete-button"
+                  disabled={bulkSaving}
+                  onClick={() => {
+                    setBulkDeleteConfirmation('')
+                    setShowBulkDelete(true)
+                  }}
+                >
+                  Delete selected
+                </button>
+                <button
+                  className="text-button"
+                  onClick={() => setSelectedMemberIds([])}
+                >
+                  Clear
+                </button>
+              </>
+            )}
+          </div>
+        )}
 
         {loading ? (
           <div className="empty-state">
@@ -950,8 +1532,24 @@ export default function MemberManager() {
             <p>Try another search or add a new member.</p>
           </div>
         ) : (
-          <div className="member-list">
+          <div className={`member-list ${bulkMode ? 'is-bulk-mode' : ''}`}>
             <div className="member-list-heading">
+              {bulkMode && (
+                <label className="member-select-control" title="Select visible members">
+                  <input
+                    type="checkbox"
+                    checked={
+                      visibleMembers.length > 0 &&
+                      visibleMembers.every((member) =>
+                        selectedMemberIds.includes(member.id),
+                      )
+                    }
+                    onChange={toggleVisibleMemberSelection}
+                    aria-label="Select visible members"
+                  />
+                </label>
+              )}
+
               <span />
 
               <button
@@ -967,31 +1565,69 @@ export default function MemberManager() {
               </button>
 
               <span>Ministries</span>
-
-                           <span>Status</span>
-
+              <span>Status</span>
               <span>Actions</span>
             </div>
 
             {visibleMembers.map((member) => {
               const memberMinistries = getMemberMinistries(member)
-              const displayedMinistries = memberMinistries.slice(0, 2)
-              const remainingMinistryCount =
-                memberMinistries.length - displayedMinistries.length
-              const remainingMinistries = memberMinistries
-                .slice(2)
-                .map((ministry) => ministry.name)
-                .join(', ')
+                const displayedMinistries = memberMinistries.slice(0, 2)
+                const remainingMinistryCount =
+                  memberMinistries.length - displayedMinistries.length
 
-              return (
+                return (
                 <article className="member-row member-management-row" key={member.id}>
+                  {bulkMode && (
+                    <label className="member-select-control">
+                      <input
+                        type="checkbox"
+                        checked={selectedMemberIds.includes(member.id)}
+                        onChange={() => toggleMemberSelection(member.id)}
+                        aria-label={`Select ${memberName(member)}`}
+                      />
+                    </label>
+                  )}
+
                   <div className="avatar">
                     {member.first_name[0]}
                     {member.last_name[0]}
                   </div>
 
                   <div className="member-name">
-                    <strong>{memberName(member)}</strong>
+                    <div className="member-name-title">
+                      <button
+                        className={`member-star-button ${
+                          member.is_starred ? 'is-starred' : ''
+                        }`}
+                        onClick={() => void toggleStar(member)}
+                        aria-label={
+                          member.is_starred
+                            ? `Remove VIP status from ${memberName(member)}`
+                            : `Mark ${memberName(member)} as VIP`
+                        }
+                        title={
+                          member.is_starred
+                            ? 'Remove VIP pin'
+                            : 'Pin as VIP member'
+                        }
+                      >
+                        <Star
+                          size={18}
+                          fill={member.is_starred ? 'currentColor' : 'none'}
+                        />
+                      </button>
+                      <strong>{memberName(member)}</strong>
+                      {member.admin_note?.trim() && (
+                        <button
+                          className="member-note-button"
+                          onClick={() => setNoteMember(member)}
+                          aria-label={`View admin note for ${memberName(member)}`}
+                          title="View admin note"
+                        >
+                          <StickyNote size={17} />
+                        </button>
+                      )}
+                    </div>
                     <span>
                       {member.member_number} · Added {formatDate(member.created_at)}
                     </span>
@@ -1015,15 +1651,14 @@ export default function MemberManager() {
                         {remainingMinistryCount > 0 && (
                           <span
                             className="more-ministries-label"
-                            title={remainingMinistries}
                           >
                             +{remainingMinistryCount} more
                           </span>
                         )}
                       </>
-                    ) : (
-                      <span className="no-ministry">No ministry</span>
-                    )}
+                      ) : (
+                        <span className="no-ministry">None</span>
+                      )}
                   </div>
 
                   <span className={`status ${member.status}`}>
@@ -1037,6 +1672,15 @@ export default function MemberManager() {
                     >
                       <QrCode size={17} />
                       QR
+                    </button>
+
+                    <button
+                      className="edit-icon-button member-view-button"
+                      onClick={() => void openMemberDetails(member)}
+                      aria-label={`View ${memberName(member)}`}
+                      title={`View ${memberName(member)}`}
+                    >
+                      <Eye size={18} />
                     </button>
 
                     <button
@@ -1093,11 +1737,319 @@ export default function MemberManager() {
 
             <button
               className="primary-button full-width"
-              onClick={() => downloadQrCode(selectedMember)}
+              onClick={() => void downloadMemberId(selectedMember)}
             >
               <Download size={18} />
-              Download QR code
+              Download member ID
             </button>
+          </section>
+        </div>
+      )}
+
+      {detailMember && (
+        <div className="modal-backdrop" onMouseDown={() => setDetailMember(null)}>
+          <section
+            className="member-details-modal"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="member-details-heading">
+              <div className="avatar details-avatar">
+                {detailMember.first_name[0]}
+                {detailMember.last_name[0]}
+              </div>
+              <div>
+                <p className="eyebrow">Member details</p>
+                <h2>{memberName(detailMember)}</h2>
+                <p className="muted">{detailMember.member_number}</p>
+              </div>
+              <div className="member-details-actions">
+                <button
+                  className="secondary-button details-edit-button"
+                  onClick={() => {
+                    setDetailMember(null)
+                    openEditForm(detailMember)
+                  }}
+                >
+                  <Pencil size={17} />
+                  Edit
+                </button>
+                <button
+                  className="icon-button details-close-button"
+                  onClick={() => setDetailMember(null)}
+                  aria-label="Close member details"
+                  title="Close details"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="member-details-grid">
+              <section className="member-details-section">
+                <h3>Contact</h3>
+                <dl className="member-details-list">
+                  <div>
+                    <dt>Email</dt>
+                    <dd>{detailMember.email || 'Not provided'}</dd>
+                  </div>
+                  <div>
+                    <dt>Mobile #</dt>
+                    <dd>{detailMember.mobile || 'Not provided'}</dd>
+                  </div>
+                  <div>
+                    <dt>Registered</dt>
+                    <dd>{formatDate(detailMember.created_at)}</dd>
+                  </div>
+                </dl>
+              </section>
+
+              <section className="member-details-section qr-details-section">
+                <h3>Private QR code</h3>
+                <div className="details-qr-frame">
+                  <QRCodeSVG
+                    id="member-details-qr-code"
+                    value={`att:${detailMember.qr_token}`}
+                    size={142}
+                    level="M"
+                    includeMargin
+                  />
+                </div>
+                <button
+                  className="text-button details-download-button"
+                  onClick={() =>
+                    void downloadMemberId(
+                      detailMember,
+                      'member-details-qr-code',
+                    )
+                  }
+                >
+                  <Download size={16} />
+                  Download member ID
+                </button>
+              </section>
+            </div>
+
+            <section className="member-details-section">
+              <h3>Ministries</h3>
+              <div className="details-ministry-list">
+                {getMemberMinistries(detailMember).length === 0 ? (
+                  <span className="no-ministry">No ministry assigned</span>
+                ) : (
+                  getMemberMinistries(detailMember).map((ministry) => (
+                    <span className="details-ministry-pill" key={ministry.id}>
+                      {ministry.name}
+                    </span>
+                  ))
+                )}
+              </div>
+            </section>
+
+            {detailMember.admin_note?.trim() && (
+              <section className="member-details-section admin-note-details">
+                <div className="admin-note-heading">
+                  <div>
+                    <h3>Admin note</h3>
+                    <p className="muted">Private to administrators.</p>
+                  </div>
+                  <button
+                    className="edit-icon-button"
+                    onClick={() => {
+                      setDetailMember(null)
+                      openEditForm(detailMember)
+                    }}
+                    aria-label={`Edit admin note for ${memberName(detailMember)}`}
+                    title="Edit admin note"
+                  >
+                    <Pencil size={17} />
+                  </button>
+                </div>
+                <p className="admin-note-copy">{detailMember.admin_note}</p>
+              </section>
+            )}
+
+            <section className="member-details-section attendance-summary-section">
+              <div className="attendance-summary-heading">
+                <div>
+                  <h3>Attendance</h3>
+                  <p className="muted">Check-in history for this member.</p>
+                </div>
+                <strong className="attendance-total">
+                  {detailsLoading ? '…' : attendanceTotal} total
+                </strong>
+              </div>
+
+              {detailsLoading ? (
+                <p className="muted">Loading attendance…</p>
+              ) : memberAttendance.length === 0 ? (
+                <p className="muted">No attendance recorded yet.</p>
+              ) : (
+                <>
+                  <div className="attendance-table">
+                    <div className="attendance-table-heading">
+                      <span>Event</span>
+                      <span>Checked in</span>
+                      <span>Status</span>
+                    </div>
+                    {memberAttendance.map((record) => (
+                      <div className="attendance-table-row" key={record.id}>
+                        <strong>{record.events?.name ?? 'Event'}</strong>
+                        <span>{formatDateTime(record.checked_in_at)}</span>
+                        <span className="attendance-record-status">{record.status}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {attendanceTotal > attendancePageSize && (
+                    <div className="attendance-pagination">
+                      <button
+                        className="text-button"
+                        disabled={attendancePage === 1}
+                        onClick={() => void goToAttendancePage(attendancePage - 1)}
+                      >
+                        Previous
+                      </button>
+                      <span>
+                        Page {attendancePage} of{' '}
+                        {Math.ceil(attendanceTotal / attendancePageSize)}
+                      </span>
+                      <button
+                        className="text-button"
+                        disabled={
+                          attendancePage >=
+                          Math.ceil(attendanceTotal / attendancePageSize)
+                        }
+                        onClick={() => void goToAttendancePage(attendancePage + 1)}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </section>
+          </section>
+        </div>
+      )}
+
+      {noteMember && (
+        <div className="modal-backdrop" onMouseDown={() => setNoteMember(null)}>
+          <section
+            className="member-note-modal"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="close-button"
+              onClick={() => setNoteMember(null)}
+              aria-label="Close admin note"
+            >
+              <X size={20} />
+            </button>
+            <p className="eyebrow">Private admin note</p>
+            <h2>{memberName(noteMember)}</h2>
+            <p className="admin-note-copy">{noteMember.admin_note}</p>
+            <div className="confirmation-actions">
+              <button className="secondary-button" onClick={() => setNoteMember(null)}>
+                Close
+              </button>
+              <button
+                className="primary-button"
+                onClick={() => {
+                  setNoteMember(null)
+                  openEditForm(noteMember)
+                }}
+              >
+                <Pencil size={18} />
+                Edit note
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {deleteTarget && (
+        <div className="modal-backdrop" onMouseDown={() => setDeleteTarget(null)}>
+          <section
+            className="confirmation-modal"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="close-button"
+              onClick={() => setDeleteTarget(null)}
+              aria-label="Close delete confirmation"
+            >
+              <X size={20} />
+            </button>
+            <p className="eyebrow">Permanent action</p>
+            <h2>Delete {memberName(deleteTarget)}?</h2>
+            <p className="muted">
+              This permanently removes the member and their related attendance
+              records. Type the member’s full name to confirm.
+            </p>
+            <label className="confirmation-input">
+              Type <strong>{memberName(deleteTarget)}</strong>
+              <input
+                value={deleteConfirmation}
+                onChange={(event) => setDeleteConfirmation(event.target.value)}
+                autoFocus
+              />
+            </label>
+            <div className="confirmation-actions">
+              <button className="secondary-button" onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </button>
+              <button
+                className="danger-button"
+                disabled={deleteConfirmation.trim() !== memberName(deleteTarget) || saving}
+                onClick={() => void deleteMember()}
+              >
+                <Trash2 size={18} />
+                {saving ? 'Deleting…' : 'Permanently delete'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {showBulkDelete && (
+        <div className="modal-backdrop" onMouseDown={() => setShowBulkDelete(false)}>
+          <section
+            className="confirmation-modal"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="close-button"
+              onClick={() => setShowBulkDelete(false)}
+              aria-label="Close bulk delete confirmation"
+            >
+              <X size={20} />
+            </button>
+            <p className="eyebrow">Permanent bulk action</p>
+            <h2>Delete {selectedMemberIds.length} members?</h2>
+            <p className="muted">
+              This removes every selected member and their related attendance
+              records. To continue, type the exact phrase below.
+            </p>
+            <label className="confirmation-input">
+              Type <strong>{bulkDeletePhrase}</strong>
+              <input
+                value={bulkDeleteConfirmation}
+                onChange={(event) => setBulkDeleteConfirmation(event.target.value)}
+                autoFocus
+              />
+            </label>
+            <div className="confirmation-actions">
+              <button className="secondary-button" onClick={() => setShowBulkDelete(false)}>
+                Cancel
+              </button>
+              <button
+                className="danger-button"
+                disabled={bulkDeleteConfirmation.trim() !== bulkDeletePhrase || bulkSaving}
+                onClick={() => void deleteSelectedMembers()}
+              >
+                <Trash2 size={18} />
+                {bulkSaving ? 'Deleting…' : 'Permanently delete'}
+              </button>
+            </div>
           </section>
         </div>
       )}
