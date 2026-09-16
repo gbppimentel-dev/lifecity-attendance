@@ -24,6 +24,7 @@ create table public.events (
   starts_at timestamptz not null,
   ends_at timestamptz,
   location text,
+  is_sunday_service boolean not null default false,
   created_at timestamptz not null default now()
 );
 
