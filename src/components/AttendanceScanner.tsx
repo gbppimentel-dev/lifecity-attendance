@@ -1,6 +1,6 @@
-// Replacement ID: scanner-copy-cleanup-v1
+// Replacement ID: scanner-recent-and-kiosk-v1
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { CheckCircle2, ScanLine, Search, TriangleAlert, X } from 'lucide-react'
+import { CheckCircle2, Expand, Flashlight, FlashlightOff, Minimize, ScanLine, Search, SwitchCamera, TriangleAlert, X } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../lib/supabase'
 
@@ -31,6 +31,16 @@ type SearchMember = {
   status: string
 }
 
+type CameraDevice = {
+  id: string
+  label: string
+}
+
+type RecentCheckIn = {
+  memberName: string
+  time: string
+}
+
 /*
   This shared queue prevents React Strict Mode from starting a second
   camera instance before the first one has completely stopped.
@@ -44,7 +54,15 @@ export default function AttendanceScanner({ event }: Props) {
   const [selectedMember, setSelectedMember] = useState<SearchMember | null>(null)
   const [memberLoadError, setMemberLoadError] = useState('')
   const [cameraError, setCameraError] = useState('')
+  const [cameras, setCameras] = useState<CameraDevice[]>([])
+  const [cameraId, setCameraId] = useState('')
+  const [torchSupported, setTorchSupported] = useState(false)
+  const [torchOn, setTorchOn] = useState(false)
+  const [recentCheckIns, setRecentCheckIns] = useState<RecentCheckIn[]>([])
+  const [isKioskMode, setIsKioskMode] = useState(false)
   const processingRef = useRef(false)
+  const scannerRef = useRef<Html5Qrcode | null>(null)
+  const scannerLayoutRef = useRef<HTMLElement | null>(null)
 
   const matchedMembers = useMemo(() => {
     const query = memberSearch.trim().toLowerCase()
@@ -64,6 +82,44 @@ export default function AttendanceScanner({ event }: Props) {
       })
       .slice(0, 8)
   }, [memberSearch, members, selectedMember])
+
+  function notifySuccessfulCheckIn() {
+    if ('vibrate' in navigator) {
+      navigator.vibrate?.([70, 45, 90])
+    }
+
+    const AudioContextConstructor = window.AudioContext
+      ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+
+    if (!AudioContextConstructor) return
+
+    try {
+      const audioContext = new AudioContextConstructor()
+      const oscillator = audioContext.createOscillator()
+      const gain = audioContext.createGain()
+
+      oscillator.type = 'sine'
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime)
+      gain.gain.setValueAtTime(0.0001, audioContext.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.12, audioContext.currentTime + 0.015)
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.14)
+
+      oscillator.connect(gain)
+      gain.connect(audioContext.destination)
+      oscillator.start()
+      oscillator.stop(audioContext.currentTime + 0.15)
+      oscillator.addEventListener('ended', () => void audioContext.close())
+    } catch {
+      // Audio feedback is an enhancement; a successful check-in must still continue.
+    }
+  }
+
+  function addRecentCheckIn(memberName: string, time: string) {
+    setRecentCheckIns((current) => [
+      { memberName, time },
+      ...current,
+    ].slice(0, 2))
+  }
 
   async function recordMemberAttendance(member: Pick<SearchMember, 'id' | 'first_name' | 'last_name' | 'status'>) {
     if (!event) {
@@ -103,15 +159,19 @@ export default function AttendanceScanner({ event }: Props) {
         message: attendanceError.message,
       })
     } else {
+      const checkInTime = new Intl.DateTimeFormat('en-PH', {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+      }).format(new Date())
+
+      notifySuccessfulCheckIn()
+      addRecentCheckIn(memberName, checkInTime)
       setResult({
         type: 'success',
         memberName,
         message: 'Attendance recorded successfully.',
-        time: new Intl.DateTimeFormat('en-PH', {
-          hour: 'numeric',
-          minute: '2-digit',
-          second: '2-digit',
-        }).format(new Date()),
+        time: checkInTime,
       })
     }
 
@@ -178,6 +238,10 @@ export default function AttendanceScanner({ event }: Props) {
   }, [event?.id])
 
   useEffect(() => {
+    setRecentCheckIns([])
+  }, [event?.id])
+
+  useEffect(() => {
     if (!event) return
 
     let disposed = false
@@ -194,6 +258,8 @@ export default function AttendanceScanner({ event }: Props) {
 
       reader.replaceChildren()
       setCameraError('')
+      setTorchSupported(false)
+      setTorchOn(false)
 
       scanner = new Html5Qrcode('attendance-reader', {
         verbose: false,
@@ -201,7 +267,9 @@ export default function AttendanceScanner({ event }: Props) {
 
       try {
         await scanner.start(
-          { facingMode: 'environment' },
+          cameraId
+            ? { deviceId: { exact: cameraId } }
+            : { facingMode: 'environment' },
           {
             fps: 10,
             qrbox: { width: 250, height: 250 },
@@ -214,6 +282,14 @@ export default function AttendanceScanner({ event }: Props) {
             // Normal failed frames are ignored while the camera keeps scanning.
           },
         )
+
+        const availableCameras = await Html5Qrcode.getCameras()
+        if (!disposed) {
+          scannerRef.current = scanner
+          setCameras(availableCameras)
+          const capabilities = scanner.getRunningTrackCapabilities() as MediaTrackCapabilities & { torch?: boolean }
+          setTorchSupported(capabilities.torch === true)
+        }
       } catch {
         setCameraError(
           'Camera access was not available. Allow camera permission, or use member search below.',
@@ -229,6 +305,10 @@ export default function AttendanceScanner({ event }: Props) {
       scannerShutdown = scannerShutdown.then(async () => {
         if (!scanner) return
 
+        if (scannerRef.current === scanner) {
+          scannerRef.current = null
+        }
+
         try {
           await scanner.stop()
         } catch {
@@ -242,7 +322,54 @@ export default function AttendanceScanner({ event }: Props) {
         }
       })
     }
-  }, [event?.id])
+  }, [event?.id, cameraId])
+
+  useEffect(() => {
+    function updateKioskMode() {
+      setIsKioskMode(document.fullscreenElement === scannerLayoutRef.current)
+    }
+
+    document.addEventListener('fullscreenchange', updateKioskMode)
+    return () => document.removeEventListener('fullscreenchange', updateKioskMode)
+  }, [])
+
+  function switchCamera() {
+    if (cameras.length < 2) return
+
+    const currentIndex = Math.max(
+      cameras.findIndex((camera) => camera.id === cameraId),
+      0,
+    )
+    const nextCamera = cameras[(currentIndex + 1) % cameras.length]
+
+    setCameraError('')
+    setCameraId(nextCamera.id)
+  }
+
+  async function toggleTorch() {
+    if (!scannerRef.current || !torchSupported) return
+
+    try {
+      await scannerRef.current.applyVideoConstraints({
+        advanced: [{ torch: !torchOn }],
+      } as MediaTrackConstraints)
+      setTorchOn((current) => !current)
+    } catch {
+      setCameraError('The flashlight could not be changed on this camera.')
+    }
+  }
+
+  async function toggleKioskMode() {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen()
+      } else {
+        await scannerLayoutRef.current?.requestFullscreen()
+      }
+    } catch {
+      setCameraError('Full-screen mode could not be opened in this browser.')
+    }
+  }
 
   function submitMemberSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -267,19 +394,67 @@ export default function AttendanceScanner({ event }: Props) {
   }
 
   return (
-    <section className="scanner-layout">
+    <section ref={scannerLayoutRef} className={`scanner-layout${isKioskMode ? ' is-kiosk-mode' : ''}`}>
       <div className="scanner-camera-heading">
         <div>
           <p className="card-kicker">Camera scanner</p>
           <h2>Scan member QR</h2>
           <p>Hold the QR code inside the frame to check in automatically.</p>
         </div>
-        <span className="scanner-ready-status"><i />Ready</span>
+        <div className="scanner-camera-actions">
+          <button
+            type="button"
+            className={`scanner-camera-switch${isKioskMode ? ' is-active' : ''}`}
+            onClick={() => void toggleKioskMode()}
+            title={isKioskMode ? 'Exit kiosk mode' : 'Open kiosk mode'}
+          >
+            {isKioskMode ? <Minimize size={16} /> : <Expand size={16} />}
+            {isKioskMode ? 'Exit kiosk' : 'Kiosk mode'}
+          </button>
+          {torchSupported && (
+            <button
+              type="button"
+              className={`scanner-camera-switch${torchOn ? ' is-active' : ''}`}
+              onClick={() => void toggleTorch()}
+              title={torchOn ? 'Turn off flashlight' : 'Turn on flashlight'}
+              aria-pressed={torchOn}
+            >
+              {torchOn ? <FlashlightOff size={16} /> : <Flashlight size={16} />}
+              {torchOn ? 'Flash on' : 'Flash'}
+            </button>
+          )}
+          {cameras.length > 1 && (
+            <button
+              type="button"
+              className="scanner-camera-switch"
+              onClick={switchCamera}
+              title="Switch camera"
+            >
+              <SwitchCamera size={16} />
+              Switch camera
+            </button>
+          )}
+          <span className="scanner-ready-status"><i />Ready</span>
+        </div>
       </div>
 
       <div className="scanner-camera-stage">
         <div id="attendance-reader" className="scanner-reader" />
       </div>
+
+      {recentCheckIns.length > 0 && (
+        <div className="scanner-recent-checkins" aria-live="polite">
+          <span>Last checked in</span>
+          <div>
+            {recentCheckIns.map((checkIn, index) => (
+              <p key={`${checkIn.memberName}-${checkIn.time}-${index}`}>
+                <strong>{checkIn.memberName}</strong>
+                <small>{checkIn.time}</small>
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
 
       {cameraError && (
         <div className="scan-result error">

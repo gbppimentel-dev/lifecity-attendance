@@ -1,4 +1,4 @@
-// Replacement ID: scanner-copy-cleanup-v1
+// Replacement ID: services-title-action-v1
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CalendarDays,
@@ -133,6 +133,23 @@ export default function App() {
   useEffect(() => {
     if (userEmail) {
       void loadEvents()
+    }
+  }, [userEmail])
+
+  useEffect(() => {
+    if (!userEmail) return
+
+    const channel = supabase
+      .channel('service-checkin-count-refresh')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'attendance' },
+        () => void loadEvents(),
+      )
+      .subscribe()
+
+    return () => {
+      void supabase.removeChannel(channel)
     }
   }, [userEmail])
 
@@ -481,19 +498,27 @@ export default function App() {
             <div className="page-heading">
               <div>
                 <p className="eyebrow">Attendance setup</p>
-                <h1>Services</h1>
+                <h1 className="services-page-title">
+                  <button
+                    type="button"
+                    className={`services-title-action${showEventForm ? ' is-open' : ''}`}
+                    onClick={() => (showEventForm ? setShowEventForm(false) : openCreateService())}
+                    aria-expanded={showEventForm}
+                    aria-label={showEventForm ? 'Close service form' : 'Create a service'}
+                  >
+                    <span>Services</span>
+                    <span className="services-title-action-icon" aria-hidden="true">
+                      {showEventForm ? <X size={24} /> : <Plus size={25} />}
+                    </span>
+                    <span className="services-title-action-label">
+                      {showEventForm ? 'Close form' : 'Create service'}
+                    </span>
+                  </button>
+                </h1>
                 <p className="muted">
-                  Create an event before checking in members.
+                  Create and manage services before checking in members.
                 </p>
               </div>
-
-              <button
-                className="primary-button"
-                onClick={() => (showEventForm ? setShowEventForm(false) : openCreateService())}
-              >
-                <Plus size={18} />
-                {showEventForm ? 'Close form' : 'Create Event'}
-              </button>
             </div>
 
             {showEventForm && (
@@ -859,25 +884,33 @@ export default function App() {
                     : 'Select the service that should receive these check-ins.'}
                 </p>
               </div>
-              <label>
-                <select
-                  value={scannerEventId}
-                  onChange={(event) => setScannerEventId(event.target.value)}
-                  aria-label="Choose check-in service"
-                  title={selectedScannerEvent ? `${selectedScannerEvent.name} — ${eventDateTime(selectedScannerEvent.starts_at)}` : 'Choose a service'}
-                >
-                  <option value="">Choose an event</option>
+              <div className="scanner-picker-control">
+                <label>
+                  <select
+                    value={scannerEventId}
+                    onChange={(event) => setScannerEventId(event.target.value)}
+                    aria-label="Choose check-in service"
+                    title={selectedScannerEvent ? `${selectedScannerEvent.name} — ${eventDateTime(selectedScannerEvent.starts_at)}` : 'Choose a service'}
+                  >
+                    <option value="">Choose an event</option>
 
-                  {events.filter((event) => {
-                    const serviceState = getServiceState(event, currentTime)
-                    return serviceState.className === 'upcoming' || serviceState.className === 'in-progress'
-                  }).map((event) => (
-                    <option key={event.id} value={event.id}>
-                      {event.name} — {eventDateTime(event.starts_at)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                    {events.filter((event) => {
+                      const serviceState = getServiceState(event, currentTime)
+                      return serviceState.className === 'upcoming' || serviceState.className === 'in-progress'
+                    }).map((event) => (
+                      <option key={event.id} value={event.id}>
+                        {event.name} — {eventDateTime(event.starts_at)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                {selectedScannerEvent && (
+                  <p className="scanner-checkin-count">
+                    <i />
+                    {attendanceCounts[selectedScannerEvent.id] ?? 0} check-in{(attendanceCounts[selectedScannerEvent.id] ?? 0) === 1 ? '' : 's'} so far
+                  </p>
+                )}
+              </div>
             </section>
 
             <AttendanceScanner event={selectedScannerEvent} />

@@ -16126,3 +16126,307 @@ input:focus {
 .scanner-event-picker label {
   min-width: 0;
 }
+/* Active service check-in count — append to src/styles.css */
+.scanner-picker-control {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.scanner-picker-control > label {
+  min-width: 0;
+}
+
+.scanner-checkin-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: #5b7e78;
+  font-size: 0.76rem;
+  font-weight: 650;
+}
+
+.scanner-checkin-count i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #35a596;
+}
+/* Scanner service dropdown chevron alignment — append to src/styles.css */
+.scanner-picker-control > label {
+  position: relative;
+  display: block;
+}
+
+.scanner-picker-control > label select {
+  appearance: none;
+  padding-right: 38px;
+}
+
+.scanner-picker-control > label::after {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #4c6f6b;
+  border-bottom: 2px solid #4c6f6b;
+  content: '';
+  pointer-events: none;
+  transform: translateY(-65%) rotate(45deg);
+}
+/* Scan feedback and camera switching — append to src/styles.css */
+.scanner-camera-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.scanner-camera-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid #cfe0de;
+  border-radius: 9px;
+  color: #456a65;
+  background: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.scanner-camera-switch:hover {
+  border-color: #9acac2;
+  color: #107d75;
+  background: #f1faf8;
+}
+
+@media (max-width: 560px) {
+  .scanner-camera-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .scanner-camera-actions {
+    justify-content: flex-start;
+  }
+}
+/* Scanner flashlight state — append to src/styles.css */
+.scanner-camera-switch.is-active {
+  border-color: #137f76;
+  color: #fff;
+  background: #137f76;
+}
+
+.scanner-camera-switch.is-active:hover {
+  border-color: #0d665f;
+  color: #fff;
+  background: #0d665f;
+}
+/* Recent check-in reassurance and kiosk mode — append to src/styles.css */
+.scanner-recent-checkins {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 10px auto 0;
+  padding: 9px 12px;
+  width: min(100%, 620px);
+  border: 1px solid #dcebea;
+  border-radius: 10px;
+  color: #5a7974;
+  background: #fbfefd;
+}
+
+.scanner-recent-checkins > span {
+  color: #6d8984;
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.scanner-recent-checkins > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.scanner-recent-checkins p {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: center;
+  margin: 0;
+  padding: 4px 8px;
+  min-width: 0;
+  border-radius: 7px;
+  background: #edf7f5;
+  font-size: 0.78rem;
+}
+
+.scanner-recent-checkins strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scanner-recent-checkins small {
+  color: #78928e;
+  font-size: 0.71rem;
+  white-space: nowrap;
+}
+
+.scanner-layout:fullscreen {
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 32px;
+  min-width: 100%;
+  min-height: 100%;
+  background: #f5faf9;
+}
+
+.scanner-layout:fullscreen .scanner-camera-stage,
+.scanner-layout:fullscreen .scanner-recent-checkins,
+.scanner-layout:fullscreen .manual-checkin-card {
+  width: min(100%, 760px);
+}
+
+@media (max-width: 560px) {
+  .scanner-recent-checkins {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .scanner-recent-checkins > div {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .scanner-recent-checkins p {
+    flex: 1;
+  }
+
+  .scanner-layout:fullscreen {
+    padding: 20px 16px;
+  }
+}
+/* Services title action — append to src/styles.css */
+.services-page-title {
+  margin-bottom: 0;
+}
+
+.services-title-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  line-height: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.services-title-action-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  color: #fff;
+  background: #167f76;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.services-title-action-label {
+  max-width: 0;
+  overflow: hidden;
+  color: #167f76;
+  font-size: 0.85rem;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-7px);
+  transition: max-width 180ms ease, opacity 120ms ease, transform 180ms ease;
+}
+
+.services-title-action:hover .services-title-action-icon,
+.services-title-action:focus-visible .services-title-action-icon {
+  background: #0e685f;
+  transform: translateY(-2px) rotate(5deg);
+}
+
+.services-title-action:hover .services-title-action-label,
+.services-title-action:focus-visible .services-title-action-label {
+  max-width: 110px;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.services-title-action.is-open .services-title-action-icon {
+  background: #66827e;
+}
+
+.services-title-action:focus-visible {
+  outline: 3px solid rgba(22, 127, 118, 0.22);
+  outline-offset: 7px;
+  border-radius: 12px;
+}
+
+@media (max-width: 560px) {
+  .services-title-action-icon {
+    width: 33px;
+    height: 33px;
+    border-radius: 10px;
+  }
+}
+/* Refined Services title action — append after the previous title-action CSS */
+.services-title-action {
+  gap: 11px;
+}
+
+.services-title-action-icon {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #b9ddd7;
+  border-radius: 11px;
+  color: #167f76;
+  background: #e8f6f3;
+}
+
+.services-title-action-label {
+  display: none;
+}
+
+.services-title-action:hover .services-title-action-icon,
+.services-title-action:focus-visible .services-title-action-icon {
+  border-color: #8ccbc2;
+  color: #0e685f;
+  background: #dcf1ed;
+  transform: translateY(-2px);
+}
+
+.services-title-action.is-open .services-title-action-icon {
+  border-color: #c9dcda;
+  color: #56736f;
+  background: #f0f6f5;
+}
+
+@media (max-width: 560px) {
+  .services-title-action-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+}
