@@ -1,3 +1,4 @@
+// Replacement ID: member-branches-v1
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Check,
@@ -26,6 +27,11 @@ type Ministry = {
   name: string
 }
 
+type Branch = {
+  id: string
+  name: string
+}
+
 type Member = {
   id: string
   member_number: string
@@ -42,6 +48,10 @@ type Member = {
     ministry_id: string
     ministries: Ministry | null
   }[]
+  member_branches: {
+    branch_id: string
+    branches: Branch | null
+  }[]
 }
 
 type MemberForm = {
@@ -51,6 +61,7 @@ type MemberForm = {
   mobile: string
   status: 'active' | 'inactive'
   ministryIds: string[]
+  branchIds: string[]
   adminNote: string
 }
 
@@ -82,6 +93,7 @@ const emptyForm: MemberForm = {
   mobile: '',
   status: 'active',
   ministryIds: [],
+  branchIds: [],
   adminNote: '',
 }
 
@@ -120,6 +132,13 @@ function getMemberMinistries(member: Member) {
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
+function getMemberBranches(member: Member) {
+  return (member.member_branches ?? [])
+    .map((item) => item.branches)
+    .filter((branch): branch is Branch => Boolean(branch))
+    .sort((a, b) => a.name.localeCompare(b.name))
+}
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('en-PH', {
     timeZone: 'Asia/Manila',
@@ -143,8 +162,10 @@ function formatDateTime(value: string) {
 export default function MemberManager() {
   const [members, setMembers] = useState<Member[]>([])
   const [ministries, setMinistries] = useState<Ministry[]>([])
+  const [branches, setBranches] = useState<Branch[]>([])
   const [search, setSearch] = useState('')
   const [ministryFilter, setMinistryFilter] = useState('all')
+  const [branchFilter, setBranchFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState<SortOption>('name-asc')
   const [message, setMessage] = useState('')
@@ -154,6 +175,7 @@ export default function MemberManager() {
   const [showImport, setShowImport] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [showMinistryManager, setShowMinistryManager] = useState(false)
+  const [showBranchManager, setShowBranchManager] = useState(false)
   const [editingMember, setEditingMember] = useState<Member | null>(null)
   const [selectedMember, setSelectedMember] = useState<Member | null>(null)
   const [detailMember, setDetailMember] = useState<Member | null>(null)
@@ -166,11 +188,17 @@ export default function MemberManager() {
   const [contactFieldErrors, setContactFieldErrors] =
     useState<ContactFieldErrors>({})
   const [newMinistryName, setNewMinistryName] = useState('')
+  const [newBranchName, setNewBranchName] = useState('')
   const [newManagedMinistryName, setNewManagedMinistryName] = useState('')
+  const [newManagedBranchName, setNewManagedBranchName] = useState('')
   const [renamingMinistryId, setRenamingMinistryId] = useState('')
   const [renameValue, setRenameValue] = useState('')
   const [ministryMessage, setMinistryMessage] = useState('')
   const [blockedMinistryId, setBlockedMinistryId] = useState('')
+  const [renamingBranchId, setRenamingBranchId] = useState('')
+  const [branchRenameValue, setBranchRenameValue] = useState('')
+  const [branchMessage, setBranchMessage] = useState('')
+  const [blockedBranchId, setBlockedBranchId] = useState('')
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([])
   const [deleteTarget, setDeleteTarget] = useState<Member | null>(null)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
@@ -181,6 +209,7 @@ export default function MemberManager() {
 
   const importRef = useRef<HTMLDivElement | null>(null)
   const ministryManagerRef = useRef<HTMLElement | null>(null)
+  const branchManagerRef = useRef<HTMLElement | null>(null)
   const memberFormRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -201,7 +230,7 @@ export default function MemberManager() {
   async function loadData() {
     setLoading(true)
 
-    const [membersResult, ministriesResult] = await Promise.all([
+    const [membersResult, ministriesResult, branchesResult] = await Promise.all([
       supabase
         .from('members')
         .select(`
@@ -222,10 +251,18 @@ export default function MemberManager() {
               id,
               name
             )
+          ),
+          member_branches (
+            branch_id,
+            branches (
+              id,
+              name
+            )
           )
         `)
         .order('created_at', { ascending: false }),
       supabase.from('ministries').select('id, name').order('name'),
+      supabase.from('branches').select('id, name').order('name'),
     ])
 
     if (membersResult.error) {
@@ -240,6 +277,12 @@ export default function MemberManager() {
       setMinistries((ministriesResult.data ?? []) as Ministry[])
     }
 
+    if (branchesResult.error) {
+      setMessage(branchesResult.error.message)
+    } else {
+      setBranches((branchesResult.data ?? []) as Branch[])
+    }
+
     setLoading(false)
   }
 
@@ -247,8 +290,10 @@ export default function MemberManager() {
     setMessage('')
     setContactFieldErrors({})
     setEditingMember(null)
-    setForm(emptyForm)
+    const defaultBranch = branches.find((branch) => branch.name === 'LifeCity - Main')
+    setForm({ ...emptyForm, branchIds: defaultBranch ? [defaultBranch.id] : [] })
     setNewMinistryName('')
+    setNewBranchName('')
     setShowForm(true)
     scrollToSection(memberFormRef)
   }
@@ -262,11 +307,13 @@ export default function MemberManager() {
       lastName: member.last_name,
       email: member.email ?? '',
       mobile: member.mobile ?? '',
-      status: member.status,
+          status: member.status,
           ministryIds: getMemberMinistries(member).map((ministry) => ministry.id),
+          branchIds: getMemberBranches(member).map((branch) => branch.id),
           adminNote: member.admin_note ?? '',
     })
     setNewMinistryName('')
+    setNewBranchName('')
     setShowForm(true)
     scrollToSection(memberFormRef)
   }
@@ -276,6 +323,7 @@ export default function MemberManager() {
     setEditingMember(null)
     setForm(emptyForm)
     setNewMinistryName('')
+    setNewBranchName('')
     setMessage('')
     setContactFieldErrors({})
   }
@@ -300,12 +348,28 @@ export default function MemberManager() {
     }
   }
 
+  function toggleBranchManager() {
+    const nextOpen = !showBranchManager
+    setShowBranchManager(nextOpen)
+
+    if (nextOpen) scrollToSection(branchManagerRef)
+  }
+
   function toggleMinistry(ministryId: string) {
     setForm((current) => ({
       ...current,
       ministryIds: current.ministryIds.includes(ministryId)
         ? current.ministryIds.filter((id) => id !== ministryId)
         : [...current.ministryIds, ministryId],
+    }))
+  }
+
+  function toggleBranch(branchId: string) {
+    setForm((current) => ({
+      ...current,
+      branchIds: current.branchIds.includes(branchId)
+        ? current.branchIds.filter((id) => id !== branchId)
+        : [...current.branchIds, branchId],
     }))
   }
 
@@ -357,6 +421,36 @@ export default function MemberManager() {
     setNewMinistryName('')
   }
 
+  async function addBranch() {
+    const name = newBranchName.trim()
+    if (!name) return
+
+    const existing = branches.find((branch) => branch.name.toLowerCase() === name.toLowerCase())
+    if (existing) {
+      if (!form.branchIds.includes(existing.id)) {
+        setForm((current) => ({ ...current, branchIds: [...current.branchIds, existing.id] }))
+      }
+      setNewBranchName('')
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('branches')
+      .insert({ name })
+      .select('id, name')
+      .single()
+
+    if (error) {
+      setMessage(error.code === '23505' ? 'That branch already exists.' : error.message)
+      return
+    }
+
+    const branch = data as Branch
+    setBranches((current) => [...current, branch].sort((a, b) => a.name.localeCompare(b.name)))
+    setForm((current) => ({ ...current, branchIds: [...current.branchIds, branch.id] }))
+    setNewBranchName('')
+  }
+
   async function addManagedMinistry() {
     const name = newManagedMinistryName.trim()
 
@@ -392,6 +486,32 @@ export default function MemberManager() {
     )
     setNewManagedMinistryName('')
     setMinistryMessage(`${ministry.name} was added.`)
+  }
+
+  async function addManagedBranch() {
+    const name = newManagedBranchName.trim()
+    if (!name) return
+
+    if (branches.some((branch) => branch.name.toLowerCase() === name.toLowerCase())) {
+      setBranchMessage('A branch with that name already exists.')
+      return
+    }
+
+    const { data, error } = await supabase
+      .from('branches')
+      .insert({ name })
+      .select('id, name')
+      .single()
+
+    if (error) {
+      setBranchMessage(error.code === '23505' ? 'A branch with that name already exists.' : error.message)
+      return
+    }
+
+    const branch = data as Branch
+    setBranches((current) => [...current, branch].sort((a, b) => a.name.localeCompare(b.name)))
+    setNewManagedBranchName('')
+    setBranchMessage(`${branch.name} was added.`)
   }
 
   async function checkForDuplicates() {
@@ -448,10 +568,30 @@ export default function MemberManager() {
     return insertError
   }
 
+  async function saveMemberBranches(memberId: string) {
+    const { error: deleteError } = await supabase
+      .from('member_branches')
+      .delete()
+      .eq('member_id', memberId)
+
+    if (deleteError) return deleteError
+
+    const { error: insertError } = await supabase
+      .from('member_branches')
+      .insert(form.branchIds.map((branchId) => ({ member_id: memberId, branch_id: branchId })))
+
+    return insertError
+  }
+
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setMessage('')
     setContactFieldErrors({})
+
+    if (form.branchIds.length === 0) {
+      setMessage('Choose at least one branch before saving this member.')
+      return
+    }
 
     const email = form.email.trim().toLowerCase()
     const enteredMobile = form.mobile.trim()
@@ -536,6 +676,14 @@ export default function MemberManager() {
 
     if (ministryError) {
       setMessage(ministryError.message)
+      setSaving(false)
+      return
+    }
+
+    const branchError = await saveMemberBranches(memberId)
+
+    if (branchError) {
+      setMessage(branchError.message)
       setSaving(false)
       return
     }
@@ -716,6 +864,12 @@ export default function MemberManager() {
     ).length
   }
 
+  function branchMemberCount(branchId: string) {
+    return members.filter((member) =>
+      getMemberBranches(member).some((branch) => branch.id === branchId),
+    ).length
+  }
+
   function beginRename(ministry: Ministry) {
     setMinistryMessage('')
     setBlockedMinistryId('')
@@ -794,6 +948,59 @@ export default function MemberManager() {
     setShowMinistryManager(false)
     setBlockedMinistryId('')
     setMinistryMessage('')
+  }
+
+  function beginBranchRename(branch: Branch) {
+    setBranchMessage('')
+    setBlockedBranchId('')
+    setRenamingBranchId(branch.id)
+    setBranchRenameValue(branch.name)
+  }
+
+  async function saveBranchRename(branch: Branch) {
+    const name = branchRenameValue.trim()
+    if (!name) {
+      setBranchMessage('A branch name is required.')
+      return
+    }
+    if (branches.some((item) => item.id !== branch.id && item.name.toLowerCase() === name.toLowerCase())) {
+      setBranchMessage('A branch with that name already exists.')
+      return
+    }
+    const { error } = await supabase.from('branches').update({ name }).eq('id', branch.id)
+    if (error) {
+      setBranchMessage(error.message)
+      return
+    }
+    setRenamingBranchId('')
+    setBranchRenameValue('')
+    setBranchMessage('Branch renamed successfully.')
+    await loadData()
+  }
+
+  async function deleteBranch(branch: Branch) {
+    const count = branchMemberCount(branch.id)
+    if (count > 0) {
+      setBlockedBranchId(branch.id)
+      setBranchMessage(`${branch.name} cannot be deleted because it is assigned to ${count} member${count === 1 ? '' : 's'}, including inactive members if applicable.`)
+      return
+    }
+    const confirmed = window.confirm(`Delete the branch "${branch.name}"? This cannot be undone.`)
+    if (!confirmed) return
+    const { error } = await supabase.from('branches').delete().eq('id', branch.id)
+    if (error) {
+      setBranchMessage(error.message)
+      return
+    }
+    setBranchMessage(`${branch.name} was deleted.`)
+    await loadData()
+  }
+
+  function viewAffectedBranchMembers(branchId: string) {
+    setBranchFilter(branchId)
+    setShowBranchManager(false)
+    setBlockedBranchId('')
+    setBranchMessage('')
   }
 
   function cycleSort() {
@@ -943,6 +1150,7 @@ export default function MemberManager() {
 
     const filtered = members.filter((member) => {
       const memberMinistries = getMemberMinistries(member)
+      const memberBranches = getMemberBranches(member)
 
       const matchesSearch =
         !query ||
@@ -953,6 +1161,7 @@ export default function MemberManager() {
           member.email ?? '',
           member.mobile ?? '',
           ...memberMinistries.map((ministry) => ministry.name),
+          ...memberBranches.map((branch) => branch.name),
         ]
           .join(' ')
           .toLowerCase()
@@ -970,7 +1179,10 @@ export default function MemberManager() {
           ? member.is_starred
           : member.status === statusFilter)
 
-      return matchesSearch && matchesMinistry && matchesStatus
+      const matchesBranch =
+        branchFilter === 'all' || memberBranches.some((branch) => branch.id === branchFilter)
+
+      return matchesSearch && matchesMinistry && matchesBranch && matchesStatus
     })
 
     return [...filtered].sort((a, b) => {
@@ -992,26 +1204,28 @@ export default function MemberManager() {
 
       return nameCompare
     })
-  }, [members, search, ministryFilter, statusFilter, sortBy])
+  }, [members, search, ministryFilter, branchFilter, statusFilter, sortBy])
 
   return (
     <>
-      <div className="page-heading">
-        <div>
+      <section className="members-editorial-hero">
+        <div className="members-hero-copy">
           <p className="eyebrow">Member directory</p>
           <h1>Members</h1>
-          <p className="muted">
+          <p>
             Manage contact details, ministries, member status, and private QR
             codes.
           </p>
-        </div>
+          <span className="members-hero-caption">
+            {members.filter((member) => member.status === 'active').length} active people in your directory
+          </span>
 
-        <div className="page-actions">
+          <div className="members-hero-tools">
           <button
             className={
               showImport
-                ? 'secondary-button import-open-button'
-                : 'secondary-button'
+                ? 'member-hero-tool is-open'
+                : 'member-hero-tool'
             }
             onClick={toggleImport}
           >
@@ -1020,19 +1234,36 @@ export default function MemberManager() {
           </button>
 
           <button
-            className="secondary-button"
+            className={`member-hero-tool${showMinistryManager ? ' is-open' : ''}`}
             onClick={toggleMinistryManager}
           >
             <Settings2 size={18} />
             {showMinistryManager ? 'Close ministries' : 'Manage ministries'}
           </button>
 
-          <button className="primary-button" onClick={openAddForm}>
-            <UserPlus size={18} />
-            Add member
+          <button
+            className={`member-hero-tool${showBranchManager ? ' is-open' : ''}`}
+            onClick={toggleBranchManager}
+          >
+            <Settings2 size={18} />
+            {showBranchManager ? 'Close branches' : 'Manage branches'}
           </button>
+          </div>
         </div>
-      </div>
+
+        <button className="members-create-action" onClick={openAddForm}>
+          <span className="members-create-action-kicker">Grow the directory</span>
+          <strong>Add member</strong>
+          <span className="members-create-action-note">Create a private QR profile</span>
+          <span className="members-create-action-icon" aria-hidden="true">
+            <UserPlus size={22} />
+          </span>
+        </button>
+
+        <span className="members-hero-orbit" aria-hidden="true" />
+        <span className="members-hero-spark members-hero-spark-one" aria-hidden="true">✦</span>
+        <span className="members-hero-spark members-hero-spark-two" aria-hidden="true">✦</span>
+      </section>
 
       {showImport && (
         <div ref={importRef}>
@@ -1184,6 +1415,84 @@ export default function MemberManager() {
         </section>
       )}
 
+      {showBranchManager && (
+        <section className="ministry-manager-card branch-manager-card" ref={branchManagerRef}>
+          <div className="ministry-manager-heading">
+            <div>
+              <p className="eyebrow">Directory settings</p>
+              <h2>Manage branches</h2>
+              <p className="muted">
+                Branches work like ministries. A branch can only be deleted after it is removed from every member.
+              </p>
+            </div>
+            <button className="icon-button" type="button" onClick={() => setShowBranchManager(false)} aria-label="Close branch management">
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="ministry-create-row">
+            <input
+              value={newManagedBranchName}
+              onChange={(event) => setNewManagedBranchName(event.target.value)}
+              placeholder="Add a branch, e.g. LifeCity - North"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  void addManagedBranch()
+                }
+              }}
+            />
+            <button className="secondary-button" type="button" onClick={() => void addManagedBranch()}>
+              <Plus size={17} />
+              Add branch
+            </button>
+          </div>
+
+          {branchMessage && (
+            <div className="ministry-message">
+              <p>{branchMessage}</p>
+              {blockedBranchId && (
+                <button className="secondary-button" onClick={() => viewAffectedBranchMembers(blockedBranchId)}>
+                  View affected members
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="ministry-management-list">
+            {branches.map((branch) => {
+              const count = branchMemberCount(branch.id)
+              const isRenaming = renamingBranchId === branch.id
+              return (
+                <article className="ministry-management-row" key={branch.id}>
+                  <div className="ministry-management-name">
+                    {isRenaming ? (
+                      <input value={branchRenameValue} onChange={(event) => setBranchRenameValue(event.target.value)} autoFocus />
+                    ) : (
+                      <strong>{branch.name}</strong>
+                    )}
+                    <span>{count} assigned member{count === 1 ? '' : 's'}</span>
+                  </div>
+                  <div className="ministry-management-actions">
+                    {isRenaming ? (
+                      <>
+                        <button className="edit-icon-button save-ministry-button" onClick={() => void saveBranchRename(branch)} aria-label={`Save ${branch.name}`} title="Save name"><Check size={18} /></button>
+                        <button className="edit-icon-button" onClick={() => { setRenamingBranchId(''); setBranchRenameValue('') }} aria-label="Cancel rename" title="Cancel"><X size={18} /></button>
+                      </>
+                    ) : (
+                      <>
+                        <button className="edit-icon-button" onClick={() => beginBranchRename(branch)} aria-label={`Rename ${branch.name}`} title="Rename branch"><Pencil size={18} /></button>
+                        <button className="delete-icon-button" onClick={() => void deleteBranch(branch)} aria-label={`Delete ${branch.name}`} title="Delete branch"><Trash2 size={18} /></button>
+                      </>
+                    )}
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
       {showForm && (
         <section className="form-card member-editor-card" ref={memberFormRef}>
           <div className="member-editor-heading">
@@ -1323,6 +1632,50 @@ export default function MemberManager() {
               />
             </label>
 
+            <section className="ministry-picker wide-field branch-picker">
+              <div className="ministry-picker-heading">
+                <div>
+                  <strong>Branches <span className="required-mark">*</span></strong>
+                  <p>Choose at least one branch this member serves in.</p>
+                </div>
+              </div>
+
+              {branches.length === 0 ? (
+                <p className="muted">Add your first branch below.</p>
+              ) : (
+                <div className="ministry-options">
+                  {branches.map((branch) => {
+                    const checked = form.branchIds.includes(branch.id)
+                    return (
+                      <label className={`ministry-option ${checked ? 'selected' : ''}`} key={branch.id}>
+                        <input type="checkbox" checked={checked} onChange={() => toggleBranch(branch.id)} />
+                        <span>{branch.name}</span>
+                        {checked && <Check size={15} />}
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+
+              <div className="add-ministry-row">
+                <input
+                  value={newBranchName}
+                  onChange={(event) => setNewBranchName(event.target.value)}
+                  placeholder="Add a new branch, e.g. LifeCity - North"
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      void addBranch()
+                    }
+                  }}
+                />
+                <button className="secondary-button" type="button" onClick={() => void addBranch()}>
+                  <Plus size={17} />
+                  Add branch
+                </button>
+              </div>
+            </section>
+
             <section className="ministry-picker wide-field">
               <div className="ministry-picker-heading">
                 <div>
@@ -1454,6 +1807,16 @@ export default function MemberManager() {
             </label>
 
             <label className="filter-select">
+              <Settings2 size={17} />
+              <select value={branchFilter} onChange={(event) => setBranchFilter(event.target.value)}>
+                <option value="all">All branches</option>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>{branch.name}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="filter-select">
               <Star size={17} />
               <select
                 value={statusFilter}
@@ -1565,12 +1928,14 @@ export default function MemberManager() {
               </button>
 
               <span>Ministries</span>
+              <span>Branches</span>
               <span>Status</span>
               <span>Actions</span>
             </div>
 
             {visibleMembers.map((member) => {
               const memberMinistries = getMemberMinistries(member)
+                const memberBranches = getMemberBranches(member)
                 const displayedMinistries = memberMinistries.slice(0, 2)
                 const remainingMinistryCount =
                   memberMinistries.length - displayedMinistries.length
@@ -1661,8 +2026,18 @@ export default function MemberManager() {
                       )}
                   </div>
 
-                  <span className={`status ${member.status}`}>
-                    {member.status}
+                  <div className="member-ministries member-branches">
+                    {memberBranches.length > 0 ? (
+                      <span className="ministry-inline-list">
+                        {memberBranches.map((branch) => branch.name).join(', ')}
+                      </span>
+                    ) : (
+                      <span className="no-ministry">None</span>
+                    )}
+                  </div>
+
+                  <span className={`member-status-icon ${member.status}`} title={member.status === 'active' ? 'Active member' : 'Inactive member'} aria-label={member.status === 'active' ? 'Active member' : 'Inactive member'}>
+                    {member.status === 'active' ? <Check size={16} /> : <X size={16} />}
                   </span>
 
                   <div className="member-row-actions">
@@ -1690,18 +2065,6 @@ export default function MemberManager() {
                       title={`Edit ${memberName(member)}`}
                     >
                       <Pencil size={18} />
-                    </button>
-
-                    <button
-                      className="delete-icon-button member-delete-button"
-                      onClick={() => {
-                        setDeleteConfirmation('')
-                        setDeleteTarget(member)
-                      }}
-                      aria-label={`Delete ${memberName(member)}`}
-                      title={`Delete ${memberName(member)}`}
-                    >
-                      <Trash2 size={18} />
                     </button>
                   </div>
                 </article>
@@ -1853,6 +2216,17 @@ export default function MemberManager() {
                     </span>
                   ))
                 )}
+              </div>
+            </section>
+
+            <section className="member-details-section">
+              <h3>Branches</h3>
+              <div className="details-ministry-list">
+                {getMemberBranches(detailMember).map((branch) => (
+                  <span className="details-ministry-pill" key={branch.id}>
+                    {branch.name}
+                  </span>
+                ))}
               </div>
             </section>
 

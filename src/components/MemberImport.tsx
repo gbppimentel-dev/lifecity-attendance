@@ -1,3 +1,4 @@
+// Replacement ID: member-branches-import-v1
 import { type ChangeEvent, useState } from 'react'
 import Papa from 'papaparse'
 import {
@@ -15,11 +16,17 @@ type ImportRow = {
   email: string
   mobile: string
   ministryNames: string[]
+  branchNames: string[]
   adminNote: string
   error: string
 }
 
 type Ministry = {
+  id: string
+  name: string
+}
+
+type Branch = {
   id: string
   name: string
 }
@@ -49,7 +56,7 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.com$/i.test(value)
 }
 
-function parseMinistries(value: string) {
+function parseAssignments(value: string) {
   return [...new Set(
     value
       .split(/[|;,]/)
@@ -60,9 +67,9 @@ function parseMinistries(value: string) {
 
 function downloadTemplate() {
   const template = [
-    'first_name,last_name,email,mobile,ministries,admin_note',
-    'Juan,Dela Cruz,juan@example.com,09171234567,Youth|Worship Team,"New attendee; follow up next month"',
-    'Maria,Santos,maria@example.com,09181234567,Adults,"Prefers an afternoon service"',
+    'first_name,last_name,email,mobile,branches,ministries,admin_note',
+    'Juan,Dela Cruz,juan@example.com,09171234567,LifeCity - Main,Youth|Worship Team,"New attendee; follow up next month"',
+    'Maria,Santos,maria@example.com,09181234567,LifeCity - Main,Adults,"Prefers an afternoon service"',
   ].join('\n')
 
   const blob = new Blob(['\uFEFF', template], {
@@ -120,6 +127,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
             'group',
             'member_group',
           ])
+          const branches = getValue(row, ['branches', 'branch'])
           const adminNote = getValue(row, [
             'admin_note',
             'admin note',
@@ -133,6 +141,8 @@ export default function MemberImport({ onImported, onClose }: Props) {
             error = 'Email must include @ and end in .com.'
           } else if (mobile && !/^09\d{9}$/.test(mobile)) {
             error = 'Mobile must be 11 digits and start with 09.'
+          } else if (!branches) {
+            error = 'Branch is required. Use LifeCity - Main when unsure.'
           }
 
           return {
@@ -141,7 +151,8 @@ export default function MemberImport({ onImported, onClose }: Props) {
             lastName,
             email,
             mobile,
-            ministryNames: parseMinistries(ministries),
+            ministryNames: parseAssignments(ministries),
+            branchNames: parseAssignments(branches),
             adminNote,
             error,
           }
@@ -313,6 +324,64 @@ export default function MemberImport({ onImported, onClose }: Props) {
       }
     }
 
+    const allBranchNames = [
+      ...new Set(rowsToImport.flatMap((row) => row.branchNames)),
+    ]
+
+    const { data: currentBranches, error: branchLoadError } = await supabase
+      .from('branches')
+      .select('id, name')
+
+    if (branchLoadError) {
+      setMessage(branchLoadError.message)
+      setImporting(false)
+      return
+    }
+
+    const branchMap = new Map(
+      ((currentBranches ?? []) as Branch[]).map((branch) => [
+        branch.name.toLowerCase(),
+        branch,
+      ]),
+    )
+    const newBranchNames = allBranchNames.filter(
+      (name) => !branchMap.has(name.toLowerCase()),
+    )
+
+    if (newBranchNames.length > 0) {
+      const { data: addedBranches, error: branchInsertError } = await supabase
+        .from('branches')
+        .insert(newBranchNames.map((name) => ({ name })))
+        .select('id, name')
+
+      if (branchInsertError) {
+        setMessage(branchInsertError.message)
+        setImporting(false)
+        return
+      }
+
+      ;((addedBranches ?? []) as Branch[]).forEach((branch) => {
+        branchMap.set(branch.name.toLowerCase(), branch)
+      })
+    }
+
+    const branchLinks = rowsToImport.flatMap((row, index) =>
+      row.branchNames
+        .map((name) => branchMap.get(name.toLowerCase()))
+        .filter((branch): branch is Branch => Boolean(branch))
+        .map((branch) => ({ member_id: createdMembers[index].id, branch_id: branch.id })),
+    )
+
+    const { error: branchLinksError } = await supabase
+      .from('member_branches')
+      .insert(branchLinks)
+
+    if (branchLinksError) {
+      setMessage(branchLinksError.message)
+      setImporting(false)
+      return
+    }
+
     await onImported()
 
     setMessage(
@@ -335,7 +404,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
           <p className="eyebrow">Bulk registration</p>
           <h2>Import members from CSV</h2>
           <p className="muted">
-            Download the template, add member details and ministries, then
+            Download the template, add member details, branches, and ministries, then
             upload it here.
           </p>
         </div>
@@ -369,7 +438,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
         <Upload size={28} />
         <strong>{fileName || 'Choose a CSV file'}</strong>
         <span>
-          Required: first_name and last_name · Optional: email, mobile,
+          Required: first_name, last_name, branches · Optional: email, mobile,
           ministries, admin_note
         </span>
       </label>
@@ -392,6 +461,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
               <span>Row</span>
               <span>Member</span>
               <span>Ministries</span>
+              <span>Branches</span>
               <span>Status</span>
             </div>
 
@@ -406,6 +476,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
                   {row.lastName || 'Missing last name'}
                 </strong>
                 <span>{row.ministryNames.join(', ') || '—'}</span>
+                <span>{row.branchNames.join(', ') || '—'}</span>
 
                 <span className={row.error ? 'csv-error' : 'csv-valid'}>
                   {row.error || (

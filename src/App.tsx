@@ -1,4 +1,4 @@
-// Replacement ID: services-title-action-v1
+// Replacement ID: page-transition-loader-v1
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CalendarDays,
@@ -94,6 +94,7 @@ function getServiceState(item: AttendanceEvent, now: number) {
 export default function App() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [page, setPage] = useState<Page>('dashboard')
+  const [isPageTransitioning, setIsPageTransitioning] = useState(false)
   const [events, setEvents] = useState<AttendanceEvent[]>([])
   const [currentTime, setCurrentTime] = useState(() => Date.now())
   const [attendanceCounts, setAttendanceCounts] = useState<Record<string, number>>({})
@@ -112,6 +113,8 @@ export default function App() {
   const [serviceSort, setServiceSort] = useState<'recent' | 'oldest'>('recent')
   const [archiveFilter, setArchiveFilter] = useState<'all' | 'active' | 'archived'>('active')
   const serviceFormRef = useRef<HTMLElement | null>(null)
+  const scannerServicePickerRef = useRef<HTMLElement | null>(null)
+  const pageTransitionTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -124,6 +127,29 @@ export default function App() {
 
     return () => data.subscription.unsubscribe()
   }, [])
+
+  useEffect(() => () => {
+    if (pageTransitionTimeoutRef.current !== null) {
+      window.clearTimeout(pageTransitionTimeoutRef.current)
+    }
+  }, [])
+
+  function changePage(nextPage: Page) {
+    if (nextPage === page) return
+
+    if (pageTransitionTimeoutRef.current !== null) {
+      window.clearTimeout(pageTransitionTimeoutRef.current)
+    }
+
+    setPage(nextPage)
+    setIsPageTransitioning(true)
+
+    const duration = 1000 + Math.floor(Math.random() * 1001)
+    pageTransitionTimeoutRef.current = window.setTimeout(() => {
+      setIsPageTransitioning(false)
+      pageTransitionTimeoutRef.current = null
+    }, duration)
+  }
 
   useEffect(() => {
     const interval = window.setInterval(() => setCurrentTime(Date.now()), 60_000)
@@ -325,7 +351,7 @@ export default function App() {
 
   function openScannerForService(item: AttendanceEvent) {
     setScannerEventId(item.id)
-    setPage('scanner')
+    changePage('scanner')
   }
 
   async function handleLogout() {
@@ -437,7 +463,7 @@ export default function App() {
         <nav className="main-nav">
           <button
             className={page === 'dashboard' ? 'nav-active' : ''}
-            onClick={() => setPage('dashboard')}
+            onClick={() => changePage('dashboard')}
           >
             <LayoutDashboard size={17} />
             Dashboard
@@ -445,7 +471,7 @@ export default function App() {
 
           <button
             className={page === 'members' ? 'nav-active' : ''}
-            onClick={() => setPage('members')}
+            onClick={() => changePage('members')}
           >
             <Users size={17} />
             Members
@@ -453,7 +479,7 @@ export default function App() {
 
           <button
             className={page === 'events' ? 'nav-active' : ''}
-            onClick={() => setPage('events')}
+            onClick={() => changePage('events')}
           >
             <CalendarDays size={17} />
             Services
@@ -461,7 +487,7 @@ export default function App() {
 
           <button
             className={page === 'scanner' ? 'nav-active' : ''}
-            onClick={() => setPage('scanner')}
+            onClick={() => changePage('scanner')}
           >
             <Camera size={17} />
             Scanner
@@ -469,7 +495,7 @@ export default function App() {
 
           <button
             className={page === 'records' ? 'nav-active' : ''}
-            onClick={() => setPage('records')}
+            onClick={() => changePage('records')}
           >
             <ClipboardList size={17} />
             Records
@@ -483,11 +509,24 @@ export default function App() {
       </header>
 
       <section className="content">
+        {isPageTransitioning && (
+          <div className="page-transition-loader" role="status" aria-live="polite">
+            <div className="page-transition-loader-card">
+              <span className="page-transition-loader-orbit" aria-hidden="true" />
+              <span className="page-transition-loader-dot page-transition-loader-dot-one" aria-hidden="true" />
+              <span className="page-transition-loader-dot page-transition-loader-dot-two" aria-hidden="true" />
+              <div className="page-transition-loader-mark" aria-hidden="true">✦</div>
+              <p>Getting things ready</p>
+              <strong>Opening {page === 'events' ? 'services' : page}</strong>
+            </div>
+          </div>
+        )}
+
         {page === 'dashboard' && (
           <Dashboard
             activeScannerEventId={scannerEventId}
-            onOpenScanner={() => setPage('scanner')}
-            onViewRecords={() => setPage('records')}
+            onOpenScanner={() => changePage('scanner')}
+            onViewRecords={() => changePage('records')}
           />
         )}
 
@@ -495,31 +534,38 @@ export default function App() {
 
         {page === 'events' && (
           <>
-            <div className="page-heading">
-              <div>
+            <section className="services-editorial-hero">
+              <div className="services-hero-copy">
                 <p className="eyebrow">Attendance setup</p>
-                <h1 className="services-page-title">
-                  <button
-                    type="button"
-                    className={`services-title-action${showEventForm ? ' is-open' : ''}`}
-                    onClick={() => (showEventForm ? setShowEventForm(false) : openCreateService())}
-                    aria-expanded={showEventForm}
-                    aria-label={showEventForm ? 'Close service form' : 'Create a service'}
-                  >
-                    <span>Services</span>
-                    <span className="services-title-action-icon" aria-hidden="true">
-                      {showEventForm ? <X size={24} /> : <Plus size={25} />}
-                    </span>
-                    <span className="services-title-action-label">
-                      {showEventForm ? 'Close form' : 'Create service'}
-                    </span>
-                  </button>
-                </h1>
-                <p className="muted">
+                <h1>Services</h1>
+                <p>
                   Create and manage services before checking in members.
                 </p>
+                <span className="services-hero-caption">Plan it. Check in. Keep the story.</span>
               </div>
-            </div>
+
+              <button
+                type="button"
+                className={`services-create-action${showEventForm ? ' is-open' : ''}`}
+                onClick={() => (showEventForm ? setShowEventForm(false) : openCreateService())}
+                aria-expanded={showEventForm}
+              >
+                <span className="services-create-action-kicker">
+                  {showEventForm ? 'Form is open' : 'Start here'}
+                </span>
+                <strong>{showEventForm ? 'Close form' : 'New service'}</strong>
+                <span className="services-create-action-note">
+                  {showEventForm ? 'Return to your list' : 'Set the date & time'}
+                </span>
+                <span className="services-create-action-icon" aria-hidden="true">
+                  {showEventForm ? <X size={21} /> : <Plus size={22} />}
+                </span>
+              </button>
+
+              <span className="services-hero-orbit" aria-hidden="true" />
+              <span className="services-hero-spark services-hero-spark-one" aria-hidden="true">✦</span>
+              <span className="services-hero-spark services-hero-spark-two" aria-hidden="true">✦</span>
+            </section>
 
             {showEventForm && (
               <section className="form-card service-form-card" ref={serviceFormRef}>
@@ -862,17 +908,42 @@ export default function App() {
 
         {page === 'scanner' && (
           <>
-            <div className="page-heading scanner-page-heading">
-              <div>
+            <section className="scanner-editorial-hero">
+              <div className="scanner-hero-copy">
                 <p className="eyebrow">Attendance station</p>
                 <h1>Check in members</h1>
-                <p className="muted">
+                <p>
                   Scan a member QR code, or use manual search when needed.
                 </p>
+                <span className="scanner-hero-caption">Camera first · Manual search when needed</span>
               </div>
-            </div>
 
-            <section className="scanner-event-picker">
+              <button
+                type="button"
+                className="scanner-status-card"
+                onClick={() => scannerServicePickerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                aria-label="Choose the service for check-in"
+              >
+                <span className="scanner-status-kicker">
+                  {selectedScannerEvent ? 'Scanner ready' : 'Choose a service'}
+                </span>
+                <strong>
+                  {selectedScannerEvent
+                    ? `${attendanceCounts[selectedScannerEvent.id] ?? 0} check-in${(attendanceCounts[selectedScannerEvent.id] ?? 0) === 1 ? '' : 's'} so far`
+                    : 'Waiting to start'}
+                </strong>
+                <span className="scanner-status-note">
+                  {selectedScannerEvent ? selectedScannerEvent.name : 'Select a service below to begin.'}
+                </span>
+                <span className="scanner-status-icon" aria-hidden="true"><Camera size={22} /></span>
+              </button>
+
+              <span className="scanner-hero-orbit" aria-hidden="true" />
+              <span className="scanner-hero-spark scanner-hero-spark-one" aria-hidden="true">✦</span>
+              <span className="scanner-hero-spark scanner-hero-spark-two" aria-hidden="true">✦</span>
+            </section>
+
+            <section className="scanner-event-picker" ref={scannerServicePickerRef}>
               <div className="scanner-picker-copy">
                 <p className="card-kicker">Check-in service</p>
                 <h2 title={selectedScannerEvent?.name}>

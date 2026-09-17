@@ -1,4 +1,4 @@
-// Replacement ID: dashboard-event-count-dedup-v1
+// Replacement ID: dashboard-remove-sunday-trend-v1
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, CalendarDays, Camera, CheckCircle2, Clock3, RefreshCw, Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -59,12 +59,20 @@ function formatCheckInTime(value: string) {
   }).format(new Date(value))
 }
 
-function formatTrendDate(value: string) {
-  return new Intl.DateTimeFormat('en-PH', {
-    timeZone: 'Asia/Manila',
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(value))
+function eventPostcardDate(value: string) {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-PH', {
+      timeZone: 'Asia/Manila',
+      month: 'short',
+      day: 'numeric',
+      weekday: 'short',
+    })
+      .formatToParts(new Date(value))
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value]),
+  )
+
+  return { month: parts.month, day: parts.day, weekday: parts.weekday }
 }
 
 function manilaDateParts(value: string | Date) {
@@ -204,25 +212,6 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
     : null
   const showActiveCheckIn =
     activeScannerState === 'upcoming' || activeScannerState === 'in-progress'
-  const completedSundayServices = [...periodEvents]
-    .filter((event) =>
-      event.is_sunday_service &&
-      !event.archived_at &&
-      new Date(event.starts_at).getTime() + 3 * 60 * 60 * 1000 <= Date.now(),
-    )
-    .sort(
-      (a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime(),
-    )
-    .slice(0, 4)
-  const sundayTrend = completedSundayServices.map((event) => {
-    const checkInCount = periodCheckIns.filter((checkIn) => checkIn.event_id === event.id).length
-    const rate = activeMembers.length
-      ? Math.round((checkInCount / activeMembers.length) * 100)
-      : 0
-
-    return { event, checkInCount, rate }
-  })
-
   if (loading) {
     return <p className="dashboard-loading">Loading dashboard…</p>
   }
@@ -233,14 +222,17 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
 
   return (
     <>
-      <div className="page-heading dashboard-heading">
-        <div>
+      <section className="dashboard-editorial-hero">
+        <div className="dashboard-hero-copy">
           <p className="eyebrow">Overview</p>
           <h1>Dashboard</h1>
-          <p className="muted">A quick view of your LifeCity attendance activity.</p>
+          <p>A quick view of your LifeCity attendance activity.</p>
+          <span className="dashboard-hero-caption">
+            {activeMembers.length} active members · {periodCheckIns.length} check-ins in this view
+          </span>
         </div>
 
-        <div className="dashboard-context-actions">
+        <div className="dashboard-hero-utilities">
           <label className="dashboard-period-select">
             <span>Showing</span>
             <select
@@ -254,12 +246,16 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
             </select>
           </label>
 
-          <button className="secondary-button dashboard-refresh" onClick={() => void loadDashboard()}>
+          <button className="dashboard-refresh" onClick={() => void loadDashboard()}>
             <RefreshCw size={16} />
-            Refresh data
+            Refresh snapshot
           </button>
         </div>
-      </div>
+
+        <span className="dashboard-hero-orbit" aria-hidden="true" />
+        <span className="dashboard-hero-spark dashboard-hero-spark-one" aria-hidden="true">✦</span>
+        <span className="dashboard-hero-spark dashboard-hero-spark-two" aria-hidden="true">✦</span>
+      </section>
 
       {showActiveCheckIn && activeScannerEvent && (
         <section className="active-checkin-panel" aria-label="Current check-in">
@@ -323,7 +319,15 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
       </section>
 
       <section className="dashboard-grid">
-        <article className="dashboard-card latest-event-card">
+        <article className={`dashboard-card latest-event-card event-postcard event-postcard-recent${latestEvent ? ' has-date' : ''}`}>
+          {latestEvent && (
+            <div className="event-postcard-date" aria-label={formatEventDate(latestEvent.starts_at)}>
+              <span>{eventPostcardDate(latestEvent.starts_at).month}</span>
+              <strong>{eventPostcardDate(latestEvent.starts_at).day}</strong>
+              <small>{eventPostcardDate(latestEvent.starts_at).weekday}</small>
+            </div>
+          )}
+          <span className="event-postcard-spark" aria-hidden="true">✦</span>
           <div className="dashboard-card-heading">
             <div>
               <p className="card-kicker">{latestEvent?.is_sunday_service ? 'Most recent Sunday service' : 'Most recent event'}</p>
@@ -360,7 +364,15 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
           )}
         </article>
 
-        <article className="dashboard-card next-event-card">
+        <article className={`dashboard-card next-event-card event-postcard event-postcard-upcoming${upcomingEvent ? ' has-date' : ''}`}>
+          {upcomingEvent && (
+            <div className="event-postcard-date" aria-label={formatEventDate(upcomingEvent.starts_at)}>
+              <span>{eventPostcardDate(upcomingEvent.starts_at).month}</span>
+              <strong>{eventPostcardDate(upcomingEvent.starts_at).day}</strong>
+              <small>{eventPostcardDate(upcomingEvent.starts_at).weekday}</small>
+            </div>
+          )}
+          <span className="event-postcard-spark" aria-hidden="true">✦</span>
           <p className="card-kicker">Next event</p>
           <h2>{upcomingEvent?.name ?? 'Nothing scheduled'}</h2>
           <p className="muted">
@@ -383,7 +395,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
               <h2>Recent check-ins</h2>
             </div>
             <div className="recent-checkin-actions">
-              <span>{periodCheckIns.length} total</span>
+              <span className="recent-checkin-total">{periodCheckIns.length} total</span>
               <button type="button" className="dashboard-records-link" onClick={onViewRecords}>
                 View all records
                 <ArrowRight size={14} />
@@ -395,53 +407,34 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
             <p className="dashboard-empty">Recent QR scans will appear here.</p>
           ) : (
             <div className="recent-checkin-list">
-              {recentCheckIns.map((checkIn) => (
-                <div className="recent-checkin-row" key={checkIn.id}>
+              {recentCheckIns.map((checkIn, index) => (
+                <button
+                  type="button"
+                  className={`recent-checkin-row${index === 0 ? ' is-fresh' : ''}`}
+                  key={checkIn.id}
+                  onClick={onViewRecords}
+                  aria-label={`View attendance records after ${checkIn.members ? `${checkIn.members.first_name} ${checkIn.members.last_name}` : 'this check-in'}`}
+                >
                   <div className="avatar">
                     {checkIn.members
                       ? `${checkIn.members.first_name[0]}${checkIn.members.last_name[0]}`
                       : '?'}
                   </div>
-                  <div>
-                    <strong>{checkIn.members ? `${checkIn.members.first_name} ${checkIn.members.last_name}` : 'Unknown member'}</strong>
-                    <span>{checkIn.events?.name ?? 'Unknown event'}</span>
+                  <div className="recent-checkin-surface">
+                    <div className="recent-checkin-copy">
+                      <strong>{checkIn.members ? `${checkIn.members.first_name} ${checkIn.members.last_name}` : 'Unknown member'}</strong>
+                      <span>{checkIn.events?.name ?? 'Unknown event'}</span>
+                      {index === 0 && <em>Just in</em>}
+                    </div>
+                    <time>{formatCheckInTime(checkIn.checked_in_at)}</time>
                   </div>
-                  <time>{formatCheckInTime(checkIn.checked_in_at)}</time>
-                </div>
+                </button>
               ))}
             </div>
           )}
         </article>
       </section>
 
-      <section className="dashboard-card sunday-trend-card">
-        <div className="dashboard-card-heading">
-          <div>
-            <p className="card-kicker">Sunday attendance</p>
-            <h2>Last 4 Sunday services</h2>
-          </div>
-          <span>Based on {activeMembers.length} active member{activeMembers.length === 1 ? '' : 's'}</span>
-        </div>
-
-        {sundayTrend.length === 0 ? (
-          <p className="dashboard-empty">Completed Sunday services will appear here.</p>
-        ) : (
-          <div className="sunday-trend-list">
-            {sundayTrend.map(({ event, checkInCount, rate }) => (
-              <div className="sunday-trend-row" key={event.id}>
-                <time>{formatTrendDate(event.starts_at)}</time>
-                <div className="sunday-trend-bar" aria-label={`${rate}% attendance`}>
-                  <span style={{ width: `${Math.min(rate, 100)}%` }} />
-                </div>
-                <div className="sunday-trend-value">
-                  <strong>{checkInCount} / {activeMembers.length}</strong>
-                  <span>{rate}%</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
     </>
   )
 }
