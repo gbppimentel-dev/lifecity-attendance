@@ -1,8 +1,12 @@
-// Replacement ID: member-branches-v1
+// Replacement ID: member-tools-workspace-scroll-v1
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Check,
+  ChevronLeft,
   ChevronDown,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Download,
   Eye,
   Pencil,
@@ -163,6 +167,7 @@ export default function MemberManager() {
   const [members, setMembers] = useState<Member[]>([])
   const [ministries, setMinistries] = useState<Ministry[]>([])
   const [branches, setBranches] = useState<Branch[]>([])
+  const [branchLoadError, setBranchLoadError] = useState('')
   const [search, setSearch] = useState('')
   const [ministryFilter, setMinistryFilter] = useState('all')
   const [branchFilter, setBranchFilter] = useState('all')
@@ -199,6 +204,9 @@ export default function MemberManager() {
   const [branchRenameValue, setBranchRenameValue] = useState('')
   const [branchMessage, setBranchMessage] = useState('')
   const [blockedBranchId, setBlockedBranchId] = useState('')
+  const [managerDeleteTarget, setManagerDeleteTarget] = useState<
+    { kind: 'ministry'; item: Ministry } | { kind: 'branch'; item: Branch } | null
+  >(null)
   const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([])
   const [deleteTarget, setDeleteTarget] = useState<Member | null>(null)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
@@ -206,15 +214,23 @@ export default function MemberManager() {
   const [bulkDeleteConfirmation, setBulkDeleteConfirmation] = useState('')
   const [bulkSaving, setBulkSaving] = useState(false)
   const [bulkMode, setBulkMode] = useState(false)
+  const [filterSpotlight, setFilterSpotlight] = useState<'ministry' | 'branch' | null>(null)
+  const [memberPage, setMemberPage] = useState(1)
 
   const importRef = useRef<HTMLDivElement | null>(null)
   const ministryManagerRef = useRef<HTMLElement | null>(null)
   const branchManagerRef = useRef<HTMLElement | null>(null)
+  const directoryToolsRef = useRef<HTMLElement | null>(null)
   const memberFormRef = useRef<HTMLElement | null>(null)
+  const directoryListRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     void loadData()
   }, [])
+
+  useEffect(() => {
+    setMemberPage(1)
+  }, [search, ministryFilter, branchFilter, statusFilter, sortBy])
 
   function scrollToSection(
     ref: React.RefObject<HTMLElement | HTMLDivElement | null>,
@@ -279,8 +295,10 @@ export default function MemberManager() {
 
     if (branchesResult.error) {
       setMessage(branchesResult.error.message)
+      setBranchLoadError(branchesResult.error.message)
     } else {
       setBranches((branchesResult.data ?? []) as Branch[])
+      setBranchLoadError('')
     }
 
     setLoading(false)
@@ -330,29 +348,33 @@ export default function MemberManager() {
 
   function toggleImport() {
     const nextOpen = !showImport
-
     setShowImport(nextOpen)
+    setShowMinistryManager(false)
+    setShowBranchManager(false)
 
     if (nextOpen) {
-      scrollToSection(importRef)
+      scrollToSection(directoryToolsRef)
     }
   }
 
   function toggleMinistryManager() {
     const nextOpen = !showMinistryManager
-
     setShowMinistryManager(nextOpen)
+    setShowImport(false)
+    setShowBranchManager(false)
 
     if (nextOpen) {
-      scrollToSection(ministryManagerRef)
+      scrollToSection(directoryToolsRef)
     }
   }
 
   function toggleBranchManager() {
     const nextOpen = !showBranchManager
     setShowBranchManager(nextOpen)
+    setShowImport(false)
+    setShowMinistryManager(false)
 
-    if (nextOpen) scrollToSection(branchManagerRef)
+    if (nextOpen) scrollToSection(directoryToolsRef)
   }
 
   function toggleMinistry(ministryId: string) {
@@ -864,6 +886,20 @@ export default function MemberManager() {
     ).length
   }
 
+  function messageTone(message: string) {
+    return /was added|was deleted|renamed successfully/i.test(message)
+      ? 'is-success'
+      : 'is-warning'
+  }
+
+  function managerMessageContent(message: string) {
+    const subjectEnd = message.search(/\s+(was|cannot)\s/i)
+
+    if (subjectEnd <= 0) return message
+
+    return <><b style={{ fontWeight: 900 }}>{message.slice(0, subjectEnd)}</b>{message.slice(subjectEnd)}</>
+  }
+
   function branchMemberCount(branchId: string) {
     return members.filter((member) =>
       getMemberBranches(member).some((branch) => branch.id === branchId),
@@ -920,26 +956,28 @@ export default function MemberManager() {
       setMinistryMessage(
         `${ministry.name} cannot be deleted because it is assigned to ${count} member${count === 1 ? '' : 's'}, including inactive members if applicable.`,
       )
+      scrollToSection(ministryManagerRef)
       return
     }
 
-    const confirmed = window.confirm(
-      `Delete the ministry "${ministry.name}"? This cannot be undone.`,
-    )
+    setManagerDeleteTarget({ kind: 'ministry', item: ministry })
+  }
 
-    if (!confirmed) return
+  async function confirmManagerDelete() {
+    if (!managerDeleteTarget) return
 
-    const { error } = await supabase
-      .from('ministries')
-      .delete()
-      .eq('id', ministry.id)
+    const { kind, item } = managerDeleteTarget
+    const table = kind === 'ministry' ? 'ministries' : 'branches'
+    const { error } = await supabase.from(table).delete().eq('id', item.id)
 
     if (error) {
-      setMinistryMessage(error.message)
+      kind === 'ministry' ? setMinistryMessage(error.message) : setBranchMessage(error.message)
       return
     }
 
-    setMinistryMessage(`${ministry.name} was deleted.`)
+    if (kind === 'ministry') setMinistryMessage(`${item.name} was deleted.`)
+    else setBranchMessage(`${item.name} was deleted.`)
+    setManagerDeleteTarget(null)
     await loadData()
   }
 
@@ -948,6 +986,11 @@ export default function MemberManager() {
     setShowMinistryManager(false)
     setBlockedMinistryId('')
     setMinistryMessage('')
+    setFilterSpotlight('ministry')
+    window.setTimeout(() => {
+      directoryListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+    window.setTimeout(() => setFilterSpotlight(null), 1150)
   }
 
   function beginBranchRename(branch: Branch) {
@@ -983,17 +1026,10 @@ export default function MemberManager() {
     if (count > 0) {
       setBlockedBranchId(branch.id)
       setBranchMessage(`${branch.name} cannot be deleted because it is assigned to ${count} member${count === 1 ? '' : 's'}, including inactive members if applicable.`)
+      scrollToSection(branchManagerRef)
       return
     }
-    const confirmed = window.confirm(`Delete the branch "${branch.name}"? This cannot be undone.`)
-    if (!confirmed) return
-    const { error } = await supabase.from('branches').delete().eq('id', branch.id)
-    if (error) {
-      setBranchMessage(error.message)
-      return
-    }
-    setBranchMessage(`${branch.name} was deleted.`)
-    await loadData()
+    setManagerDeleteTarget({ kind: 'branch', item: branch })
   }
 
   function viewAffectedBranchMembers(branchId: string) {
@@ -1001,6 +1037,11 @@ export default function MemberManager() {
     setShowBranchManager(false)
     setBlockedBranchId('')
     setBranchMessage('')
+    setFilterSpotlight('branch')
+    window.setTimeout(() => {
+      directoryListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+    window.setTimeout(() => setFilterSpotlight(null), 1150)
   }
 
   function cycleSort() {
@@ -1049,80 +1090,159 @@ export default function MemberManager() {
         context.roundRect(x, y, width, height, radius)
       }
 
-      context.fillStyle = '#f7fbfa'
+      const branchText = getMemberBranches(member)
+        .map((branch) => branch.name)
+        .join('  •  ') || 'LifeCity'
+
+      const wrapName = (name: string, maxWidth: number, fontSize: number) => {
+        context.font = `750 ${fontSize}px system-ui, sans-serif`
+        const words = name.split(/\s+/).filter(Boolean)
+        const lines: string[] = []
+        let current = ''
+
+        words.forEach((word) => {
+          const next = current ? `${current} ${word}` : word
+          if (context.measureText(next).width <= maxWidth || !current) {
+            current = next
+            return
+          }
+          lines.push(current)
+          current = word
+        })
+        if (current) lines.push(current)
+
+        if (lines.length <= 2) return lines
+        const firstLine = lines[0]
+        let secondLine = lines.slice(1).join(' ')
+        while (secondLine.length > 1 && context.measureText(`${secondLine}…`).width > maxWidth) {
+          secondLine = secondLine.slice(0, -1).trimEnd()
+        }
+        return [firstLine, `${secondLine}…`]
+      }
+
+      const background = context.createLinearGradient(0, 0, canvas.width, canvas.height)
+      background.addColorStop(0, '#effbf8')
+      background.addColorStop(.55, '#fbfdff')
+      background.addColorStop(1, '#f4f1ff')
+      context.fillStyle = background
       context.fillRect(0, 0, canvas.width, canvas.height)
 
-      context.fillStyle = '#167b72'
-      roundedRectangle(0, 0, canvas.width, 180, 0)
+      const cardFill = context.createLinearGradient(40, 40, 1560, 960)
+      cardFill.addColorStop(0, 'rgba(255,255,255,.72)')
+      cardFill.addColorStop(1, 'rgba(250,252,255,.74)')
+      roundedRectangle(32, 30, 1536, 940, 42)
+      context.fillStyle = cardFill
+      context.fill()
+      const cardBorder = context.createLinearGradient(32, 30, 1568, 970)
+      cardBorder.addColorStop(0, '#9be3d7')
+      cardBorder.addColorStop(.42, '#b8a5ef')
+      cardBorder.addColorStop(.72, '#f3ca78')
+      cardBorder.addColorStop(1, '#8fddd1')
+      roundedRectangle(32, 30, 1536, 940, 42)
+      context.lineWidth = 3
+      context.strokeStyle = cardBorder
+      context.stroke()
+
+      context.strokeStyle = 'rgba(181, 166, 237, .38)'
+      context.lineWidth = 2
+      context.beginPath()
+      context.arc(1380, -82, 250, 0, Math.PI * 2)
+      context.stroke()
+      context.strokeStyle = 'rgba(121, 217, 202, .13)'
+      context.lineWidth = 52
+      context.beginPath()
+      context.arc(1380, -82, 310, 0, Math.PI * 2)
+      context.stroke()
+
+      const header = context.createLinearGradient(72, 60, 1528, 190)
+      header.addColorStop(0, '#0f837a')
+      header.addColorStop(.55, '#1a9a8d')
+      header.addColorStop(1, '#7764bb')
+      roundedRectangle(70, 58, 1460, 158, 34)
+      context.fillStyle = header
       context.fill()
 
-      context.fillStyle = '#d9f0ec'
-      context.font = '600 28px system-ui, sans-serif'
-      context.fillText('LIFECITY CHURCH', 100, 72)
+      // A small member icon aligned directly with the “MEMBER ID” line.
+      context.strokeStyle = '#ffffff'
+      context.lineWidth = 5
+      context.lineCap = 'round'
+      context.beginPath()
+      context.arc(140, 142, 9, 0, Math.PI * 2)
+      context.stroke()
+      context.beginPath()
+      context.moveTo(118, 169)
+      context.bezierCurveTo(120, 154, 130, 151, 140, 151)
+      context.bezierCurveTo(150, 151, 160, 154, 162, 169)
+      context.stroke()
+      context.lineCap = 'butt'
+
+      context.fillStyle = 'rgba(255,255,255,.76)'
+      context.font = '700 25px system-ui, sans-serif'
+      context.fillText('LIFECITY CHURCH', 116, 114)
       context.fillStyle = '#ffffff'
-      context.font = '700 54px system-ui, sans-serif'
-      context.fillText('MEMBER ID', 100, 128)
+      context.font = '800 50px system-ui, sans-serif'
+      context.fillText('MEMBER ID', 180, 170)
 
       context.fillStyle = '#173f3b'
-      context.font = '700 62px system-ui, sans-serif'
       const printedName = memberName(member)
-      context.fillText(
-        printedName.length > 25 ? `${printedName.slice(0, 24)}…` : printedName,
-        100,
-        300,
-      )
+      const nameSize = printedName.length > 34 ? 47 : printedName.length > 24 ? 54 : 62
+      const nameLines = wrapName(printedName, 690, nameSize)
+      nameLines.forEach((line, index) => context.fillText(line, 100, 330 + index * (nameSize + 10)))
       context.fillStyle = '#64817d'
-      context.font = '500 34px system-ui, sans-serif'
-      context.fillText(member.member_number, 100, 350)
+      context.font = '600 30px system-ui, sans-serif'
+      context.fillText(member.member_number, 100, nameLines.length === 2 ? 440 : 378)
 
-      context.fillStyle = '#78908c'
-      context.font = '600 25px system-ui, sans-serif'
-      context.fillText('MEMBER STATUS', 100, 455)
-      roundedRectangle(100, 478, 182, 54, 27)
-      context.fillStyle = member.status === 'active' ? '#e7f8ee' : '#fff3df'
+      const chipY = nameLines.length === 2 ? 480 : 423
+      context.font = '700 24px system-ui, sans-serif'
+      roundedRectangle(100, chipY, Math.min(570, Math.max(196, context.measureText(branchText).width + 56)), 54, 27)
+      context.fillStyle = '#e4f5f1'
       context.fill()
-      context.fillStyle = member.status === 'active' ? '#187b4c' : '#9a5a11'
-      context.font = '700 25px system-ui, sans-serif'
-      context.fillText(member.status === 'active' ? 'ACTIVE' : 'INACTIVE', 127, 514)
+      context.fillStyle = '#287166'
+      context.fillText(branchText.slice(0, 35), 128, chipY + 35)
 
       context.fillStyle = '#78908c'
       context.font = '600 25px system-ui, sans-serif'
-      context.fillText('MINISTRIES', 100, 625)
+      context.fillText('MINISTRIES', 100, 652)
       const ministryText = getMemberMinistries(member)
         .map((ministry) => ministry.name)
         .join(' • ') || 'Not assigned'
+      const ministryLines = wrapName(ministryText, 670, 24)
       context.fillStyle = '#365c57'
-      context.font = '500 29px system-ui, sans-serif'
-      context.fillText(ministryText.slice(0, 48), 100, 676)
+      context.font = '500 24px system-ui, sans-serif'
+      ministryLines.forEach((line, index) => {
+        context.fillText(line, 100, 703 + index * 31)
+      })
 
       context.fillStyle = '#78908c'
       context.font = '600 25px system-ui, sans-serif'
-      context.fillText('REGISTERED', 100, 790)
+      const registeredLabelY = ministryLines.length === 2 ? 800 : 788
+      context.fillText('REGISTERED', 100, registeredLabelY)
       context.fillStyle = '#365c57'
       context.font = '500 29px system-ui, sans-serif'
-      context.fillText(formatDate(member.created_at), 100, 840)
+      context.fillText(formatDate(member.created_at), 100, registeredLabelY + 51)
 
-      roundedRectangle(790, 200, 720, 680, 28)
+      roundedRectangle(910, 278, 520, 562, 34)
       context.fillStyle = '#ffffff'
       context.fill()
-      context.strokeStyle = '#dbece9'
+      context.strokeStyle = '#cfeae5'
       context.lineWidth = 3
       context.stroke()
       context.fillStyle = '#315854'
-      context.font = '700 27px system-ui, sans-serif'
+      context.font = '800 25px system-ui, sans-serif'
       context.textAlign = 'center'
-      context.fillText('SCAN FOR ATTENDANCE', 1150, 270)
-      context.drawImage(qrImage, 880, 300, 540, 540)
+      context.fillText('SCAN FOR ATTENDANCE', 1170, 354)
+      context.drawImage(qrImage, 970, 375, 400, 400)
       context.fillStyle = '#718985'
-      context.font = '500 22px system-ui, sans-serif'
-      context.fillText('Keep this member ID private.', 1150, 862)
+      context.font = '600 20px system-ui, sans-serif'
+      context.fillText('Private Member Token • Keep this ID safe', 1170, 809)
       context.textAlign = 'left'
 
-      context.fillStyle = '#eaf4f2'
-      context.fillRect(0, 920, canvas.width, 80)
+      context.fillStyle = 'rgba(225, 244, 240, .88)'
+      roundedRectangle(70, 906, 1460, 48, 22)
+      context.fill()
       context.fillStyle = '#56736f'
-      context.font = '500 22px system-ui, sans-serif'
-      context.fillText('LifeCity Attendance Monitoring  •  Digital member ID', 100, 970)
+      context.font = '600 20px system-ui, sans-serif'
+      context.fillText('LifeCity Attendance Monitoring  •  Digital member ID', 100, 938)
 
       const cardBlob = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob(resolve, 'image/png'),
@@ -1206,6 +1326,42 @@ export default function MemberManager() {
     })
   }, [members, search, ministryFilter, branchFilter, statusFilter, sortBy])
 
+  const branchesForFilter = useMemo(
+    () => [
+      ...branches.filter((branch) => branch.name === 'LifeCity - Main'),
+      ...branches.filter((branch) => branch.name !== 'LifeCity - Main'),
+    ],
+    [branches],
+  )
+
+  const membersPerPage = 15
+  const memberPageCount = Math.max(1, Math.ceil(visibleMembers.length / membersPerPage))
+  const activeMemberPage = Math.min(memberPage, memberPageCount)
+  const pageMembers = visibleMembers.slice(
+    (activeMemberPage - 1) * membersPerPage,
+    activeMemberPage * membersPerPage,
+  )
+
+  function changeMemberPage(nextPage: number) {
+    const page = Math.max(1, Math.min(nextPage, memberPageCount))
+    if (page === activeMemberPage) return
+    setMemberPage(page)
+    window.setTimeout(() => {
+      directoryListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 20)
+  }
+
+  function togglePageMemberSelection() {
+    const pageIds = pageMembers.map((member) => member.id)
+    const everyPageMemberIsSelected = pageIds.length > 0 && pageIds.every((id) => selectedMemberIds.includes(id))
+
+    setSelectedMemberIds((current) =>
+      everyPageMemberIsSelected
+        ? current.filter((id) => !pageIds.includes(id))
+        : [...new Set([...current, ...pageIds])],
+    )
+  }
+
   return (
     <>
       <section className="members-editorial-hero">
@@ -1222,31 +1378,30 @@ export default function MemberManager() {
 
           <div className="members-hero-tools">
           <button
-            className={
-              showImport
-                ? 'member-hero-tool is-open'
-                : 'member-hero-tool'
-            }
+            className={showImport ? 'member-hero-tool is-open' : 'member-hero-tool'}
             onClick={toggleImport}
+            aria-expanded={showImport}
           >
-            {showImport ? <X size={18} /> : <Download size={18} />}
-            {showImport ? 'Close import' : 'Import CSV'}
+            <Download size={18} />
+            Import members
           </button>
 
           <button
             className={`member-hero-tool${showMinistryManager ? ' is-open' : ''}`}
             onClick={toggleMinistryManager}
+            aria-expanded={showMinistryManager}
           >
             <Settings2 size={18} />
-            {showMinistryManager ? 'Close ministries' : 'Manage ministries'}
+            Ministries
           </button>
 
           <button
             className={`member-hero-tool${showBranchManager ? ' is-open' : ''}`}
             onClick={toggleBranchManager}
+            aria-expanded={showBranchManager}
           >
             <Settings2 size={18} />
-            {showBranchManager ? 'Close branches' : 'Manage branches'}
+            Branches
           </button>
           </div>
         </div>
@@ -1264,6 +1419,13 @@ export default function MemberManager() {
         <span className="members-hero-spark members-hero-spark-one" aria-hidden="true">✦</span>
         <span className="members-hero-spark members-hero-spark-two" aria-hidden="true">✦</span>
       </section>
+
+      {(showImport || showMinistryManager || showBranchManager) && (
+        <section className="directory-tools-workspace" ref={directoryToolsRef} aria-label="Directory tools">
+          <div className="directory-tools-workspace-label">
+            <span>Directory tools</span>
+            <strong>{showImport ? 'Import members' : showMinistryManager ? 'Ministries' : 'Branches'}</strong>
+          </div>
 
       {showImport && (
         <div ref={importRef}>
@@ -1319,8 +1481,8 @@ export default function MemberManager() {
           </div>
 
           {ministryMessage && (
-            <div className="ministry-message">
-              <p>{ministryMessage}</p>
+            <div className={`ministry-message ${messageTone(ministryMessage)}`}>
+              <p>{managerMessageContent(ministryMessage)}</p>
 
               {blockedMinistryId && (
                 <button
@@ -1342,6 +1504,7 @@ export default function MemberManager() {
               {ministries.map((ministry) => {
                 const count = ministryMemberCount(ministry.id)
                 const isRenaming = renamingMinistryId === ministry.id
+                const isConfirmingDelete = managerDeleteTarget?.kind === 'ministry' && managerDeleteTarget.item.id === ministry.id
 
                 return (
                   <article className="ministry-management-row" key={ministry.id}>
@@ -1362,7 +1525,13 @@ export default function MemberManager() {
                     </div>
 
                     <div className="ministry-management-actions">
-                      {isRenaming ? (
+                      {isConfirmingDelete ? (
+                        <span className="manager-inline-delete-confirm">
+                          <span>Delete?</span>
+                          <button type="button" className="manager-inline-keep" onClick={() => setManagerDeleteTarget(null)} aria-label={`Keep ${ministry.name}`} title="Keep"><X size={17} /></button>
+                          <button type="button" className="manager-inline-confirm" onClick={() => void confirmManagerDelete()} aria-label={`Confirm delete ${ministry.name}`} title="Delete"><Check size={17} /></button>
+                        </span>
+                      ) : isRenaming ? (
                         <>
                           <button
                             className="edit-icon-button save-ministry-button"
@@ -1449,8 +1618,8 @@ export default function MemberManager() {
           </div>
 
           {branchMessage && (
-            <div className="ministry-message">
-              <p>{branchMessage}</p>
+            <div className={`ministry-message ${messageTone(branchMessage)}`}>
+              <p>{managerMessageContent(branchMessage)}</p>
               {blockedBranchId && (
                 <button className="secondary-button" onClick={() => viewAffectedBranchMembers(blockedBranchId)}>
                   View affected members
@@ -1463,6 +1632,7 @@ export default function MemberManager() {
             {branches.map((branch) => {
               const count = branchMemberCount(branch.id)
               const isRenaming = renamingBranchId === branch.id
+              const isConfirmingDelete = managerDeleteTarget?.kind === 'branch' && managerDeleteTarget.item.id === branch.id
               return (
                 <article className="ministry-management-row" key={branch.id}>
                   <div className="ministry-management-name">
@@ -1474,7 +1644,13 @@ export default function MemberManager() {
                     <span>{count} assigned member{count === 1 ? '' : 's'}</span>
                   </div>
                   <div className="ministry-management-actions">
-                    {isRenaming ? (
+                    {isConfirmingDelete ? (
+                      <span className="manager-inline-delete-confirm">
+                        <span>Delete?</span>
+                        <button type="button" className="manager-inline-keep" onClick={() => setManagerDeleteTarget(null)} aria-label={`Keep ${branch.name}`} title="Keep"><X size={17} /></button>
+                        <button type="button" className="manager-inline-confirm" onClick={() => void confirmManagerDelete()} aria-label={`Confirm delete ${branch.name}`} title="Delete"><Check size={17} /></button>
+                      </span>
+                    ) : isRenaming ? (
                       <>
                         <button className="edit-icon-button save-ministry-button" onClick={() => void saveBranchRename(branch)} aria-label={`Save ${branch.name}`} title="Save name"><Check size={18} /></button>
                         <button className="edit-icon-button" onClick={() => { setRenamingBranchId(''); setBranchRenameValue('') }} aria-label="Cancel rename" title="Cancel"><X size={18} /></button>
@@ -1492,9 +1668,14 @@ export default function MemberManager() {
           </div>
         </section>
       )}
+        </section>
+      )}
 
       {showForm && (
-        <section className="form-card member-editor-card" ref={memberFormRef}>
+        <section
+          className={`form-card member-editor-card ${editingMember ? 'is-editing' : 'is-creating'}`}
+          ref={memberFormRef}
+        >
           <div className="member-editor-heading">
             <div>
               <p className="eyebrow">
@@ -1507,14 +1688,33 @@ export default function MemberManager() {
               </h2>
             </div>
 
-            <button
-              className="icon-button"
-              type="button"
-              onClick={closeForm}
-              aria-label="Close member form"
-            >
-              <X size={20} />
-            </button>
+            <div className="member-editor-quick-actions">
+              <label className="status-switch editor-status-switch">
+                <input
+                  type="checkbox"
+                  checked={form.status === 'active'}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      status: event.target.checked ? 'active' : 'inactive',
+                    })
+                  }
+                />
+                <span className="status-switch-track">
+                  <span className="status-switch-thumb" />
+                </span>
+                <strong>{form.status === 'active' ? 'Active' : 'Inactive'}</strong>
+              </label>
+
+              <button
+                className="icon-button"
+                type="button"
+                onClick={closeForm}
+                aria-label="Close member form"
+              >
+                <X size={20} />
+              </button>
+            </div>
           </div>
 
           <form className="member-form" onSubmit={handleSave}>
@@ -1589,33 +1789,6 @@ export default function MemberManager() {
               />
             </label>
 
-            <section className="status-toggle-field wide-field">
-              <div>
-                <strong>Member status</strong>
-                <p>
-                  Inactive members remain in attendance history but cannot be
-                  checked in.
-                </p>
-              </div>
-
-              <label className="status-switch">
-                <input
-                  type="checkbox"
-                  checked={form.status === 'active'}
-                  onChange={(event) =>
-                    setForm({
-                      ...form,
-                      status: event.target.checked ? 'active' : 'inactive',
-                    })
-                  }
-                />
-                <span className="status-switch-track">
-                  <span className="status-switch-thumb" />
-                </span>
-                <strong>{form.status === 'active' ? 'Active' : 'Inactive'}</strong>
-              </label>
-            </section>
-
             <label className="wide-field admin-note-field">
               <span className="field-label-text">Admin note</span>
               <span className="admin-note-help">
@@ -1638,10 +1811,20 @@ export default function MemberManager() {
                   <strong>Branches <span className="required-mark">*</span></strong>
                   <p>Choose at least one branch this member serves in.</p>
                 </div>
+                <span className="picker-count">
+                  {form.branchIds.length} selected
+                </span>
               </div>
 
               {branches.length === 0 ? (
-                <p className="muted">Add your first branch below.</p>
+                <>
+                  <p className="muted">Add your first branch below.</p>
+                  {branchLoadError && (
+                    <p className="branch-load-error">
+                      Could not load branches: {branchLoadError}
+                    </p>
+                  )}
+                </>
               ) : (
                 <div className="ministry-options">
                   {branches.map((branch) => {
@@ -1682,6 +1865,9 @@ export default function MemberManager() {
                   <strong>Ministries</strong>
                   <p>Choose every ministry this member belongs to.</p>
                 </div>
+                <span className="picker-count">
+                  {form.ministryIds.length} selected
+                </span>
               </div>
 
               {ministries.length === 0 ? (
@@ -1746,7 +1932,7 @@ export default function MemberManager() {
                   }}
                 >
                   <Trash2 size={18} />
-                  Delete member
+                  Delete
                 </button>
               )}
 
@@ -1771,7 +1957,7 @@ export default function MemberManager() {
         </section>
       )}
 
-      <section className="directory-card">
+      <section className="directory-card" ref={directoryListRef}>
         <div className="directory-toolbar member-toolbar">
           <div>
             <h2>All members</h2>
@@ -1790,7 +1976,7 @@ export default function MemberManager() {
               />
             </label>
 
-            <label className="filter-select">
+            <label className={`filter-select ${filterSpotlight === 'ministry' ? 'filter-select-spotlight' : ''}`}>
               <Users size={17} />
               <select
                 value={ministryFilter}
@@ -1806,11 +1992,11 @@ export default function MemberManager() {
               </select>
             </label>
 
-            <label className="filter-select">
+            <label className={`filter-select ${filterSpotlight === 'branch' ? 'filter-select-spotlight' : ''}`}>
               <Settings2 size={17} />
               <select value={branchFilter} onChange={(event) => setBranchFilter(event.target.value)}>
                 <option value="all">All branches</option>
-                {branches.map((branch) => (
+                {branchesForFilter.map((branch) => (
                   <option key={branch.id} value={branch.id}>{branch.name}</option>
                 ))}
               </select>
@@ -1902,13 +2088,13 @@ export default function MemberManager() {
                   <input
                     type="checkbox"
                     checked={
-                      visibleMembers.length > 0 &&
-                      visibleMembers.every((member) =>
+                      pageMembers.length > 0 &&
+                      pageMembers.every((member) =>
                         selectedMemberIds.includes(member.id),
                       )
                     }
-                    onChange={toggleVisibleMemberSelection}
-                    aria-label="Select visible members"
+                    onChange={togglePageMemberSelection}
+                    aria-label="Select members on this page"
                   />
                 </label>
               )}
@@ -1933,7 +2119,7 @@ export default function MemberManager() {
               <span>Actions</span>
             </div>
 
-            {visibleMembers.map((member) => {
+            {pageMembers.map((member) => {
               const memberMinistries = getMemberMinistries(member)
                 const memberBranches = getMemberBranches(member)
                 const displayedMinistries = memberMinistries.slice(0, 2)
@@ -2072,6 +2258,23 @@ export default function MemberManager() {
             })}
           </div>
         )}
+
+        {visibleMembers.length > 0 && (
+          <div className="member-pagination" aria-label="Member list pagination">
+            <p>
+              Showing {(activeMemberPage - 1) * membersPerPage + 1}–{Math.min(activeMemberPage * membersPerPage, visibleMembers.length)} of {visibleMembers.length} members
+            </p>
+            {memberPageCount > 1 && (
+              <div className="member-pagination-controls">
+                <button type="button" onClick={() => changeMemberPage(1)} disabled={activeMemberPage === 1} aria-label="First page"><ChevronsLeft size={17} /></button>
+                <button type="button" onClick={() => changeMemberPage(activeMemberPage - 1)} disabled={activeMemberPage === 1} aria-label="Previous page"><ChevronLeft size={17} /></button>
+                <span>Page {activeMemberPage} of {memberPageCount}</span>
+                <button type="button" onClick={() => changeMemberPage(activeMemberPage + 1)} disabled={activeMemberPage === memberPageCount} aria-label="Next page"><ChevronRight size={17} /></button>
+                <button type="button" onClick={() => changeMemberPage(memberPageCount)} disabled={activeMemberPage === memberPageCount} aria-label="Last page"><ChevronsRight size={17} /></button>
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {selectedMember && (
@@ -2115,7 +2318,7 @@ export default function MemberManager() {
               onClick={() => void downloadMemberId(selectedMember)}
             >
               <Download size={18} />
-              Download member ID
+              Download Member ID
             </button>
           </section>
         </div>
@@ -2179,28 +2382,30 @@ export default function MemberManager() {
               </section>
 
               <section className="member-details-section qr-details-section">
-                <h3>Private QR code</h3>
-                <div className="details-qr-frame">
-                  <QRCodeSVG
-                    id="member-details-qr-code"
-                    value={`att:${detailMember.qr_token}`}
-                    size={142}
-                    level="M"
-                    includeMargin
-                  />
+                <div className="details-qr-actions">
+                  <div className="details-qr-frame">
+                    <QRCodeSVG
+                      id="member-details-qr-code"
+                      value={`att:${detailMember.qr_token}`}
+                      size={142}
+                      level="M"
+                      includeMargin
+                    />
+                  </div>
+                  <button
+                    className="text-button details-download-button"
+                    onClick={() =>
+                      void downloadMemberId(
+                        detailMember,
+                        'member-details-qr-code',
+                      )
+                    }
+                    aria-label="Download Member ID"
+                    title="Download Member ID"
+                  >
+                    <Download size={17} />
+                  </button>
                 </div>
-                <button
-                  className="text-button details-download-button"
-                  onClick={() =>
-                    void downloadMemberId(
-                      detailMember,
-                      'member-details-qr-code',
-                    )
-                  }
-                >
-                  <Download size={16} />
-                  Download member ID
-                </button>
               </section>
             </div>
 

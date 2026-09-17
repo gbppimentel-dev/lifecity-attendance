@@ -1,4 +1,4 @@
-// Replacement ID: page-transition-loader-v1
+// Replacement ID: page-transition-replay-v1
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CalendarDays,
@@ -95,6 +95,7 @@ export default function App() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [page, setPage] = useState<Page>('dashboard')
   const [isPageTransitioning, setIsPageTransitioning] = useState(false)
+  const [pageTransitionKey, setPageTransitionKey] = useState(0)
   const [events, setEvents] = useState<AttendanceEvent[]>([])
   const [currentTime, setCurrentTime] = useState(() => Date.now())
   const [attendanceCounts, setAttendanceCounts] = useState<Record<string, number>>({})
@@ -143,8 +144,9 @@ export default function App() {
 
     setPage(nextPage)
     setIsPageTransitioning(true)
+    setPageTransitionKey((current) => current + 1)
 
-    const duration = 1000 + Math.floor(Math.random() * 1001)
+    const duration = 340
     pageTransitionTimeoutRef.current = window.setTimeout(() => {
       setIsPageTransitioning(false)
       pageTransitionTimeoutRef.current = null
@@ -508,19 +510,10 @@ export default function App() {
         </button>
       </header>
 
-      <section className="content">
-        {isPageTransitioning && (
-          <div className="page-transition-loader" role="status" aria-live="polite">
-            <div className="page-transition-loader-card">
-              <span className="page-transition-loader-orbit" aria-hidden="true" />
-              <span className="page-transition-loader-dot page-transition-loader-dot-one" aria-hidden="true" />
-              <span className="page-transition-loader-dot page-transition-loader-dot-two" aria-hidden="true" />
-              <div className="page-transition-loader-mark" aria-hidden="true">✦</div>
-              <p>Getting things ready</p>
-              <strong>Opening {page === 'events' ? 'services' : page}</strong>
-            </div>
-          </div>
-        )}
+      <section
+        className={`content${isPageTransitioning ? ' is-page-changing' : ''}`}
+        key={pageTransitionKey}
+      >
 
         {page === 'dashboard' && (
           <Dashboard
@@ -991,3 +984,4 @@ export default function App() {
     </main>
   )
 }
+

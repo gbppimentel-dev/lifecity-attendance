@@ -1,11 +1,17 @@
-// Replacement ID: member-branches-import-v1
-import { type ChangeEvent, useState } from 'react'
+// Replacement ID: member-import-review-v1
+import { type ChangeEvent, Fragment, useMemo, useRef, useState } from 'react'
 import Papa from 'papaparse'
 import {
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Download,
+  Pencil,
+  Save,
+  Trash2,
   FileSpreadsheet,
   Upload,
+  X,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
@@ -19,6 +25,10 @@ type ImportRow = {
   branchNames: string[]
   adminNote: string
   error: string
+  errorCount: number
+  errors: string[]
+  duplicateNameReason: string
+  nameDuplicateOverride: boolean
 }
 
 type Ministry = {
@@ -30,6 +40,15 @@ type Branch = {
   id: string
   name: string
 }
+
+type ExistingContact = {
+  email: string | null
+  mobile: string | null
+  first_name: string | null
+  last_name: string | null
+}
+
+type ImportFilter = 'all' | 'errors' | 'ready'
 
 type Props = {
   onImported: () => Promise<void>
@@ -49,7 +68,13 @@ function getValue(row: Record<string, string>, names: string[]) {
 }
 
 function normaliseMobile(value: string) {
-  return value.replace(/\D/g, '')
+  const digits = value.replace(/\D/g, '')
+
+  if (/^09\d{9}$/.test(digits)) return digits
+  if (/^9\d{9}$/.test(digits)) return `0${digits}`
+  if (/^639\d{9}$/.test(digits)) return `0${digits.slice(2)}`
+
+  return digits
 }
 
 function isValidEmail(value: string) {
@@ -65,11 +90,98 @@ function parseAssignments(value: string) {
   )]
 }
 
+function normaliseFullName(firstName: string, lastName: string) {
+  return `${firstName} ${lastName}`
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+}
+
+function validateRows(rows: ImportRow[], existingContacts: ExistingContact[]) {
+  const emailCounts = new Map<string, number>()
+  const mobileCounts = new Map<string, number>()
+  const nameCounts = new Map<string, number>()
+
+  rows.forEach((row) => {
+    const email = row.email.trim().toLowerCase()
+    const mobile = normaliseMobile(row.mobile)
+    if (email) emailCounts.set(email, (emailCounts.get(email) ?? 0) + 1)
+    if (mobile) mobileCounts.set(mobile, (mobileCounts.get(mobile) ?? 0) + 1)
+    const fullName = normaliseFullName(row.firstName, row.lastName)
+    if (row.firstName.trim() && row.lastName.trim()) nameCounts.set(fullName, (nameCounts.get(fullName) ?? 0) + 1)
+  })
+
+  const existingEmails = new Set(
+    existingContacts
+      .map((member) => member.email?.trim().toLowerCase())
+      .filter((value): value is string => Boolean(value)),
+  )
+  const existingMobiles = new Set(
+    existingContacts
+      .map((member) => normaliseMobile(member.mobile ?? ''))
+      .filter(Boolean),
+  )
+  const existingNames = new Set(
+    existingContacts
+      .filter((member) => Boolean(member.first_name?.trim() && member.last_name?.trim()))
+      .map((member) => normaliseFullName(member.first_name ?? '', member.last_name ?? '')),
+  )
+
+  return rows.map((row) => {
+    const email = row.email.trim().toLowerCase()
+    const mobile = normaliseMobile(row.mobile)
+    const fullName = normaliseFullName(row.firstName, row.lastName)
+    const errors: string[] = []
+
+    if (!row.firstName.trim() || !row.lastName.trim()) errors.push('First name and last name are required.')
+    if (email && !isValidEmail(email)) errors.push('Email must include @ and end in .com.')
+    if (mobile && !/^09\d{9}$/.test(mobile)) errors.push('Mobile must be 11 digits and start with 09.')
+    if (row.branchNames.length === 0) errors.push('Branch is required. Use LifeCity - Main when unsure.')
+    if (email && existingEmails.has(email)) errors.push('This email is already assigned to an existing member.')
+    if (mobile && existingMobiles.has(mobile)) errors.push('This mobile number is already assigned to an existing member.')
+    if (email && (emailCounts.get(email) ?? 0) > 1) errors.push('This email appears more than once in this import.')
+    if (mobile && (mobileCounts.get(mobile) ?? 0) > 1) errors.push('This mobile number appears more than once in this import.')
+
+    let duplicateNameReason = ''
+    if (row.firstName.trim() && row.lastName.trim() && existingNames.has(fullName)) {
+      duplicateNameReason = 'This full name matches a member already in the directory.'
+    } else if (row.firstName.trim() && row.lastName.trim() && (nameCounts.get(fullName) ?? 0) > 1) {
+      duplicateNameReason = 'This full name appears more than once in this import.'
+    }
+
+    return {
+      ...row,
+      email,
+      mobile,
+      error: errors[0] ?? '',
+      errorCount: errors.length,
+      errors,
+      duplicateNameReason,
+      nameDuplicateOverride: duplicateNameReason ? row.nameDuplicateOverride : false,
+    }
+  })
+}
+
+function memberName(row: Pick<ImportRow, 'firstName' | 'lastName'>) {
+  return `${row.firstName.trim()} ${row.lastName.trim()}`.trim() || 'This member'
+}
+
+function fieldNeedsAttention(row: ImportRow, field: 'name' | 'email' | 'mobile' | 'branch') {
+  const errors = row.errors ?? []
+  const checks = {
+    name: ['First name and last name'],
+    email: ['Email must', 'email is already', 'email appears'],
+    mobile: ['Mobile must', 'mobile number is already', 'mobile number appears'],
+    branch: ['Branch is required'],
+  }
+  return errors.some((error) => checks[field].some((check) => error.toLowerCase().includes(check.toLowerCase())))
+}
+
 function downloadTemplate() {
   const template = [
     'first_name,last_name,email,mobile,branches,ministries,admin_note',
-    'Juan,Dela Cruz,juan@example.com,09171234567,LifeCity - Main,Youth|Worship Team,"New attendee; follow up next month"',
-    'Maria,Santos,maria@example.com,09181234567,LifeCity - Main,Adults,"Prefers an afternoon service"',
+    'Juan,Dela Cruz,,,LifeCity - Main,,',
+    'Maria,Santos,,,LifeCity - Main,,',
   ].join('\n')
 
   const blob = new Blob(['\uFEFF', template], {
@@ -88,9 +200,23 @@ function downloadTemplate() {
 
 export default function MemberImport({ onImported, onClose }: Props) {
   const [rows, setRows] = useState<ImportRow[]>([])
+  const [existingContacts, setExistingContacts] = useState<ExistingContact[]>([])
   const [fileName, setFileName] = useState('')
   const [message, setMessage] = useState('')
   const [importing, setImporting] = useState(false)
+  const [validating, setValidating] = useState(false)
+  const [filter, setFilter] = useState<ImportFilter>('all')
+  const [errorsFirst, setErrorsFirst] = useState(true)
+  const [page, setPage] = useState(1)
+  const [editingRowNumber, setEditingRowNumber] = useState<number | null>(null)
+  const [editDraft, setEditDraft] = useState<ImportRow | null>(null)
+  const [branchText, setBranchText] = useState('')
+  const [ministryText, setMinistryText] = useState('')
+  const [editorFeedback, setEditorFeedback] = useState('')
+  const [reviewNotice, setReviewNotice] = useState('')
+  const [importSuccess, setImportSuccess] = useState<{ imported: number; skipped: number } | null>(null)
+  const reviewToolbarRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -98,7 +224,10 @@ export default function MemberImport({ onImported, onClose }: Props) {
     if (!file) return
 
     setMessage('')
+    setImportSuccess(null)
     setFileName(file.name)
+    setPage(1)
+    setEditingRowNumber(null)
 
     Papa.parse<Record<string, string>>(file, {
       header: true,
@@ -133,32 +262,23 @@ export default function MemberImport({ onImported, onClose }: Props) {
             'admin note',
             'note',
           ])
-          let error = ''
-
-          if (!firstName || !lastName) {
-            error = 'First name and last name are required.'
-          } else if (email && !isValidEmail(email)) {
-            error = 'Email must include @ and end in .com.'
-          } else if (mobile && !/^09\d{9}$/.test(mobile)) {
-            error = 'Mobile must be 11 digits and start with 09.'
-          } else if (!branches) {
-            error = 'Branch is required. Use LifeCity - Main when unsure.'
-          }
-
           return {
             rowNumber: index + 2,
             firstName,
             lastName,
             email,
-            mobile,
+            mobile: normaliseMobile(mobile),
             ministryNames: parseAssignments(ministries),
             branchNames: parseAssignments(branches),
             adminNote,
-            error,
+            error: '',
+            errorCount: 0,
+            errors: [],
+            duplicateNameReason: '',
+            nameDuplicateOverride: false,
           }
         })
-
-        setRows(parsedRows)
+        void loadExistingContactsAndValidate(parsedRows)
       },
       error: () => {
         setMessage('The CSV file could not be read.')
@@ -166,20 +286,81 @@ export default function MemberImport({ onImported, onClose }: Props) {
     })
   }
 
-  async function handleImport() {
-    const validRows = rows.filter((row) => !row.error)
+  async function loadExistingContactsAndValidate(candidateRows: ImportRow[]) {
+    setValidating(true)
+    const { data, error } = await supabase.from('members').select('email, mobile, first_name, last_name')
 
-    if (validRows.length === 0) {
-      setMessage('There are no valid rows to import.')
+    if (error) {
+      setMessage(error.message)
+      setRows(candidateRows)
+    } else {
+      const contacts = (data ?? []) as ExistingContact[]
+      setExistingContacts(contacts)
+      setRows(validateRows(candidateRows, contacts))
+    }
+
+    setValidating(false)
+  }
+
+  function saveInlineEdit() {
+    if (!editDraft) return
+
+    const nextRows = rows.map((row) =>
+      row.rowNumber === editDraft.rowNumber
+        ? {
+            ...editDraft,
+            ministryNames: parseAssignments(ministryText),
+            branchNames: parseAssignments(branchText),
+          }
+        : row,
+    )
+
+    const validatedRows = validateRows(nextRows, existingContacts)
+    const validatedRow = validatedRows.find((row) => row.rowNumber === editDraft.rowNumber)
+    setRows(validatedRows)
+
+    if (validatedRow?.errorCount) {
+      setEditDraft(validatedRow)
+      setEditorFeedback(`${validatedRow.errorCount} issue${validatedRow.errorCount === 1 ? '' : 's'} still need attention. ${validatedRow.error}`)
       return
     }
 
+    setReviewNotice(`${memberName(editDraft)} is ready to import.`)
+    setEditingRowNumber(null)
+    setEditDraft(null)
+    setEditorFeedback('')
+    window.setTimeout(() => reviewToolbarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40)
+  }
+
+  function openInlineEditor(row: ImportRow) {
+    setEditingRowNumber(row.rowNumber)
+    setEditDraft({ ...row })
+    setBranchText(row.branchNames.join(' | '))
+    setMinistryText(row.ministryNames.join(' | '))
+    setEditorFeedback(row.errorCount ? `${row.errorCount} issue${row.errorCount === 1 ? '' : 's'} need attention. ${row.error}` : '')
+  }
+
+  function changePage(nextPage: number) {
+    setPage(nextPage)
+    requestAnimationFrame(() => reviewToolbarRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+
+  function removeRow(rowNumber: number) {
+    setRows((currentRows) => currentRows.filter((row) => row.rowNumber !== rowNumber))
+    if (editingRowNumber === rowNumber) {
+      setEditingRowNumber(null)
+      setEditDraft(null)
+      setEditorFeedback('')
+    }
+  }
+
+  async function handleImport() {
     setImporting(true)
     setMessage('')
 
     const { data: existingMembers, error: existingError } = await supabase
       .from('members')
-      .select('email, mobile')
+      .select('email, mobile, first_name, last_name')
 
     if (existingError) {
       setMessage(existingError.message)
@@ -187,45 +368,25 @@ export default function MemberImport({ onImported, onClose }: Props) {
       return
     }
 
-    const existingEmails = new Set(
-      (existingMembers ?? [])
-        .map((member) => member.email?.trim().toLowerCase())
-        .filter(Boolean),
+    const freshlyValidatedRows = validateRows(
+      rows,
+      (existingMembers ?? []) as ExistingContact[],
+    )
+    setExistingContacts((existingMembers ?? []) as ExistingContact[])
+    setRows(freshlyValidatedRows)
+
+    const validRows = freshlyValidatedRows.filter(
+      (row) => !row.error && (!row.duplicateNameReason || row.nameDuplicateOverride),
     )
 
-    const existingMobiles = new Set(
-      (existingMembers ?? [])
-        .map((member) => normaliseMobile(member.mobile ?? ''))
-        .filter(Boolean),
-    )
+    if (validRows.length === 0) {
+      setMessage('Fix the highlighted rows before importing.')
+      setImporting(false)
+      return
+    }
 
-    const uploadedEmails = new Set<string>()
-    const uploadedMobiles = new Set<string>()
-    const rowsToImport: ImportRow[] = []
-    let skippedCount = rows.length - validRows.length
-
-    validRows.forEach((row) => {
-      const email = row.email.trim().toLowerCase()
-      const mobile = normaliseMobile(row.mobile)
-
-      const duplicateEmail =
-        Boolean(email) &&
-        (existingEmails.has(email) || uploadedEmails.has(email))
-
-      const duplicateMobile =
-        Boolean(mobile) &&
-        (existingMobiles.has(mobile) || uploadedMobiles.has(mobile))
-
-      if (duplicateEmail || duplicateMobile) {
-        skippedCount += 1
-        return
-      }
-
-      if (email) uploadedEmails.add(email)
-      if (mobile) uploadedMobiles.add(mobile)
-
-      rowsToImport.push(row)
-    })
+    const rowsToImport = validRows
+    const skippedCount = rows.length - validRows.length
 
     if (rowsToImport.length === 0) {
       setMessage(
@@ -384,14 +545,50 @@ export default function MemberImport({ onImported, onClose }: Props) {
 
     await onImported()
 
-    setMessage(
-      `${rowsToImport.length} member(s) imported successfully. ${skippedCount} row(s) skipped.`,
-    )
+    setRows([])
+    setFileName('')
+    setEditingRowNumber(null)
+    setEditDraft(null)
+    setReviewNotice('')
+    setImportSuccess({ imported: rowsToImport.length, skipped: skippedCount })
+    if (fileInputRef.current) fileInputRef.current.value = ''
     setImporting(false)
+    window.setTimeout(() => {
+      document.querySelector('.directory-tools-workspace')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    }, 60)
   }
 
-  const validCount = rows.filter((row) => !row.error).length
+  const validCount = rows.filter((row) => !row.error && (!row.duplicateNameReason || row.nameDuplicateOverride)).length
   const invalidCount = rows.filter((row) => row.error).length
+  const possibleDuplicateCount = rows.filter((row) => row.duplicateNameReason && !row.nameDuplicateOverride).length
+  const pageSize = 25
+  const filteredRows = useMemo(() => {
+    const matchingRows = rows.filter((row) =>
+      filter === 'all'
+        ? true
+        : filter === 'errors'
+          ? Boolean(row.error)
+          : !row.error && (!row.duplicateNameReason || row.nameDuplicateOverride),
+    )
+
+    return [...matchingRows].sort((a, b) => {
+      const aNeedsReview = Boolean(a.error) || Boolean(a.duplicateNameReason && !a.nameDuplicateOverride)
+      const bNeedsReview = Boolean(b.error) || Boolean(b.duplicateNameReason && !b.nameDuplicateOverride)
+      if (errorsFirst && aNeedsReview !== bNeedsReview) {
+        return aNeedsReview ? -1 : 1
+      }
+      return a.rowNumber - b.rowNumber
+    })
+  }, [errorsFirst, filter, rows])
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const displayedRows = filteredRows.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  )
 
   return (
     <section className="csv-import-card">
@@ -409,13 +606,25 @@ export default function MemberImport({ onImported, onClose }: Props) {
           </p>
         </div>
 
-        <button
-          className="secondary-button template-button"
-          onClick={downloadTemplate}
-        >
-          <Download size={18} />
-          Download template
-        </button>
+        <div className="csv-import-actions">
+          <button
+            className="secondary-button template-button"
+            onClick={downloadTemplate}
+          >
+            <Download size={18} />
+            <span>Download Template</span>
+          </button>
+
+          <button
+            className="csv-close-button"
+            type="button"
+            onClick={onClose}
+            aria-label="Close member import"
+            title="Close import"
+          >
+            <X size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="csv-import-steps">
@@ -434,7 +643,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
       </div>
 
       <label className="csv-upload-zone">
-        <input type="file" accept=".csv,text/csv" onChange={handleFileChange} />
+        <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={handleFileChange} />
         <Upload size={28} />
         <strong>{fileName || 'Choose a CSV file'}</strong>
         <span>
@@ -443,9 +652,20 @@ export default function MemberImport({ onImported, onClose }: Props) {
         </span>
       </label>
 
+      {importSuccess && (
+        <section className="csv-import-success" role="status">
+          <div className="csv-success-orbit" aria-hidden="true"><CheckCircle2 size={30} /></div>
+          <div>
+            <p className="eyebrow">Import complete</p>
+            <h3>{importSuccess.imported} member{importSuccess.imported === 1 ? '' : 's'} added to the directory</h3>
+            <p>{importSuccess.skipped > 0 ? `${importSuccess.skipped} row${importSuccess.skipped === 1 ? ' was' : 's were'} not imported and can be included in your next file.` : 'Everything in this file was added successfully.'}</p>
+          </div>
+        </section>
+      )}
+
       {rows.length > 0 && (
         <>
-          <div className="csv-summary">
+          <div className="csv-summary" ref={reviewToolbarRef}>
             <span>{rows.length} row(s) found</span>
             <span className="valid-count">{validCount} valid</span>
 
@@ -454,6 +674,52 @@ export default function MemberImport({ onImported, onClose }: Props) {
                 {invalidCount} need attention
               </span>
             )}
+            {possibleDuplicateCount > 0 && (
+              <span className="possible-duplicate-count">{possibleDuplicateCount} possible duplicate{possibleDuplicateCount === 1 ? '' : 's'}</span>
+            )}
+          </div>
+
+          {reviewNotice && (
+            <div className="csv-review-notice" role="status">
+              <CheckCircle2 size={17} />
+              <span>{reviewNotice}</span>
+              <button type="button" onClick={() => setReviewNotice('')} aria-label="Dismiss confirmation"><X size={15} /></button>
+            </div>
+          )}
+
+          <div className="csv-review-toolbar">
+            <div className="csv-review-filters" aria-label="Import review filters">
+              <button
+                className={filter === 'all' ? 'is-active' : ''}
+                type="button"
+                onClick={() => { setFilter('all'); setPage(1) }}
+              >
+                All rows
+              </button>
+              <button
+                className={filter === 'errors' ? 'is-active is-error' : 'is-error'}
+                type="button"
+                onClick={() => { setFilter('errors'); setPage(1) }}
+              >
+                Needs attention ({invalidCount})
+              </button>
+              <button
+                className={filter === 'ready' ? 'is-active is-ready' : 'is-ready'}
+                type="button"
+                onClick={() => { setFilter('ready'); setPage(1) }}
+              >
+                Ready ({validCount})
+              </button>
+            </div>
+
+            <label className="csv-error-sort">
+              <input
+                type="checkbox"
+                checked={errorsFirst}
+                onChange={(event) => setErrorsFirst(event.target.checked)}
+              />
+              Errors first
+            </label>
           </div>
 
           <div className="csv-preview">
@@ -463,46 +729,67 @@ export default function MemberImport({ onImported, onClose }: Props) {
               <span>Ministries</span>
               <span>Branches</span>
               <span>Status</span>
+              <span />
             </div>
 
-            {rows.slice(0, 8).map((row) => (
-              <article
-                className={`csv-preview-row ${row.error ? 'has-error' : ''}`}
-                key={row.rowNumber}
-              >
-                <span>#{row.rowNumber}</span>
-                <strong>
-                  {row.firstName || 'Missing first name'}{' '}
-                  {row.lastName || 'Missing last name'}
-                </strong>
-                <span>{row.ministryNames.join(', ') || '—'}</span>
-                <span>{row.branchNames.join(', ') || '—'}</span>
+            {displayedRows.map((row) => (
+              <Fragment key={row.rowNumber}>
+                <article className={`csv-preview-row ${row.error ? 'has-error' : ''} ${row.duplicateNameReason ? 'has-possible-duplicate' : ''} ${editingRowNumber === row.rowNumber ? 'is-editing' : ''}`}>
+                  <span>#{row.rowNumber}</span>
+                  <div className="csv-member-cell">
+                    <span className={row.firstName ? '' : 'csv-missing'}>{row.firstName || 'Missing first name'}</span>
+                    <span className={row.lastName ? '' : 'csv-missing'}>{row.lastName || 'Missing last name'}</span>
+                  </div>
+                  <span>{row.ministryNames.join(', ') || '—'}</span>
+                  <span>{row.branchNames.join(', ') || '—'}</span>
+                  <span className={row.error ? 'csv-error' : row.duplicateNameReason ? 'csv-possible-duplicate' : 'csv-valid'}>
+                    {row.error ? <><span className="csv-error-count" aria-label={`${row.errorCount} issues`}>{row.errorCount} issue{row.errorCount === 1 ? '' : 's'}</span><span>{row.error}</span></> : row.duplicateNameReason ? <><span className="csv-duplicate-pill">Possible duplicate</span><label className="csv-duplicate-override"><input type="checkbox" checked={row.nameDuplicateOverride} onChange={(event) => setRows((currentRows) => currentRows.map((currentRow) => currentRow.rowNumber === row.rowNumber ? { ...currentRow, nameDuplicateOverride: event.target.checked } : currentRow))} />Import anyway</label></> : <><CheckCircle2 size={15} /> Ready</>}
+                  </span>
+                  <span className="csv-row-actions">
+                    <button className="csv-row-edit-button" type="button" onClick={() => openInlineEditor(row)} aria-label={`Edit row ${row.rowNumber}`} title="Edit row"><Pencil size={15} /></button>
+                    <button className="csv-row-remove-button" type="button" onClick={() => removeRow(row.rowNumber)} aria-label={`Remove row ${row.rowNumber}`} title="Remove row"><Trash2 size={15} /></button>
+                  </span>
+                </article>
 
-                <span className={row.error ? 'csv-error' : 'csv-valid'}>
-                  {row.error || (
-                    <>
-                      <CheckCircle2 size={15} />
-                      Ready
-                    </>
-                  )}
-                </span>
-              </article>
+                {editingRowNumber === row.rowNumber && editDraft && (
+                  <section className="csv-inline-editor" aria-label={`Editing row ${row.rowNumber}`}>
+                    <div className="csv-editor-heading"><span>Editing {memberName(editDraft)}</span><small>Changes are checked before they are saved.</small></div>
+                    {editorFeedback && <p className="csv-editor-feedback"><span>Needs attention</span>{editorFeedback}</p>}
+                    <label><span className="csv-field-label">First name <b>*</b></span><input className={fieldNeedsAttention(editDraft, 'name') ? 'needs-attention' : ''} placeholder="Juan" value={editDraft.firstName} onChange={(event) => setEditDraft({ ...editDraft, firstName: event.target.value })} /></label>
+                    <label><span className="csv-field-label">Last name <b>*</b></span><input className={fieldNeedsAttention(editDraft, 'name') ? 'needs-attention' : ''} placeholder="Dela Cruz" value={editDraft.lastName} onChange={(event) => setEditDraft({ ...editDraft, lastName: event.target.value })} /></label>
+                    <label><span className="csv-field-label">Email</span><input className={fieldNeedsAttention(editDraft, 'email') ? 'needs-attention' : ''} type="email" value={editDraft.email} onChange={(event) => setEditDraft({ ...editDraft, email: event.target.value })} /></label>
+                    <label>Mobile<input className={fieldNeedsAttention(editDraft, 'mobile') ? 'needs-attention' : ''} inputMode="numeric" placeholder="11-digit mobile number (09xxxxxxxxx)" value={editDraft.mobile} onChange={(event) => setEditDraft({ ...editDraft, mobile: event.target.value })} /></label>
+                    <label><span className="csv-field-label">Branches <b>*</b></span><input className={fieldNeedsAttention(editDraft, 'branch') ? 'needs-attention' : ''} placeholder="LifeCity - Main" value={branchText} onChange={(event) => setBranchText(event.target.value)} /></label>
+                    <label><span className="csv-field-label">Ministries</span><input value={ministryText} onChange={(event) => setMinistryText(event.target.value)} /></label>
+                    <label className="csv-editor-note">Admin note<input value={editDraft.adminNote} onChange={(event) => setEditDraft({ ...editDraft, adminNote: event.target.value })} /></label>
+                    <div className="csv-editor-actions">
+                      <button className="secondary-button" type="button" onClick={() => { setEditingRowNumber(null); setEditDraft(null); setEditorFeedback('') }}>Cancel</button>
+                      <button className="primary-button" type="button" onClick={saveInlineEdit}><Save size={17} />Save & validate</button>
+                    </div>
+                  </section>
+                )}
+              </Fragment>
             ))}
           </div>
 
-          {rows.length > 8 && (
-            <p className="csv-more-rows">
-              Showing the first 8 of {rows.length} rows.
-            </p>
-          )}
+          <div className="csv-pagination">
+            <p>Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredRows.length)} of {filteredRows.length} filtered row(s).</p>
+            {totalPages > 1 && (
+              <div>
+                <button type="button" disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)} aria-label="Previous page"><ChevronLeft size={18} /></button>
+                <span>Page {currentPage} of {totalPages}</span>
+                <button type="button" disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)} aria-label="Next page"><ChevronRight size={18} /></button>
+              </div>
+            )}
+          </div>
 
           <div className="csv-import-footer">
-            <p>Duplicate email addresses or mobile numbers are skipped.</p>
+            <p>{validating ? 'Checking existing member contacts…' : 'Rows with errors are blocked until corrected.'}</p>
 
             <button
-              className="primary-button"
+              className="secondary-button import-members-button"
               onClick={handleImport}
-              disabled={importing || validCount === 0}
+              disabled={importing || validating || validCount === 0}
             >
               <Upload size={18} />
               {importing
@@ -515,9 +802,6 @@ export default function MemberImport({ onImported, onClose }: Props) {
 
       {message && <p className="csv-message">{message}</p>}
 
-      <button className="text-button csv-close-button" onClick={onClose}>
-        Close import
-      </button>
     </section>
   )
 }

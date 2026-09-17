@@ -1,4 +1,4 @@
-// Replacement ID: dashboard-remove-sunday-trend-v1
+// Replacement ID: dashboard-loading-skeleton-v1
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, CalendarDays, Camera, CheckCircle2, Clock3, RefreshCw, Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -213,7 +213,22 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
   const showActiveCheckIn =
     activeScannerState === 'upcoming' || activeScannerState === 'in-progress'
   if (loading) {
-    return <p className="dashboard-loading">Loading dashboard…</p>
+    return (
+      <section className="dashboard-loading-skeleton" aria-label="Loading dashboard" aria-busy="true">
+        <div className="dashboard-skeleton-hero">
+          <span className="dashboard-skeleton-kicker" />
+          <span className="dashboard-skeleton-title" />
+          <span className="dashboard-skeleton-copy" />
+          <span className="dashboard-skeleton-copy short" />
+        </div>
+        <div className="dashboard-skeleton-metrics">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+      </section>
+    )
   }
 
   if (error) {
@@ -438,3 +453,4 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
     </>
   )
 }
+
