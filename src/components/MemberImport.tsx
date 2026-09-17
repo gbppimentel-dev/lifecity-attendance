@@ -136,7 +136,7 @@ function validateRows(rows: ImportRow[], existingContacts: ExistingContact[]) {
     if (!row.firstName.trim() || !row.lastName.trim()) errors.push('First name and last name are required.')
     if (email && !isValidEmail(email)) errors.push('Email must include @ and end in .com.')
     if (mobile && !/^09\d{9}$/.test(mobile)) errors.push('Mobile must be 11 digits and start with 09.')
-    if (row.branchNames.length === 0) errors.push('Branch is required. Use LifeCity - Main when unsure.')
+    if (row.branchNames.length === 0) errors.push('Church is required. Use LifeCity - Main when unsure.')
     if (email && existingEmails.has(email)) errors.push('This email is already assigned to an existing member.')
     if (mobile && existingMobiles.has(mobile)) errors.push('This mobile number is already assigned to an existing member.')
     if (email && (emailCounts.get(email) ?? 0) > 1) errors.push('This email appears more than once in this import.')
@@ -172,14 +172,14 @@ function fieldNeedsAttention(row: ImportRow, field: 'name' | 'email' | 'mobile' 
     name: ['First name and last name'],
     email: ['Email must', 'email is already', 'email appears'],
     mobile: ['Mobile must', 'mobile number is already', 'mobile number appears'],
-    branch: ['Branch is required'],
+    branch: ['Church is required'],
   }
   return errors.some((error) => checks[field].some((check) => error.toLowerCase().includes(check.toLowerCase())))
 }
 
 function downloadTemplate() {
   const template = [
-    'first_name,last_name,email,mobile,branches,ministries,admin_note',
+    'first_name,last_name,email,mobile,churches,ministries,admin_note',
     'Juan,Dela Cruz,,,LifeCity - Main,,',
     'Maria,Santos,,,LifeCity - Main,,',
   ].join('\n')
@@ -256,7 +256,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
             'group',
             'member_group',
           ])
-          const branches = getValue(row, ['branches', 'branch'])
+          const branches = getValue(row, ['churches', 'church', 'branches', 'branch'])
           const adminNote = getValue(row, [
             'admin_note',
             'admin note',
@@ -601,7 +601,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
           <p className="eyebrow">Bulk registration</p>
           <h2>Import members from CSV</h2>
           <p className="muted">
-            Download the template, add member details, branches, and ministries, then
+            Download the template, add member details, churches, and ministries, then
             upload it here.
           </p>
         </div>
@@ -647,7 +647,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
         <Upload size={28} />
         <strong>{fileName || 'Choose a CSV file'}</strong>
         <span>
-          Required: first_name, last_name, branches · Optional: email, mobile,
+          Required: first_name, last_name, churches · Optional: email, mobile,
           ministries, admin_note
         </span>
       </label>
@@ -727,7 +727,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
               <span>Row</span>
               <span>Member</span>
               <span>Ministries</span>
-              <span>Branches</span>
+              <span>Churches</span>
               <span>Status</span>
               <span />
             </div>
@@ -759,7 +759,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
                     <label><span className="csv-field-label">Last name <b>*</b></span><input className={fieldNeedsAttention(editDraft, 'name') ? 'needs-attention' : ''} placeholder="Dela Cruz" value={editDraft.lastName} onChange={(event) => setEditDraft({ ...editDraft, lastName: event.target.value })} /></label>
                     <label><span className="csv-field-label">Email</span><input className={fieldNeedsAttention(editDraft, 'email') ? 'needs-attention' : ''} type="email" value={editDraft.email} onChange={(event) => setEditDraft({ ...editDraft, email: event.target.value })} /></label>
                     <label>Mobile<input className={fieldNeedsAttention(editDraft, 'mobile') ? 'needs-attention' : ''} inputMode="numeric" placeholder="11-digit mobile number (09xxxxxxxxx)" value={editDraft.mobile} onChange={(event) => setEditDraft({ ...editDraft, mobile: event.target.value })} /></label>
-                    <label><span className="csv-field-label">Branches <b>*</b></span><input className={fieldNeedsAttention(editDraft, 'branch') ? 'needs-attention' : ''} placeholder="LifeCity - Main" value={branchText} onChange={(event) => setBranchText(event.target.value)} /></label>
+                    <label><span className="csv-field-label">Churches <b>*</b></span><input className={fieldNeedsAttention(editDraft, 'branch') ? 'needs-attention' : ''} placeholder="LifeCity - Main" value={branchText} onChange={(event) => setBranchText(event.target.value)} /></label>
                     <label><span className="csv-field-label">Ministries</span><input value={ministryText} onChange={(event) => setMinistryText(event.target.value)} /></label>
                     <label className="csv-editor-note">Admin note<input value={editDraft.adminNote} onChange={(event) => setEditDraft({ ...editDraft, adminNote: event.target.value })} /></label>
                     <div className="csv-editor-actions">

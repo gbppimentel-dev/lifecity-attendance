@@ -1,4 +1,4 @@
-// Replacement ID: page-transition-replay-v1
+// Replacement ID: page-transition-loader-v1
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CalendarDays,
@@ -95,7 +95,6 @@ export default function App() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [page, setPage] = useState<Page>('dashboard')
   const [isPageTransitioning, setIsPageTransitioning] = useState(false)
-  const [pageTransitionKey, setPageTransitionKey] = useState(0)
   const [events, setEvents] = useState<AttendanceEvent[]>([])
   const [currentTime, setCurrentTime] = useState(() => Date.now())
   const [attendanceCounts, setAttendanceCounts] = useState<Record<string, number>>({})
@@ -144,9 +143,8 @@ export default function App() {
 
     setPage(nextPage)
     setIsPageTransitioning(true)
-    setPageTransitionKey((current) => current + 1)
 
-    const duration = 340
+    const duration = 1000 + Math.floor(Math.random() * 1001)
     pageTransitionTimeoutRef.current = window.setTimeout(() => {
       setIsPageTransitioning(false)
       pageTransitionTimeoutRef.current = null
@@ -510,10 +508,19 @@ export default function App() {
         </button>
       </header>
 
-      <section
-        className={`content${isPageTransitioning ? ' is-page-changing' : ''}`}
-        key={pageTransitionKey}
-      >
+      <section className="content">
+        {isPageTransitioning && (
+          <div className="page-transition-loader" role="status" aria-live="polite">
+            <div className="page-transition-loader-card">
+              <span className="page-transition-loader-orbit" aria-hidden="true" />
+              <span className="page-transition-loader-dot page-transition-loader-dot-one" aria-hidden="true" />
+              <span className="page-transition-loader-dot page-transition-loader-dot-two" aria-hidden="true" />
+              <div className="page-transition-loader-mark" aria-hidden="true">✦</div>
+              <p>Getting things ready</p>
+              <strong>Opening {page === 'events' ? 'services' : page}</strong>
+            </div>
+          </div>
+        )}
 
         {page === 'dashboard' && (
           <Dashboard
@@ -885,7 +892,7 @@ export default function App() {
 
         {page === 'records' && (
           <>
-            <div className="page-heading">
+            <div className="page-heading records-page-heading">
               <div>
                 <p className="eyebrow">Reports</p>
                 <h1>Attendance records</h1>
@@ -893,6 +900,24 @@ export default function App() {
                   Review check-ins and export an Excel-friendly CSV report.
                 </p>
               </div>
+
+              <button
+                type="button"
+                className="records-hero-action"
+                onClick={() =>
+                  document.querySelector('.records-card')?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                  })
+                }
+              >
+                <span className="records-hero-action-kicker">Reporting center</span>
+                <strong>View records</strong>
+                <span className="records-hero-action-note">Filter, review &amp; export</span>
+                <span className="records-hero-action-icon" aria-hidden="true">
+                  <ClipboardList size={22} />
+                </span>
+              </button>
             </div>
 
             <AttendanceRecords events={events} />
@@ -984,4 +1009,3 @@ export default function App() {
     </main>
   )
 }
-

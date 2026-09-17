@@ -243,6 +243,26 @@ export default function MemberManager() {
     })
   }
 
+  function scrollToMemberFormStart() {
+    // Wait for React to mount and lay out the form before measuring it. This
+    // keeps both Register and Edit anchored to the top of the card instead of
+    // preserving the previous position somewhere inside the form.
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const form = memberFormRef.current
+        if (!form) return
+
+        const topbarHeight = document.querySelector('.topbar')?.getBoundingClientRect().height ?? 0
+        const formTop = window.scrollY + form.getBoundingClientRect().top
+
+        window.scrollTo({
+          top: Math.max(0, formTop - topbarHeight - 16),
+          behavior: 'smooth',
+        })
+      })
+    })
+  }
+
   async function loadData() {
     setLoading(true)
 
@@ -313,7 +333,7 @@ export default function MemberManager() {
     setNewMinistryName('')
     setNewBranchName('')
     setShowForm(true)
-    scrollToSection(memberFormRef)
+    scrollToMemberFormStart()
   }
 
   function openEditForm(member: Member) {
@@ -333,7 +353,7 @@ export default function MemberManager() {
     setNewMinistryName('')
     setNewBranchName('')
     setShowForm(true)
-    scrollToSection(memberFormRef)
+    scrollToMemberFormStart()
   }
 
   function closeForm() {
@@ -463,7 +483,7 @@ export default function MemberManager() {
       .single()
 
     if (error) {
-      setMessage(error.code === '23505' ? 'That branch already exists.' : error.message)
+      setMessage(error.code === '23505' ? 'That church already exists.' : error.message)
       return
     }
 
@@ -515,7 +535,7 @@ export default function MemberManager() {
     if (!name) return
 
     if (branches.some((branch) => branch.name.toLowerCase() === name.toLowerCase())) {
-      setBranchMessage('A branch with that name already exists.')
+      setBranchMessage('A church with that name already exists.')
       return
     }
 
@@ -526,7 +546,7 @@ export default function MemberManager() {
       .single()
 
     if (error) {
-      setBranchMessage(error.code === '23505' ? 'A branch with that name already exists.' : error.message)
+      setBranchMessage(error.code === '23505' ? 'A church with that name already exists.' : error.message)
       return
     }
 
@@ -611,7 +631,7 @@ export default function MemberManager() {
     setContactFieldErrors({})
 
     if (form.branchIds.length === 0) {
-      setMessage('Choose at least one branch before saving this member.')
+      setMessage('Choose at least one church before saving this member.')
       return
     }
 
@@ -1003,11 +1023,11 @@ export default function MemberManager() {
   async function saveBranchRename(branch: Branch) {
     const name = branchRenameValue.trim()
     if (!name) {
-      setBranchMessage('A branch name is required.')
+      setBranchMessage('A church name is required.')
       return
     }
     if (branches.some((item) => item.id !== branch.id && item.name.toLowerCase() === name.toLowerCase())) {
-      setBranchMessage('A branch with that name already exists.')
+      setBranchMessage('A church with that name already exists.')
       return
     }
     const { error } = await supabase.from('branches').update({ name }).eq('id', branch.id)
@@ -1017,7 +1037,7 @@ export default function MemberManager() {
     }
     setRenamingBranchId('')
     setBranchRenameValue('')
-    setBranchMessage('Branch renamed successfully.')
+    setBranchMessage('Church renamed successfully.')
     await loadData()
   }
 
@@ -1401,7 +1421,7 @@ export default function MemberManager() {
             aria-expanded={showBranchManager}
           >
             <Settings2 size={18} />
-            Branches
+            Churches
           </button>
           </div>
         </div>
@@ -1424,7 +1444,7 @@ export default function MemberManager() {
         <section className="directory-tools-workspace" ref={directoryToolsRef} aria-label="Directory tools">
           <div className="directory-tools-workspace-label">
             <span>Directory tools</span>
-            <strong>{showImport ? 'Import members' : showMinistryManager ? 'Ministries' : 'Branches'}</strong>
+            <strong>{showImport ? 'Import members' : showMinistryManager ? 'Ministries' : 'Churches'}</strong>
           </div>
 
       {showImport && (
@@ -1589,12 +1609,12 @@ export default function MemberManager() {
           <div className="ministry-manager-heading">
             <div>
               <p className="eyebrow">Directory settings</p>
-              <h2>Manage branches</h2>
+              <h2>Manage churches</h2>
               <p className="muted">
-                Branches work like ministries. A branch can only be deleted after it is removed from every member.
+                Churches work like ministries. A church can only be deleted after it is removed from every member.
               </p>
             </div>
-            <button className="icon-button" type="button" onClick={() => setShowBranchManager(false)} aria-label="Close branch management">
+            <button className="icon-button" type="button" onClick={() => setShowBranchManager(false)} aria-label="Close church management">
               <X size={20} />
             </button>
           </div>
@@ -1603,7 +1623,7 @@ export default function MemberManager() {
             <input
               value={newManagedBranchName}
               onChange={(event) => setNewManagedBranchName(event.target.value)}
-              placeholder="Add a branch, e.g. LifeCity - North"
+              placeholder="Add a new Church, e.g. LifeCity - Main"
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   event.preventDefault()
@@ -1613,7 +1633,7 @@ export default function MemberManager() {
             />
             <button className="secondary-button" type="button" onClick={() => void addManagedBranch()}>
               <Plus size={17} />
-              Add branch
+              Add Church
             </button>
           </div>
 
@@ -1657,8 +1677,8 @@ export default function MemberManager() {
                       </>
                     ) : (
                       <>
-                        <button className="edit-icon-button" onClick={() => beginBranchRename(branch)} aria-label={`Rename ${branch.name}`} title="Rename branch"><Pencil size={18} /></button>
-                        <button className="delete-icon-button" onClick={() => void deleteBranch(branch)} aria-label={`Delete ${branch.name}`} title="Delete branch"><Trash2 size={18} /></button>
+                        <button className="edit-icon-button" onClick={() => beginBranchRename(branch)} aria-label={`Rename ${branch.name}`} title="Rename church"><Pencil size={18} /></button>
+                        <button className="delete-icon-button" onClick={() => void deleteBranch(branch)} aria-label={`Delete ${branch.name}`} title="Delete church"><Trash2 size={18} /></button>
                       </>
                     )}
                   </div>
@@ -1728,6 +1748,7 @@ export default function MemberManager() {
                   setForm({ ...form, firstName: event.target.value })
                 }
                 required
+                placeholder="Juan"
               />
             </label>
 
@@ -1741,6 +1762,7 @@ export default function MemberManager() {
                   setForm({ ...form, lastName: event.target.value })
                 }
                 required
+                placeholder="Dela Cruz"
               />
             </label>
 
@@ -1763,6 +1785,7 @@ export default function MemberManager() {
                 }}
                 className={contactFieldErrors.email ? 'input-error' : ''}
                 aria-invalid={Boolean(contactFieldErrors.email)}
+                placeholder="juan@example.com"
               />
             </label>
 
@@ -1786,6 +1809,7 @@ export default function MemberManager() {
                 maxLength={11}
                 className={contactFieldErrors.mobile ? 'input-error' : ''}
                 aria-invalid={Boolean(contactFieldErrors.mobile)}
+                placeholder="0917 123 4567"
               />
             </label>
 
@@ -1808,8 +1832,8 @@ export default function MemberManager() {
             <section className="ministry-picker wide-field branch-picker">
               <div className="ministry-picker-heading">
                 <div>
-                  <strong>Branches <span className="required-mark">*</span></strong>
-                  <p>Choose at least one branch this member serves in.</p>
+                  <strong>Churches <span className="required-mark">*</span></strong>
+                  <p>Choose at least one church this member serves in.</p>
                 </div>
                 <span className="picker-count">
                   {form.branchIds.length} selected
@@ -1818,10 +1842,10 @@ export default function MemberManager() {
 
               {branches.length === 0 ? (
                 <>
-                  <p className="muted">Add your first branch below.</p>
+                  <p className="muted">Add your first church below.</p>
                   {branchLoadError && (
                     <p className="branch-load-error">
-                      Could not load branches: {branchLoadError}
+                      Could not load churches: {branchLoadError}
                     </p>
                   )}
                 </>
@@ -1844,7 +1868,7 @@ export default function MemberManager() {
                 <input
                   value={newBranchName}
                   onChange={(event) => setNewBranchName(event.target.value)}
-                  placeholder="Add a new branch, e.g. LifeCity - North"
+                  placeholder="Add a new Church, e.g. LifeCity - Main"
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
                       event.preventDefault()
@@ -1854,7 +1878,7 @@ export default function MemberManager() {
                 />
                 <button className="secondary-button" type="button" onClick={() => void addBranch()}>
                   <Plus size={17} />
-                  Add branch
+                  Add Church
                 </button>
               </div>
             </section>
@@ -1995,7 +2019,7 @@ export default function MemberManager() {
             <label className={`filter-select ${filterSpotlight === 'branch' ? 'filter-select-spotlight' : ''}`}>
               <Settings2 size={17} />
               <select value={branchFilter} onChange={(event) => setBranchFilter(event.target.value)}>
-                <option value="all">All branches</option>
+              <option value="all">All churches</option>
                 {branchesForFilter.map((branch) => (
                   <option key={branch.id} value={branch.id}>{branch.name}</option>
                 ))}
@@ -2114,7 +2138,7 @@ export default function MemberManager() {
               </button>
 
               <span>Ministries</span>
-              <span>Branches</span>
+              <span>Churches</span>
               <span>Status</span>
               <span>Actions</span>
             </div>
@@ -2425,7 +2449,7 @@ export default function MemberManager() {
             </section>
 
             <section className="member-details-section">
-              <h3>Branches</h3>
+              <h3>Churches</h3>
               <div className="details-ministry-list">
                 {getMemberBranches(detailMember).map((branch) => (
                   <span className="details-ministry-pill" key={branch.id}>
