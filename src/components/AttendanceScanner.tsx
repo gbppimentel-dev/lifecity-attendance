@@ -1,3 +1,4 @@
+// Change ID: LC-MOBILE-CAMERA-v1
 // Change ID: LC-P08L-v1
 // Change ID: LC-P08E-v1
 // Change ID: LC-P08D-v1
@@ -72,6 +73,14 @@ export default function AttendanceScanner({ event }: Props) {
   const [cameraError, setCameraError] = useState('')
   const [cameras, setCameras] = useState<CameraDevice[]>([])
   const [cameraId, setCameraId] = useState('')
+  const [facingMode,setFacingMode]=useState<'user'|'environment'>('environment')
+  const [cameraState,setCameraState]=useState<'starting'|'ready'|'error'>('starting')
+  const [cameraRetry,setCameraRetry]=useState(0)
+  const [torchBusy,setTorchBusy]=useState(false)
+  const activeTrack=useRef<MediaStreamTrack|null>(null)
+  const activeDevice=useRef('')
+  const activeFacing=useRef<'user'|'environment'>('environment')
+  const torchLock=useRef(false)
   const [torchSupported, setTorchSupported] = useState(false)
   const [torchOn, setTorchOn] = useState(false)
   const [recentCheckIns, setRecentCheckIns] = useState<RecentCheckIn[]>([])
@@ -229,88 +238,65 @@ export default function AttendanceScanner({ event }: Props) {
   }, [event?.id])
 
   useEffect(() => {
-    if (!event) return
-
-    let disposed = false
-    let scanner: Html5Qrcode | null = null
-
-    async function startCamera() {
+    if(!event)return
+    let disposed=false
+    let scanner:Html5Qrcode|null=null
+    let track:MediaStreamTrack|null=null
+    setCameraState('starting');setCameraError('');setTorchSupported(false);setTorchOn(false)
+    setTorchBusy(false);torchLock.current=false
+    async function startCamera(){
       await scannerShutdown
-
-      if (disposed) return
-
-      const reader = document.getElementById('attendance-reader')
-
-      if (!reader) return
-
+      if(disposed)return
+      const reader=document.getElementById('attendance-reader')
+      if(!reader)return
       reader.replaceChildren()
-      setCameraError('')
-      setTorchSupported(false)
-      setTorchOn(false)
-
-      scanner = new Html5Qrcode('attendance-reader', {
-        verbose: false,
-      })
-
-      try {
+      try{
+        scanner=new Html5Qrcode('attendance-reader',{verbose:false})
         await scanner.start(
-          cameraId
-            ? { deviceId: { exact: cameraId } }
-            : { facingMode: 'environment' },
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1,
-          },
-          (decodedText) => {
-            if(!disposed)void recordAttendance(decodedText)
-          },
-          () => {
-            // Normal failed frames are ignored while the camera keeps scanning.
-          },
+          cameraId?{deviceId:{exact:cameraId}}:{facingMode:{ideal:facingMode}},
+          {fps:10,qrbox:(width,height)=>{const size=Math.min(250,Math.floor(Math.min(width,height)*.8));return {width:size,height:size}},aspectRatio:1},
+          text=>{if(!disposed)void recordAttendance(text)},()=>{},
         )
-
-        const availableCameras = await Html5Qrcode.getCameras()
-        if (!disposed) {
-          scannerRef.current = scanner
-          setCameras(availableCameras)
-          const capabilities = scanner.getRunningTrackCapabilities() as MediaTrackCapabilities & { torch?: boolean }
-          setTorchSupported(capabilities.torch === true)
-        }
-      } catch {
-        if(disposed)return
-        setCameraError(
-          'Camera access was not available. Allow camera permission, or use member search below.',
-        )
+      }catch{
+        if(!disposed){setCameraState('error');setCameraError('Could not start this camera. Allow camera access, close other apps using it, then choose Retry Camera or Switch Camera.')}
+        return
       }
+      if(disposed)return
+      scannerRef.current=scanner
+      setCameraState('ready');setCameraError('')
+      // Optional metadata must never turn a successful start into an access error.
+      try{
+        const video=reader.querySelector('video')
+        const stream=video?.srcObject as MediaStream|null
+        track=stream?.getVideoTracks?.()[0]??null
+        activeTrack.current=track
+        const settings=track?.getSettings?.()??scanner.getRunningTrackSettings()
+        activeDevice.current=settings.deviceId??cameraId
+        activeFacing.current=settings.facingMode==='user'?'user':settings.facingMode==='environment'?'environment':facingMode
+      }catch{activeDevice.current=cameraId;activeFacing.current=facingMode}
+      try{
+        const caps=(track?.getCapabilities?.()??scanner.getRunningTrackCapabilities()) as MediaTrackCapabilities & {torch?:boolean|boolean[]}
+        setTorchSupported(caps.torch===true || (Array.isArray(caps.torch)&&caps.torch.includes(true)))
+      }catch{setTorchSupported(false)}
+      // Enumerate after permission, without requesting a second camera stream.
+      try{
+        void navigator.mediaDevices.enumerateDevices().then(devices=>{
+          if(!disposed)setCameras(devices.filter(device=>device.kind==='videoinput'&&device.deviceId).map(device=>({id:device.deviceId,label:device.label})))
+        }).catch(()=>{if(!disposed)setCameras([])})
+      }catch{if(!disposed)setCameras([])}
     }
-
-    void startCamera()
-
-    return () => {
-      disposed = true
-
-      scannerShutdown = scannerShutdown.then(async () => {
-        if (!scanner) return
-
-        if (scannerRef.current === scanner) {
-          scannerRef.current = null
-        }
-
-        try {
-          await scanner.stop()
-        } catch {
-          // Scanner may already be stopped.
-        }
-
-        try {
-          await scanner.clear()
-        } catch {
-          // Clearing an already removed scanner is safe to ignore.
-        }
+    const startup=startCamera()
+    return()=>{
+      disposed=true
+      scannerShutdown=scannerShutdown.then(async()=>{
+        await startup
+        if(!scanner)return
+        if(scannerRef.current===scanner){scannerRef.current=null;activeTrack.current=null}
+        try{await scanner.stop()}catch{track?.stop()}
+        try{scanner.clear()}catch{/* Reader may already be removed. */}
       })
     }
-  }, [event?.id, cameraId])
+  },[event?.id,cameraId,facingMode,cameraRetry])
 
   useEffect(() => {
     function updateKioskMode() {
@@ -322,28 +308,32 @@ export default function AttendanceScanner({ event }: Props) {
   }, [])
 
   function switchCamera() {
-    if (cameras.length < 2) return
-
-    const currentIndex = Math.max(
-      cameras.findIndex((camera) => camera.id === cameraId),
-      0,
-    )
-    const nextCamera = cameras[(currentIndex + 1) % cameras.length]
-
-    setCameraError('')
-    setCameraId(nextCamera.id)
+    if(cameraState==='starting'||torchLock.current)return
+    const nextFacing=activeFacing.current==='environment'?'user':'environment'
+    const opposite=cameras.find(camera=>camera.id!==activeDevice.current && (nextFacing==='user'?/front|user|facetime/i:/back|rear|environment/i).test(camera.label))
+    const currentIndex=cameras.findIndex(camera=>camera.id===activeDevice.current)
+    const next=opposite??(cameras.length>1?cameras[(currentIndex+1)%cameras.length]:undefined)
+    setCameraState('starting');setCameraError('');setTorchOn(false)
+    setCameraId(next?.id??'')
+    setFacingMode(nextFacing)
+    setCameraRetry(value=>value+1)
   }
 
   async function toggleTorch() {
-    if (!scannerRef.current || !torchSupported) return
-
-    try {
-      // Torch is a browser-supported extension to the standard constraint set.
-      const torchSettings: MediaTrackConstraintSet & { torch: boolean } = { torch: !torchOn }
-      await scannerRef.current.applyVideoConstraints({ advanced: [torchSettings] })
-      setTorchOn((current) => !current)
-    } catch {
-      setCameraError('The flashlight could not be changed on this camera.')
+    const scanner=scannerRef.current
+    const track=activeTrack.current
+    if(!scanner || !torchSupported || cameraState!=='ready' || torchLock.current)return
+    torchLock.current=true;setTorchBusy(true);setCameraError('')
+    const next=!torchOn
+    try{
+      const settings:MediaTrackConstraintSet & {torch:boolean}={torch:next}
+      if(track)await track.applyConstraints({advanced:[settings]})
+      else await scanner.applyVideoConstraints({advanced:[settings]})
+      if(scannerRef.current===scanner && mounted.current)setTorchOn(next)
+    }catch{
+      if(scannerRef.current===scanner && mounted.current)setCameraError('This camera could not change its flashlight. Scanning is still available.')
+    }finally{
+      if(scannerRef.current===scanner && mounted.current){torchLock.current=false;setTorchBusy(false)}
     }
   }
 
@@ -413,30 +403,36 @@ export default function AttendanceScanner({ event }: Props) {
             {isKioskMode ? <Minimize size={16} /> : <Expand size={16} />}
             {isKioskMode ? 'Exit Kiosk' : 'Kiosk Mode'}
           </button>
-          {torchSupported && (
+          {(
             <button
               type="button"
               className={`scanner-camera-switch${torchOn ? ' is-active' : ''}`}
               onClick={() => void toggleTorch()}
-              title={torchOn ? 'Turn Off Flashlight' : 'Turn on Flashlight'}
+              disabled={!torchSupported || cameraState!=='ready' || torchBusy}
+              aria-label={torchSupported?'Toggle Flashlight':'Flashlight Unavailable on This Camera'}
+              title={!torchSupported?'Flashlight is not supported by this camera or browser':torchOn?'Turn Off Flashlight':'Turn On Flashlight'}
               aria-pressed={torchOn}
             >
               {torchOn ? <FlashlightOff size={16} /> : <Flashlight size={16} />}
-              {torchOn ? 'Flash on' : 'Flash'}
+              {torchOn ? 'Flash On' : 'Flash'}
             </button>
           )}
-          {cameras.length > 1 && (
+          {(
             <button
               type="button"
               className="scanner-camera-switch"
               onClick={switchCamera}
+              disabled={cameraState==='starting'||torchBusy}
               title="Switch Camera"
             >
               <SwitchCamera size={16} />
               Switch Camera
             </button>
           )}
-          <span className="scanner-ready-status"><i />Ready</span>
+          {cameraState==='error' && <button type="button" className="scanner-camera-switch" onClick={()=>{setCameraState('starting');setCameraRetry(value=>value+1)}}>Retry Camera</button>}
+          <span className={cameraState==='ready'?'scanner-ready-status':'manual-member-search-help'} role="status">
+            {cameraState==='ready' && <i/>}{cameraState==='ready'?'Ready':cameraState==='starting'?'Starting Camera…':'Camera Unavailable'}
+          </span>
         </div>
       </div>
 

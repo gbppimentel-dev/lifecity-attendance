@@ -31,6 +31,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
+import ScannerServicePicker from './components/ScannerServicePicker'
 import MobileAdminNav from './components/MobileAdminNav'
 import { useSharedAppearance } from './lib/appearance'
 import { supabase } from './lib/supabase'
@@ -305,6 +306,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
   const [serviceYear, setServiceYear] = useState('')
   const [serviceSort, setServiceSort] = useState<'recent' | 'oldest'>('recent')
   const [archiveFilter, setArchiveFilter] = useState<'all' | 'active' | 'archived'>('active')
+  const [serviceFiltersOpen, setServiceFiltersOpen] = useState(false)
   const [serviceSearch, setServiceSearch] = useState('')
   const [serviceQuery, setServiceQuery] = useState('')
   const [servicePage, setServicePage] = useState(1)
@@ -843,8 +845,9 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                   <p>{servicesBusy ? 'Loading services…' : servicesError ? 'Services unavailable' : `${serviceStats.total} of ${serviceStats.registered} Services`}</p>
                 </div>
                 <div className="lcsp-search-tools">
-                  <label className="lcsp-search"><Search size={18} aria-hidden="true"/><input value={serviceSearch} onChange={event=>setServiceSearch(event.target.value)} placeholder="Search Services or Locations" aria-label="Search Services or Locations"/></label>
-                <div className="service-directory-controls">
+                  <label className="lcsp-search"><Search size={18} aria-hidden="true"/><input type="search" enterKeyHint="search" value={serviceSearch} onFocus={() => { if (window.matchMedia('(max-width: 900px)').matches) { setServiceFiltersOpen(false); window.setTimeout(() => servicesListRef.current?.scrollIntoView({block:'start',behavior:'smooth'}), 300) } }} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); event.currentTarget.blur() } }} onChange={event=>setServiceSearch(event.target.value)} placeholder="Search Services or Locations" aria-label="Search Services or Locations"/></label>
+                <button type="button" className="lcsp-filter-toggle" aria-expanded={serviceFiltersOpen} aria-controls="service-directory-filters" onClick={() => setServiceFiltersOpen(value => !value)}>Filters · {archiveFilter === 'active' ? 'Active' : archiveFilter === 'archived' ? 'Archived' : 'All'}{serviceMonth || serviceYear ? ' · Date filtered' : ''}<ChevronDown size={16}/></button>
+                <div id="service-directory-filters" className={"service-directory-controls" + (serviceFiltersOpen ? " is-open" : "")}>
                   <label className="filter-select">
                     Status
                     <select value={archiveFilter} onChange={(event) => setArchiveFilter(event.target.value as 'all' | 'active' | 'archived')}>
@@ -1166,26 +1169,14 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                 </p>
               </div>
               <div className="scanner-picker-control">
-                <label>
-                  <select
-                    value={selectedScannerEvent?.id ?? ''}
-                    disabled={scannerLoading||!!scannerError}
-                    onChange={(event) => setScannerEventId(event.target.value)}
-                    aria-label="Choose Check-In Service"
-                    title={selectedScannerEvent ? `${selectedScannerEvent.name} — ${eventDateTime(selectedScannerEvent.starts_at)}` : 'Choose a Service'}
-                  >
-                    <option value="">Choose an Event</option>
-
-                    {scannerEvents.filter((event) => {
-                      const serviceState = getServiceState(event, currentTime)
-                      return serviceState.className === 'upcoming' || serviceState.className === 'in-progress'
-                    }).map((event) => (
-                      <option key={event.id} value={event.id}>
-                        {event.name} — {eventDateTime(event.starts_at)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <ScannerServicePicker
+                  services={scannerEvents.filter(event => ['upcoming', 'in-progress'].includes(getServiceState(event, currentTime).className))}
+                  value={selectedScannerEvent?.id ?? ''}
+                  disabled={scannerLoading || !!scannerError}
+                  now={currentTime}
+                  onChange={setScannerEventId}
+                  formatDate={eventDateTime}
+                />
                 {selectedScannerEvent && (
                   <p className="scanner-checkin-count">
                     <i />

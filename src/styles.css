@@ -24466,3 +24466,53 @@ body .lcik-search p {margin:8px 0 0;color:#6c827b;font-size:13px;line-height:1.6
 body .lcik-empty {margin:0;padding:24px 16px;text-align:center;color:#6c827b;font-size:14px;line-height:1.6}
 body .lcik-search :disabled {opacity:.55;cursor:default}
 @media(max-width:600px){body .lcik-search input{flex-basis:100%}body .lcik-search button{width:100%}}
+
+/* Mobile layout and searchable scanner services — 2026-09-18. */
+html, body, #root { min-width: 0; width: 100%; }
+.lc-auth-page { width: 100%; max-width: 100%; min-width: 0; overflow-x: clip; }
+.lc-auth-frame { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
+.lc-auth-body, .lc-auth-story, .lc-auth-brand, .lc-auth-frame { min-width: 0; max-width: 100%; }
+.lc-auth-body { overflow-wrap: anywhere; }
+.lcsp-filter-toggle { display: none; }
+body .lc-service-trigger { display:flex; align-items:center; gap:12px; width:100%; min-height:52px; padding:14px 16px; border:1px solid #b7d9d1; border-radius:14px; background:#f3fbf8; color:#226b61; font:inherit; text-align:left; cursor:pointer; }
+.lc-service-trigger span { flex:1; }
+.lc-service-trigger:disabled { opacity:.55; cursor:wait; }
+.lc-service-sheet:not([open]) { display:none; }
+.lc-service-sheet { width:min(540px,calc(100% - 32px)); max-width:calc(100% - 32px); max-height:85dvh; margin:auto; padding:24px; border:1px solid #cde2db; border-radius:24px; background:#f8fcfa; color:#244d47; box-shadow:0 20px 70px #143c3433; overflow:auto; overscroll-behavior:contain; }
+.lc-service-sheet::backdrop { background:#143c3466; backdrop-filter:blur(4px); }
+.lc-service-sheet header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.lc-service-sheet header h2 { margin:6px 0 0; font-size:24px; }
+.lc-service-sheet .card-kicker { margin:0; }
+.lc-service-close { display:grid; place-items:center; flex:0 0 44px; height:44px; border:1px solid #d4e4de; border-radius:12px; background:white; color:#426d61; cursor:pointer; }
+.lc-service-search { display:flex; align-items:center; gap:10px; margin-top:20px; padding:0 12px; border:1px solid #cde0d9; border-radius:12px; background:white; }
+.lc-service-search input { min-width:0; width:100%; min-height:48px; border:0; background:transparent; color:inherit; font:inherit; font-size:16px; }
+.lc-service-count { font-size:13px; color:#6d867d; }
+.lc-service-options { display:grid; gap:10px; }
+.lc-service-option { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:16px; border:1px solid #dce9e3; border-radius:16px; background:white; color:#315e53; text-align:left; font:inherit; cursor:pointer; }
+.lc-service-option > span { display:grid; gap:7px; min-width:0; overflow-wrap:anywhere; }
+.lc-service-option svg { flex:none; }
+.lc-service-option strong { font-size:16px; line-height:1.4; }
+.lc-service-option small { font-size:13px; color:#6e857c; line-height:1.5; }
+.lc-service-state { font-size:11px; font-weight:700; color:#398275; }
+.lc-service-option.is-selected { border-color:#318d7e; background:#eaf7f1; }
+.lc-service-clear { min-height:44px; margin-top:16px; width:100%; border:0; background:transparent; color:#416f61; font:inherit; cursor:pointer; }
+.lc-service-empty { padding:20px 0; line-height:1.6; }
+.lc-service-sheet button:focus-visible, .lc-service-trigger:focus-visible, .lc-service-search:focus-within { outline:2px solid #318d7e; outline-offset:3px; }
+@media (max-width:900px) {
+  body :is(.services-create-action,.members-create-action,.scanner-status-card,.dashboard-refresh,.records-hero-action,.dashboard-stat-card,.lcg-hero-note,.lca-owner,.lc-auth-art-card,.lc-auth-sticker) { transform:none !important; rotate:none !important; }
+  body .lcsp-directory { scroll-margin-top:90px; }
+  body .lcsp-filter-toggle { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; padding:10px 12px; border:1px solid #d5e7e1; border-radius:10px; background:#f5faf8; color:#315b53; font:inherit; font-size:14px; }
+  body .lcsp-directory .service-directory-controls:not(.is-open) { display:none; }
+  body .lcsp-directory .directory-toolbar { gap:12px; padding-bottom:12px; }
+  .lc-service-sheet { margin:auto auto 0; width:100%; max-width:100%; max-height:85dvh; padding:22px 18px calc(18px + env(safe-area-inset-bottom)); border-radius:24px 24px 0 0; }
+  body .lc-auth-page { justify-content:flex-start; padding:24px 16px; gap:22px; }
+  body .lc-auth-frame { grid-template-columns:minmax(0,1fr); }
+  body .lc-auth-brand > span, body .lc-auth-art, body .lc-auth-story > p:not(.eyebrow) { display:none; }
+  body .lc-auth-story { padding:24px; }
+  body .lc-auth-story h1 { font-size:29px; }
+  body .lc-auth-body { width:100%; padding:26px 20px; }
+  body .lc-auth-page :is(input,select,textarea) { font-size:16px; min-height:44px; }
+  body .lc-auth-page .lcr-heading { flex-wrap:wrap; }
+  body .lc-auth-page .lcr-panel { min-width:0; padding:16px; }
+  body .lc-auth-page .lc-auth-state-actions { flex-direction:column; }
+}
