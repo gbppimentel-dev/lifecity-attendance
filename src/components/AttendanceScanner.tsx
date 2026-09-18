@@ -1,6 +1,9 @@
+// Change ID: LC-P08L-v1
+// Change ID: LC-P08E-v1
+// Change ID: LC-P08D-v1
 // Change ID: LC-UI-COPY-v2
 import { uiMessage } from '../lib/uiText'
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { CheckCircle2, Expand, Flashlight, FlashlightOff, Minimize, ScanLine, Search, SwitchCamera, TriangleAlert, X } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../lib/supabase'
@@ -49,8 +52,20 @@ type RecentCheckIn = {
 let scannerShutdown = Promise.resolve()
 
 export default function AttendanceScanner({ event }: Props) {
+  const [processing, setProcessing] = useState(false)
+  const attemptSequence = useRef(0)
+  const releaseTimer = useRef<number | null>(null)
   const [result, setResult] = useState<ScanResult | null>(null)
-  const [members, setMembers] = useState<SearchMember[]>([])
+  const [matchedMembers, setMatchedMembers] = useState<SearchMember[]>([])
+  const [matchTotal, setMatchTotal] = useState(0)
+  const [searchBusy, setSearchBusy] = useState(false)
+  const [searchRetry, setSearchRetry] = useState(0)
+  const [finishedSearchKey, setFinishedSearchKey] = useState('')
+  const [selectedMemberEventId, setSelectedMemberEventId] = useState('')
+  const currentEventId = useRef(event?.id)
+  currentEventId.current = event?.id
+  const mounted = useRef(true)
+  useEffect(() => {mounted.current=true;return () => {mounted.current=false;attemptSequence.current++;if(releaseTimer.current)clearTimeout(releaseTimer.current)}},[])
   const [memberSearch, setMemberSearch] = useState('')
   const [selectedMember, setSelectedMember] = useState<SearchMember | null>(null)
   const [memberLoadError, setMemberLoadError] = useState('')
@@ -65,24 +80,10 @@ export default function AttendanceScanner({ event }: Props) {
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const scannerLayoutRef = useRef<HTMLElement | null>(null)
 
-  const matchedMembers = useMemo(() => {
-    const query = memberSearch.trim().toLowerCase()
-    if (!query || selectedMember) return []
-
-    return members
-      .filter((member) => {
-        const fullName = `${member.first_name} ${member.last_name}`.toLowerCase()
-        return [
-          member.first_name,
-          member.last_name,
-          fullName,
-          member.member_number,
-          member.email ?? '',
-          member.mobile ?? '',
-        ].some((value) => value.toLowerCase().includes(query))
-      })
-      .slice(0, 8)
-  }, [memberSearch, members, selectedMember])
+  const searchKey = JSON.stringify([event?.id,memberSearch.trim(),searchRetry])
+  const currentSearchKey = useRef(searchKey)
+  currentSearchKey.current = searchKey
+  const waitingForSearch = searchBusy || finishedSearchKey!==searchKey
 
   function notifySuccessfulCheckIn() {
     if ('vibrate' in navigator) {
@@ -122,124 +123,109 @@ export default function AttendanceScanner({ event }: Props) {
     ].slice(0, 2))
   }
 
-  async function recordMemberAttendance(member: Pick<SearchMember, 'id' | 'first_name' | 'last_name' | 'status'>) {
-    if (!event) {
-      processingRef.current = false
+  function attemptIsCurrent(attempt: number, serviceId: string) {
+    return mounted.current && attemptSequence.current===attempt && currentEventId.current===serviceId
+  }
+
+  function startAttempt() {
+    if(!event || !mounted.current || currentEventId.current!==event.id || processingRef.current)return null
+    const attempt=++attemptSequence.current
+    processingRef.current=true
+    setProcessing(true)
+    setResult(null)
+    return {attempt,serviceId:event.id}
+  }
+
+  function finishAttempt(attempt: number, serviceId: string) {
+    if(!attemptIsCurrent(attempt,serviceId))return
+    setProcessing(false)
+    // Keep a short cooldown so a QR held in the frame is not immediately read again.
+    releaseTimer.current=window.setTimeout(()=>{
+      if(attemptIsCurrent(attempt,serviceId))processingRef.current=false
+    },1800)
+  }
+
+  async function recordMemberAttendance(member: Pick<SearchMember, 'id' | 'first_name' | 'last_name' | 'status'>, attempt: number, serviceId: string) {
+    if(!attemptIsCurrent(attempt,serviceId))return
+    const memberName=`${member.first_name} ${member.last_name}`
+    if(member.status!=='active'){
+      setResult({type:'error',memberName,message:'This member is inactive.'})
       return
     }
-
-    const memberName = `${member.first_name} ${member.last_name}`
-
-    if (member.status !== 'active') {
-      setResult({
-        type: 'error',
-        memberName,
-        message: 'This member is inactive.',
-      })
-      processingRef.current = false
-      return
-    }
-
-    const { error: attendanceError } = await supabase
-      .from('attendance')
-      .insert({
-        member_id: member.id,
-        event_id: event.id,
-      })
-
-    if (attendanceError?.code === '23505') {
-      setResult({
-        type: 'duplicate',
-        memberName,
-        message: 'Already checked in for this event.',
-      })
-    } else if (attendanceError) {
-      setResult({
-        type: 'error',
-        memberName,
-        message: attendanceError.message,
-      })
-    } else {
-      const checkInTime = new Intl.DateTimeFormat('en-PH', {
-        hour: 'numeric',
-        minute: '2-digit',
-        second: '2-digit',
-      }).format(new Date())
-
+    const {error}=await supabase.from('attendance').insert({member_id:member.id,event_id:serviceId})
+    if(!attemptIsCurrent(attempt,serviceId))return
+    if(error?.code==='23505'){
+      setResult({type:'duplicate',memberName,message:'Already checked in for this service.'})
+    }else if(error){
+      setResult({type:'error',memberName,message:'Check-in could not be confirmed. Please try again. Existing check-ins will not be duplicated.'})
+    }else{
+      const checkInTime=new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',hour:'numeric',minute:'2-digit',second:'2-digit'}).format(new Date())
       notifySuccessfulCheckIn()
-      addRecentCheckIn(memberName, checkInTime)
-      setResult({
-        type: 'success',
-        memberName,
-        message: 'Attendance recorded successfully.',
-        time: checkInTime,
-      })
+      addRecentCheckIn(memberName,checkInTime)
+      setResult({type:'success',memberName,message:'Attendance recorded successfully.',time:checkInTime})
     }
-
-    window.setTimeout(() => {
-      processingRef.current = false
-    }, 1800)
   }
 
   async function recordAttendance(rawCode: string) {
-    if (!event || processingRef.current) return
-
-    processingRef.current = true
-    setResult(null)
-
-    const token = rawCode.trim().replace(/^att:/, '')
-
-    if (!token) {
-      setResult({
-        type: 'error',
-        message: 'This QR code is not valid.',
-      })
-      processingRef.current = false
-      return
+    const started=startAttempt()
+    if(!started)return
+    const {attempt,serviceId}=started
+    try{
+      const token=rawCode.trim().replace(/^att:/,'')
+      if(!token){setResult({type:'error',message:'This QR code is not valid.'});return}
+      const {data:member,error}=await supabase.from('members')
+        .select('id, first_name, last_name, status').eq('qr_token',token).maybeSingle()
+      if(!attemptIsCurrent(attempt,serviceId))return
+      if(error)throw error
+      if(!member){setResult({type:'error',message:'No member was found for this QR code.'});return}
+      await recordMemberAttendance(member,attempt,serviceId)
+    }catch{
+      if(attemptIsCurrent(attempt,serviceId))setResult({type:'error',message:'Check-in could not be confirmed. Please scan again. Existing check-ins will not be duplicated.'})
+    }finally{
+      finishAttempt(attempt,serviceId)
     }
-
-    const { data: member, error: memberError } = await supabase
-      .from('members')
-      .select('id, first_name, last_name, status')
-      .eq('qr_token', token)
-      .maybeSingle()
-
-    if (memberError || !member) {
-      setResult({
-        type: 'error',
-        message: 'No active member was found for this QR code.',
-      })
-      processingRef.current = false
-      return
-    }
-
-    await recordMemberAttendance(member)
   }
 
   useEffect(() => {
-    if (!event) return
-
-    async function loadActiveMembers() {
-      setMemberLoadError('')
-      const { data, error } = await supabase
-        .from('members')
-        .select('id, first_name, last_name, member_number, email, mobile, status')
-        .eq('status', 'active')
-        .order('first_name', { ascending: true })
-
-      if (error) {
-        setMemberLoadError('Member search is not available right now.')
-        return
-      }
-
-      setMembers((data ?? []) as SearchMember[])
+    let disposed=false
+    const key=searchKey
+    const term=memberSearch.trim()
+    const isCurrent=() => !disposed && mounted.current && currentSearchKey.current===key
+    setMemberLoadError('')
+    setMatchedMembers([])
+    setMatchTotal(0)
+    if(!event || !term || selectedMember) {
+      setSearchBusy(false);setFinishedSearchKey(key)
+      return () => {disposed=true}
     }
-
-    void loadActiveMembers()
-  }, [event?.id])
+    setSearchBusy(true)
+    const timer=window.setTimeout(async () => {
+      try {
+        const {data,error}=await supabase.rpc('lc_scanner_member_search',{p_search:term})
+        if(!isCurrent())return
+        if(error)throw error
+        if(!data || !Array.isArray(data.rows) || typeof data.total!=='number')throw new Error('Invalid member search response')
+        setMatchedMembers(data.rows as SearchMember[])
+        setMatchTotal(data.total)
+      } catch {
+        if(isCurrent())setMemberLoadError('Member search is not available right now. Please try again.')
+      } finally {
+        if(isCurrent()){setSearchBusy(false);setFinishedSearchKey(key)}
+      }
+    },300)
+    return () => {disposed=true;window.clearTimeout(timer)}
+  },[searchKey,selectedMember])
 
   useEffect(() => {
+    attemptSequence.current++
+    if(releaseTimer.current)clearTimeout(releaseTimer.current)
+    processingRef.current=false
+    setProcessing(false)
+    setResult(null)
     setRecentCheckIns([])
+    setSelectedMember(null)
+    setSelectedMemberEventId('')
+    setMemberSearch('')
   }, [event?.id])
 
   useEffect(() => {
@@ -277,7 +263,7 @@ export default function AttendanceScanner({ event }: Props) {
             aspectRatio: 1,
           },
           (decodedText) => {
-            void recordAttendance(decodedText)
+            if(!disposed)void recordAttendance(decodedText)
           },
           () => {
             // Normal failed frames are ignored while the camera keeps scanning.
@@ -292,6 +278,7 @@ export default function AttendanceScanner({ event }: Props) {
           setTorchSupported(capabilities.torch === true)
         }
       } catch {
+        if(disposed)return
         setCameraError(
           'Camera access was not available. Allow camera permission, or use member search below.',
         )
@@ -351,9 +338,9 @@ export default function AttendanceScanner({ event }: Props) {
     if (!scannerRef.current || !torchSupported) return
 
     try {
-      await scannerRef.current.applyVideoConstraints({
-        advanced: [{ torch: !torchOn }],
-      } as MediaTrackConstraints)
+      // Torch is a browser-supported extension to the standard constraint set.
+      const torchSettings: MediaTrackConstraintSet & { torch: boolean } = { torch: !torchOn }
+      await scannerRef.current.applyVideoConstraints({ advanced: [torchSettings] })
       setTorchOn((current) => !current)
     } catch {
       setCameraError('The flashlight could not be changed on this camera.')
@@ -372,16 +359,30 @@ export default function AttendanceScanner({ event }: Props) {
     }
   }
 
-  function submitMemberSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-
-    if (!selectedMember || processingRef.current) return
-
-    processingRef.current = true
-    setResult(null)
-    void recordMemberAttendance(selectedMember)
+  function submitMemberSearch(formEvent: FormEvent<HTMLFormElement>) {
+    formEvent.preventDefault()
+    if(!selectedMember || !event || selectedMemberEventId!==event.id)return
+    const started=startAttempt()
+    if(!started)return
+    const {attempt,serviceId}=started
+    const memberId=selectedMember.id
     setSelectedMember(null)
+    setSelectedMemberEventId('')
     setMemberSearch('')
+    void (async()=>{
+      try{
+        const {data:member,error}=await supabase.from('members')
+          .select('id, first_name, last_name, status').eq('id',memberId).maybeSingle()
+        if(!attemptIsCurrent(attempt,serviceId))return
+        if(error)throw error
+        if(!member){setResult({type:'error',message:'This member is no longer available. Search again before checking in.'});return}
+        await recordMemberAttendance(member,attempt,serviceId)
+      }catch{
+        if(attemptIsCurrent(attempt,serviceId))setResult({type:'error',message:'Check-in could not be confirmed. Search for this member and try again. Existing check-ins will not be duplicated.'})
+      }finally{
+        finishAttempt(attempt,serviceId)
+      }
+    })()
   }
 
   if (!event) {
@@ -464,8 +465,10 @@ export default function AttendanceScanner({ event }: Props) {
         </div>
       )}
 
+      {processing && <p className="manual-member-search-help" role="status" aria-live="polite">Checking in… Please wait.</p>}
+
       {result && (
-        <div className={`scan-result ${result.type}`}>
+        <div className={`scan-result ${result.type}`} role="status" aria-live="polite">
           {result.type === 'success' ? (
             <CheckCircle2 size={28} />
           ) : (
@@ -482,7 +485,7 @@ export default function AttendanceScanner({ event }: Props) {
 
       <section className="manual-checkin-card">
         <div className="manual-checkin-heading">
-          <p>Manual check-in</p>
+          <p>Manual Check-In</p>
           <span>Use member search only when a QR code cannot be scanned.</span>
         </div>
 
@@ -496,19 +499,19 @@ export default function AttendanceScanner({ event }: Props) {
                 setSelectedMember(null)
               }}
               placeholder="Search Members"
-              aria-label="Search for a member to check in"
+              aria-label="Search for a Member to Check in"
             />
           </div>
 
-          <button className="secondary-button manual-checkin-button" disabled={!selectedMember || processingRef.current}>
-            Check in
+          <button className="secondary-button manual-checkin-button" disabled={!selectedMember || selectedMemberEventId!==event.id || processing}>
+            {processing ? 'Checking In…' : 'Check In'}
           </button>
 
           <p className="manual-member-search-help">
             Search by first name, last name, full name, mobile number, member ID, or email.
           </p>
 
-          {memberLoadError && <p className="error-message">{memberLoadError}</p>}
+          {memberLoadError && !waitingForSearch && !selectedMember && <div role="alert"><p className="error-message">{memberLoadError}</p><button type="button" className="secondary-button" onClick={()=>setSearchRetry(value=>value+1)}>Try Again</button></div>}
 
           {selectedMember && (
             <div className="manual-member-selected">
@@ -531,8 +534,10 @@ export default function AttendanceScanner({ event }: Props) {
 
           {!selectedMember && memberSearch.trim() && (
             <div className="manual-member-results">
-              {matchedMembers.length === 0 ? (
-                <p>No active members found.</p>
+              {waitingForSearch ? (
+                <p role="status">Searching members…</p>
+              ) : memberLoadError ? null : matchedMembers.length === 0 ? (
+                <p role="status">No active members found.</p>
               ) : (
                 matchedMembers.map((member) => (
                   <button
@@ -540,6 +545,7 @@ export default function AttendanceScanner({ event }: Props) {
                     key={member.id}
                     onClick={() => {
                       setSelectedMember(member)
+                      setSelectedMemberEventId(event.id)
                       setMemberSearch(`${member.first_name} ${member.last_name}`)
                     }}
                   >
@@ -548,6 +554,7 @@ export default function AttendanceScanner({ event }: Props) {
                   </button>
                 ))
               )}
+              {!waitingForSearch && !memberLoadError && matchTotal>matchedMembers.length && <p className="manual-member-search-help">Showing {matchedMembers.length} of {matchTotal} matches. Add a surname, member ID, email, or mobile number to narrow your search.</p>}
             </div>
           )}
         </form>

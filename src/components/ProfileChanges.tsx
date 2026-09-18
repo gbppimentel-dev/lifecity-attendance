@@ -1,7 +1,8 @@
+// Change ID: LC-P08I-v1
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Pencil, RefreshCw, Check, X } from 'lucide-react'
+import { Pencil, Search, RefreshCw, Check, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 type Values={first_name:string;last_name:string;email:string;churches:string[];ministries:string[]}
 type Named={id:string;name:string}
@@ -51,7 +52,7 @@ function EditorBody({onProfileChanged}:{onProfileChanged:()=>void}){
    const {data:result,error:failure}=await supabase.rpc('lc_profile_editor')
    if(failure)throw failure
    if(active){setData(result);setDraft(result.values);setMobile(result.mobile)}
-  }catch(e){if(active){setData(null);setError(failureMessage(e))}}finally{if(active)setLoading(false)}})()
+  }catch(e){if(active){setData(null);setError('Could not load profile requests. Refresh and try again.')}}finally{if(active)setLoading(false)}})()
   return()=>{active=false}
  },[revision])
  async function apply(kind:string){
@@ -78,7 +79,7 @@ function EditorBody({onProfileChanged}:{onProfileChanged:()=>void}){
   {notice&&<p className="lpe-notice" role="status">{notice}</p>}{error&&<p className="lpe-error" role="alert">{uiMessage(error)}</p>}
   {loading?<p role="status">Loading Your Current Details…</p>:data&&draft&&<>
    <div className="lpe-mobile"><label>Mobile Number <small>Optional · Saves Directly</small><input type="tel" autoComplete="tel" maxLength={30} value={mobile} disabled={saving} onChange={e=>{setMobile(e.target.value);setConfirm(null)}} placeholder="e.g. 09171234567"/></label><button className="lpe-button" disabled={saving||mobile.trim()===data.mobile} onClick={()=>setConfirm('mobile')}>Review Mobile Change</button></div>
-   {confirm==='mobile'&&<div className="lpe-confirm"><strong>{mobile.trim()?'Save Your Mobile Number?':'Remove Your Mobile Number?'}</strong><p>{data.mobile||'Not provided'} → {mobile.trim()||'Not provided'}</p><div className="lpe-actions"><button className="lpe-button" disabled={saving} onClick={()=>setConfirm(null)}>Cancel</button><button className="lpe-button lpe-primary" disabled={saving} onClick={()=>void apply('mobile')}>{saving?'Saving…':'Confirm Save'}</button></div></div>}
+   {confirm==='mobile'&&<div className="lpe-confirm"><strong>{mobile.trim()?'Save Your Mobile Number?':'Remove Your Mobile Number?'}</strong><p>{data.mobile||'Not Provided'} → {mobile.trim()||'Not Provided'}</p><div className="lpe-actions"><button className="lpe-button" disabled={saving} onClick={()=>setConfirm(null)}>Cancel</button><button className="lpe-button lpe-primary" disabled={saving} onClick={()=>void apply('mobile')}>{saving?'Saving…':'Confirm Save'}</button></div></div>}
    {data.requests.length>0&&<div className="lpe-history"><h4>Your Recent Requests</h4>{data.requests.map(r=><div className="lpe-history-item" key={r.id}><div className="lpe-heading"><span className={'lpe-badge '+r.status}>{r.status==='pending'?'Pending Review':uiStatus(r.status)}</span><small>{new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',dateStyle:'medium'}).format(new Date(r.created_at))}</small></div>
     <Comparison base={r.base} requested={r.requested} catalog={data}/>{r.review_note&&<p className="lpe-note">{r.review_note}</p>}
     {r.status==='pending'&&(confirm===r.id?<div className="lpe-actions"><strong>Cancel This Request?</strong><button className="lpe-button" disabled={saving} onClick={()=>setConfirm(null)}>Keep Request</button><button className="lpe-button" disabled={saving} onClick={()=>void apply(r.id)}>Confirm Cancellation</button></div>:<button className="lpe-button" disabled={saving} onClick={()=>setConfirm(r.id)}>Cancel Request</button>)}
@@ -97,6 +98,10 @@ function EditorBody({onProfileChanged}:{onProfileChanged:()=>void}){
 
 export function OwnerProfileRequests(){
  const [status,setStatus]=useState('pending')
+ const [requestSearch,setRequestSearch]=useState('')
+ const [requestQuery,setRequestQuery]=useState('')
+ const searching=requestSearch.trim()!==requestQuery
+ useEffect(()=>{const timer=window.setTimeout(()=>setRequestQuery(requestSearch.trim()),300);return()=>window.clearTimeout(timer)},[requestSearch])
  const [page,setPage]=useState(1)
  const [data,setData]=useState<(Catalog & {rows:RequestRow[];total:number;page:number})|null>(null)
  const [loading,setLoading]=useState(true)
@@ -108,20 +113,21 @@ export function OwnerProfileRequests(){
  useEffect(()=>{
   let active=true;setLoading(true);setError('')
   void(async()=>{try{
-   const {data:result,error:failure}=await supabase.rpc('lc_owner_profile_requests',{p_status:status,p_page:page})
+   const {data:result,error:failure}=await supabase.rpc('lc_owner_profile_requests_search',{p_status:status,p_page:page,p_search:requestQuery})
    if(failure)throw failure
    if(active)setData(result)
-  }catch(e){if(active){setData(null);setError(failureMessage(e))}}finally{if(active)setLoading(false)}})()
+  }catch(e){if(active){setData(null);setError('Could not load profile requests. Refresh and try again.')}}finally{if(active)setLoading(false)}})()
   return()=>{active=false}
- },[status,page,revision])
+ },[status,page,revision,requestQuery])
  const pages=Math.max(1,Math.ceil((data?.total||0)/20))
  function turn(n:number){setPage(n);section.current?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
  return <section className="lpe-owner-panel" ref={section} data-change-id="LC-UI-COPY-v2">
   <header className="lpe-heading"><div><p className="eyebrow">Member Details · Owner Review</p><h2>Profile Change Requests</h2><p>Approve verified changes to an existing member profile.</p></div><button className="lpe-button" disabled={saving||loading} onClick={()=>setRevision(v=>v+1)}><RefreshCw size={15}/>Refresh</button></header>
-  <div className="lpe-toolbar"><label>Request Status<select disabled={saving} value={status} onChange={e=>{setStatus(e.target.value);setPage(1)}}>{['pending','approved','declined','cancelled','all'].map(v=><option key={v} value={v}>{v==='pending'?'Pending Review':v==='all'?'All Requests':v[0].toUpperCase()+v.slice(1)}</option>)}</select></label><span>{loading?'Loading…':(data?.total||0)+' Requests'}</span></div>
+  <div className="lpe-toolbar"><label>Request Status<select disabled={saving} value={status} onChange={e=>{setStatus(e.target.value);setPage(1)}}>{['pending','approved','declined','cancelled','all'].map(v=><option key={v} value={v}>{v==='pending'?'Pending Review':v==='all'?'All Requests':v[0].toUpperCase()+v.slice(1)}</option>)}</select></label><span>{loading||searching?'Loading…':(data?.total||0)+' Requests'}</span></div>
+  <div className="lcq-search-row"><label className="lcq-search"><Search size={17} aria-hidden="true"/><input type="search" aria-label="Search Profile Change Requests" placeholder="Name, Email, or Member ID" disabled={saving} value={requestSearch} onChange={e=>{setRequestSearch(e.target.value);setPage(1)}}/></label>{requestSearch && <button type="button" className="lpe-button" disabled={saving} onClick={()=>{setRequestSearch('');setRequestQuery('');setPage(1)}}>Clear Search</button>}</div>
   {error&&<p className="lpe-error" role="alert">{uiMessage(error)}</p>}{notice&&<p className="lpe-notice" role="status">{notice}</p>}
-  {loading?<p className="lpe-help" role="status">Loading Profile Requests…</p>:data&&<>
-   {data.rows.length===0&&<p className="lpe-empty">No {status==='all'?'':status+' '}profile requests.</p>}
+  {loading||searching?<p className="lpe-help" role="status">Loading Profile Requests…</p>:data&&<>
+   {data.rows.length===0&&<p className="lpe-empty">{requestQuery ? 'No profile requests match this search. Try another name, email, or member ID.' : `No ${status==='all'?'':status+' '}profile requests.`}</p>}
    {data.rows.map(r=><OwnerRequestRow key={r.id+':'+r.updated_at} request={r} catalog={data} busy={saving} onBusy={setSaving} onDone={()=>{setNotice('Profile request reviewed.');setRevision(v=>v+1)}}/>)}
    <nav className="lpe-pagination" aria-label="Profile Request Pages"><span>{data.page} / {pages} · 20 Per Page</span><div>{[{label:'First',n:1,off:data.page===1},{label:'Previous',n:data.page-1,off:data.page===1},{label:'Next',n:data.page+1,off:data.page>=pages},{label:'Last',n:pages,off:data.page>=pages}].map(x=><button key={x.label} className="lpe-button" disabled={saving||x.off} onClick={()=>turn(x.n)}>{x.label}</button>)}</div></nav>
   </>}
@@ -146,7 +152,7 @@ function OwnerRequestRow({request:r,catalog,busy,onBusy,onDone}:{request:Request
  }
  return <article className="lpe-review-card"><header className="lpe-heading"><div><strong>{r.base.first_name} {r.base.last_name}</strong><p>{r.account_email}</p></div><span className={'lpe-badge '+r.status}>{r.status==='pending'?'Pending Review':uiStatus(r.status)}</span></header>
   <Comparison base={r.base} current={r.status==='pending'?r.current_values:undefined} requested={r.requested} catalog={catalog}/>
-  {r.review_note&&<p className="lpe-note">Message to member: {r.review_note}</p>}
+  {r.review_note&&<p className="lpe-note">Message to Member: {r.review_note}</p>}
   {r.status==='pending'&&<>
    {blocked&&<p className="lpe-error">Profile details, account access or the member connection changed. Refresh to review; decline with guidance if this request is no longer valid.</p>}
    <label>Message to Member <small>Required When Declining</small><textarea maxLength={500} disabled={busy} value={note} onChange={e=>setNote(e.target.value)} placeholder="A short explanation or next step visible to the member."/></label>

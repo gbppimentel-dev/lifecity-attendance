@@ -1,7 +1,8 @@
+// Change ID: LC-P08I-v1
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { RefreshCw, Link2, Check, X } from 'lucide-react'
+import { RefreshCw, Search, Link2, Check, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 type RequestRow = {
@@ -19,6 +20,10 @@ function message(error:unknown) {
 export default function MemberLinkRequests({owner=false,linked=false,onChanged}:{owner?:boolean;linked?:boolean;onChanged:()=>void}) {
  const [rows,setRows]=useState<RequestRow[]>([])
  const [status,setStatus]=useState('pending')
+ const [requestSearch,setRequestSearch]=useState('')
+ const [requestQuery,setRequestQuery]=useState('')
+ const searching=owner && requestSearch.trim()!==requestQuery
+ useEffect(()=>{if(!owner)return;const timer=window.setTimeout(()=>setRequestQuery(requestSearch.trim()),300);return()=>window.clearTimeout(timer)},[owner,requestSearch])
  const [page,setPage]=useState(1)
  const [total,setTotal]=useState(0)
  const [pendingCount,setPendingCount]=useState(0)
@@ -39,18 +44,18 @@ export default function MemberLinkRequests({owner=false,linked=false,onChanged}:
   void (async()=>{
    try {
     const {data,error:failure}=owner
-     ? await supabase.rpc('lc_owner_member_requests',{p_status:status,p_page:page})
+     ? await supabase.rpc('lc_owner_member_requests_search',{p_status:status,p_page:page,p_search:requestQuery})
      : await supabase.rpc('lc_my_member_requests')
     if(failure) throw failure
     if(active) {
      setRows(owner?data.rows:data);setTotal(owner?data.total:data.length)
      setPendingCount(owner?data.pending:0);setActualPage(owner?data.page:1)
     }
-   } catch(e){if(active){setError(message(e));setRows([])}}
+   } catch(e){if(active){setError(owner ? 'Could not load member requests. Refresh and try again.' : message(e));setRows([])}}
    finally {if(active)setLoading(false)}
   })()
   return ()=>{active=false}
- },[owner,status,page,revision,linked])
+ },[owner,status,page,revision,linked,requestQuery])
  async function mutate(action:()=>PromiseLike<{error:unknown}>,success:string) {
   if(writeLock.current)return
   writeLock.current=true;setSaving(true);setError('');setNotice('')
@@ -71,15 +76,16 @@ export default function MemberLinkRequests({owner=false,linked=false,onChanged}:
  function turn(next:number){setPage(next);heading.current?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
  return <section className={'lcr-panel'+(owner?' lcr-owner':'')} ref={heading} data-change-id="LC-UI-COPY-v2">
   <header className="lcr-heading"><div><p className="eyebrow">{owner?'Verified Connections':'Your Existing Church Profile'}</p><h2>{owner?'Member Link Requests':'Connect Your Member Profile'}</h2><p>{owner?'Review the submitted details before connecting an account.': 'Already registered? Ask us to connect your login to your existing member record.'}</p></div><button type="button" className="lcr-button" disabled={loading||saving} onClick={()=>{setRevision(v=>v+1);onChanged()}}><RefreshCw size={15}/>Refresh</button></header>
-  {owner && <div className="lcr-toolbar"><label>Requests<select value={status} disabled={saving} onChange={e=>{setStatus(e.target.value);setPage(1)}}><option value="pending">Pending Review</option><option value="approved">Approved</option><option value="declined">Declined</option><option value="cancelled">Cancelled</option><option value="all">All Requests</option></select></label><span>{pendingCount} Pending · {total} Matching</span></div>}
+  {owner && <div className="lcr-toolbar"><label>Requests<select value={status} disabled={saving} onChange={e=>{setStatus(e.target.value);setPage(1)}}><option value="pending">Pending Review</option><option value="approved">Approved</option><option value="declined">Declined</option><option value="cancelled">Cancelled</option><option value="all">All Requests</option></select></label><span aria-live="polite">{loading||searching ? 'Updating…' : `${pendingCount} Pending · ${total} Matching`}</span></div>}
+  {owner && <div className="lcq-search-row"><label className="lcq-search"><Search size={17} aria-hidden="true"/><input type="search" aria-label="Search Member Link Requests" placeholder="Name, Email, or Member ID" disabled={saving} value={requestSearch} onChange={e=>{setRequestSearch(e.target.value);setPage(1);setReview(null);setCancel(null)}}/></label>{requestSearch && <button type="button" className="lcr-button" disabled={saving} onClick={()=>{setRequestSearch('');setRequestQuery('');setPage(1);setReview(null)}}>Clear Search</button>}</div>}
   {notice && <p className="lcr-notice" role="status">{notice}</p>}
   {error && <p className="lcr-error" role="alert">{uiMessage(error)}</p>}
-  {loading ? <p className="lcr-empty" role="status">Loading Requests…</p> : !error && (owner ? <>
-   {rows.length===0 && <p className="lcr-empty">No {status==='all'?'':status+' '}requests to show.</p>}
+  {loading || searching ? <p className="lcr-empty" role="status">Loading Requests…</p> : !error && (owner ? <>
+   {rows.length===0 && <p className="lcr-empty">{requestQuery ? 'No requests match this search. Try another name, email, or member ID.' : `No ${status==='all'?'':status+' '}requests to show.`}</p>}
    {rows.map(r=><article className="lcr-request" key={r.id}>
     <div className="lcr-row-title"><div><strong>{r.full_name}</strong><span>{r.email}</span></div><span className={'lcr-status '+r.status}>{r.status==='pending'?'Pending Review':uiStatus(r.status)}</span></div>
     <dl className="lcr-details"><div><dt>Member Number Supplied</dt><dd>{r.member_number||'Not Supplied'}</dd></div><div><dt>Contact Supplied</dt><dd>{r.contact||'Not Supplied'}</dd></div><div><dt>Church Supplied</dt><dd>{r.church||'Not Supplied'}</dd></div><div><dt>Submitted · Manila</dt><dd>{dateLabel(r.created_at)}</dd></div></dl>
-    {r.review_note && <p className="lcr-review-note">Message to applicant: {r.review_note}</p>}
+    {r.review_note && <p className="lcr-review-note">Message to Applicant: {r.review_note}</p>}
     {r.status==='pending' && <>{r.linked_member_id && <p className="lcr-review-note">This account is already linked. Review and decline this outstanding request if it is no longer needed.</p>}{r.account_status==='suspended' && <p className="lcr-review-note">Access is paused. Approval requires an active account.</p>}
     {review?.id===r.id ? <RequestReview request={r} onCancel={()=>setReview(null)} onBusy={setSaving} onDone={()=>{setReview(null);setRevision(v=>v+1);onChanged();setNotice('Request reviewed successfully.')}}/> : <button className="lcr-button" disabled={saving} onClick={()=>setReview(r)}><Link2 size={15}/>Review Request</button>}</>}
    </article>)}
@@ -91,9 +97,9 @@ export default function MemberLinkRequests({owner=false,linked=false,onChanged}:
     {pending && <><p>Your details are waiting for review. No new member record has been created.</p>{cancel===pending.id ? <div className="lcr-actions"><span>Cancel This Request?</span><button className="lcr-button" disabled={saving} onClick={()=>setCancel(null)}>Keep Request</button><button className="lcr-button" disabled={saving} onClick={()=>void mutate(()=>supabase.rpc('lc_cancel_member_request',{p_id:pending.id,p_expected_updated_at:pending.updated_at}),'Request cancelled.')}>Confirm Cancellation</button></div> : <button className="lcr-button" disabled={saving} onClick={()=>setCancel(pending.id)}>Cancel Request</button>}</>}
    </div>}
    {!linked && !pending && <form className="lcr-form" onSubmit={submit}>
-    <label>Full Name on Your Member Record <span aria-hidden="true">*</span><input required minLength={3} maxLength={150} value={form.name} disabled={saving} onChange={e=>setForm({...form,name:e.target.value})} autoComplete="name" placeholder="Your registered first and last name"/></label>
-    <label>Member Number <small>Optional</small><input maxLength={80} value={form.number} disabled={saving} onChange={e=>setForm({...form,number:e.target.value})} placeholder="As printed on your member ID"/></label>
-    <label>Registered Email or Mobile <small>Optional</small><input maxLength={150} value={form.contact} disabled={saving} onChange={e=>setForm({...form,contact:e.target.value})} placeholder="Helps the team verify your record"/></label>
+    <label>Full Name on Your Member Record <span aria-hidden="true">*</span><input required minLength={3} maxLength={150} value={form.name} disabled={saving} onChange={e=>setForm({...form,name:e.target.value})} autoComplete="name" placeholder="Your Registered First and Last Name"/></label>
+    <label>Member Number <small>Optional</small><input maxLength={80} value={form.number} disabled={saving} onChange={e=>setForm({...form,number:e.target.value})} placeholder="As Printed on Your Member ID"/></label>
+    <label>Registered Email or Mobile <small>Optional</small><input maxLength={150} value={form.contact} disabled={saving} onChange={e=>setForm({...form,contact:e.target.value})} placeholder="Helps the Team Verify Your Record"/></label>
     <label>Church <small>Optional</small><input maxLength={150} value={form.church} disabled={saving} onChange={e=>setForm({...form,church:e.target.value})} placeholder="e.g. LifeCity - Main"/></label>
     <p className="lcr-meta">Only the reviewing team sees these details. You will not be connected until your identity is verified. Linking does not grant admin access.</p>
     <button className="lcr-button lcr-primary" disabled={saving}>{saving?'Sending…':'Send Link Request'}<Link2 size={16}/></button>
@@ -144,11 +150,11 @@ function RequestReview({request:r,onCancel,onDone,onBusy}:{request:RequestRow;on
  }
  return <div className="lcr-review">
   <p className="lcr-meta">Submitted information is a claim, not proof of identity. Verify with the person or registration team before approving.</p>
-  <label>Find the Existing Member<input type="search" disabled={saving} value={search} onChange={e=>{setSearch(e.target.value);setPage(1);setCandidate(null);setVerified(false);setDecision(null)}} placeholder="Member number, name, email or mobile"/></label>
+  <label>Find the Existing Member<input type="search" disabled={saving} value={search} onChange={e=>{setSearch(e.target.value);setPage(1);setCandidate(null);setVerified(false);setDecision(null)}} placeholder="Member Number, Name, Email or Mobile"/></label>
   {loading ? <p role="status">Searching…</p> : <div className="lcr-candidates">{rows.map(m=><button type="button" key={m.id} disabled={saving||m.already_linked||r.account_status!=='active'||!!r.linked_member_id} className={'lcr-candidate'+(candidate?.id===m.id?' selected':'')} onClick={()=>{setCandidate(m);setVerified(false);setDecision(null)}}><strong>{m.first_name} {m.last_name}</strong><span>{m.member_number} · {uiStatus(m.status)}{m.already_linked?' · Already Linked':''}</span><span>{m.email||'No Email'} · {m.mobile||'No Mobile'}</span></button>)}{search.trim().length>=2 && !rows.length && <p>No matching member. Refine the search or decline with a helpful message.</p>}</div>}
   {total>25 && <div className="lcr-actions"><button className="lcr-button" disabled={saving||loading||actualPage===1} onClick={()=>setPage(actualPage-1)}>Previous Matches</button><span>{actualPage} / {Math.ceil(total/25)}</span><button className="lcr-button" disabled={saving||loading||actualPage>=Math.ceil(total/25)} onClick={()=>setPage(actualPage+1)}>Next Matches</button></div>}
-  {candidate && <><div className="lcr-compare"><div><small>Login Account</small><strong>{r.email}</strong><span>Requested: {r.full_name}</span></div><div><small>Member to Connect</small><strong>{candidate.first_name} {candidate.last_name}</strong><span>{candidate.member_number}</span></div></div><label className="lcr-check"><input type="checkbox" checked={verified} disabled={saving} onChange={e=>{setVerified(e.target.checked);setDecision(null)}}/>I verified this person owns the selected member profile.</label></>}
-  <label>Message to Applicant <small>{decision==='declined'?'Required for Decline':'Required if declining; optional for approval'}</small><textarea value={note} maxLength={500} disabled={saving} onChange={e=>setNote(e.target.value)} placeholder="A short explanation or next step. Visible to the applicant."/></label>
+  {candidate && <><div className="lcr-compare"><div><small>Login Account</small><strong>{r.email}</strong><span>Requested: {r.full_name}</span></div><div><small>Member to Connect</small><strong>{candidate.first_name} {candidate.last_name}</strong><span>{candidate.member_number}</span></div></div><label className="lcr-check"><input type="checkbox" checked={verified} disabled={saving} onChange={e=>{setVerified(e.target.checked);setDecision(null)}}/>I Verified This Person Owns the Selected Member Profile.</label></>}
+  <label>Message to Applicant <small>{decision==='declined'?'Required for Decline':'Required If Declining; Optional for Approval'}</small><textarea value={note} maxLength={500} disabled={saving} onChange={e=>setNote(e.target.value)} placeholder="A short explanation or next step. Visible to the applicant."/></label>
   {error && <p className="lcr-error" role="alert">{uiMessage(error)}</p>}
   {decision ? <div className="lcr-confirm"><strong>{decision==='approved'?'Approve and Connect This Member?':'Decline This Request?'}</strong><p>{decision==='approved'?'This connects the two identities shown above. Role, contact details and attendance stay unchanged.':'The applicant will see your message and can submit corrected details.'}</p><div className="lcr-actions"><button className="lcr-button" disabled={saving} onClick={()=>setDecision(null)}>Back</button><button className="lcr-button lcr-primary" disabled={saving||(decision==='declined'&&note.trim().length<3)} onClick={()=>void decide()}>{saving?'Saving…':'Confirm '+(decision==='approved'?'approval':'decline')}</button></div></div> :
   <div className="lcr-actions"><button className="lcr-button" disabled={saving} onClick={onCancel}><X size={14}/>Close Review</button><button className="lcr-button" disabled={saving||note.trim().length<3} onClick={()=>setDecision('declined')}>Decline</button><button className="lcr-button lcr-primary" disabled={saving||!candidate||!verified} onClick={()=>setDecision('approved')}><Check size={15}/>Approve Link</button></div>}

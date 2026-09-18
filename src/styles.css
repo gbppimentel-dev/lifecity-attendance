@@ -24257,3 +24257,212 @@ body .directory-card > .lcsx-export {
 .lcmp-load-error {padding:24px;text-align:center;color:#527770}
 .lcmp-load-error button {margin-top:8px}
 @media(max-width:700px){.lcmp-page-size {padding:16px;justify-content:space-between}}
+/* LC-P08A-UI-v2 — append at the END of your existing stylesheet. */
+body .member-pagination.lcmp-footer {
+  display:flex;flex-direction:row;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:12px 24px;padding:14px 24px;
+  border-top:1px solid #e5efed;background:#fbfdfc;
+}
+body .lcmp-footer-summary {display:flex;align-items:center;flex-wrap:wrap;gap:8px 20px;min-width:0}
+body .lcmp-footer-summary > p {margin:0;color:#718985;font-size:13px;line-height:1.5}
+body .lcmp-footer .lcmp-page-size {
+  display:flex;align-items:center;justify-content:flex-start;flex-wrap:nowrap;
+  gap:8px;padding:0;margin:0;border:0;background:transparent;
+}
+body .lcmp-footer .lcmp-page-size label {margin:0;font-size:12px;font-weight:500;color:#718985;white-space:nowrap}
+body .lcmp-size-field {position:relative;display:inline-flex;align-items:center}
+body .lcmp-footer .lcmp-page-size select {
+  appearance:none;-webkit-appearance:none;box-sizing:border-box;
+  width:68px;min-width:68px;height:36px;min-height:36px;
+  margin:0;padding:0 25px 0 10px;border:1px solid #dce9e5;border-radius:8px;
+  background:#fff;background-image:none;color:#52716d;font-size:13px;font-weight:500;line-height:normal;box-shadow:none;cursor:pointer;
+}
+body .lcmp-size-field > svg {position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none;color:#718985}
+body .lcmp-footer .lcmp-page-size select:focus-visible {outline:2px solid #7cbfb3;outline-offset:3px}
+@media (max-width:700px) {
+  body .member-pagination.lcmp-footer {padding:12px 16px;gap:12px}
+  body .lcmp-footer-summary {width:100%;justify-content:space-between;gap:8px 12px}
+  body .lcmp-footer .member-pagination-controls {width:100%;justify-content:center;gap:6px;flex-wrap:wrap}
+  body .lcmp-footer .member-pagination-controls button {width:40px;height:40px}
+  body .lcmp-footer .lcmp-page-size select {height:44px;min-height:44px}
+}
+/* LC-P08B-v1 — append after all existing CSS. */
+body .lcsp-directory > .directory-toolbar {align-items:flex-start;gap:20px;flex-wrap:wrap}
+body .lcsp-search-tools {display:grid;gap:12px;flex:1 1 580px;max-width:780px;min-width:0}
+body .lcsp-search {display:flex;align-items:center;gap:10px;margin:0;padding:0 14px;min-height:44px;border:1px solid #d5e7e1;border-radius:12px;background:#fff;color:#718985}
+body .lcsp-search > svg {flex:none}
+body .lcsp-search > input {width:100%;min-width:0;min-height:44px;margin:0;padding:10px 0;border:0;border-radius:0;background:transparent;box-shadow:none;font-size:15px;font-weight:400;color:#315b53}
+body .lcsp-search:focus-within {outline:2px solid #9bc9c0;outline-offset:2px}
+body .lcsp-search > input:focus {outline:0;box-shadow:none}
+body .lcsp-directory .service-directory-controls {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:100%;min-width:0}
+body .lcsp-directory .service-directory-controls > .filter-select,
+body .lcsp-directory .service-directory-controls > .filter-select:first-child {
+  display:flex;flex-direction:column;align-items:stretch;gap:6px;grid-column:auto;
+  width:100%;min-width:0;margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;font-size:12px;color:#68877e;
+}
+body .lcsp-directory .service-directory-controls select {box-sizing:border-box;width:100%;min-width:0;max-width:100%;min-height:44px;margin:0;padding:10px 30px 10px 12px;border:1px solid #d5e7e1;border-radius:10px;background-color:#fff;color:#315b53;font-size:14px;font-weight:500}
+body .lcsp-footer {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px 24px;padding:14px 24px;border-top:1px solid #e5efed;background:#fbfdfc;color:#718985}
+body .lcsp-footer-summary {display:flex;align-items:center;flex-wrap:wrap;gap:8px 20px;min-width:0}
+body .lcsp-footer-summary > p {margin:0;font-size:13px;line-height:1.5}
+body .lcsp-page-size {display:flex;align-items:center;gap:8px}
+body .lcsp-page-size > label {margin:0;font-size:12px;font-weight:500;white-space:nowrap}
+body .lcsp-page-size > span {display:inline-flex;position:relative;align-items:center}
+body .lcsp-page-size select {appearance:none;-webkit-appearance:none;box-sizing:border-box;width:68px;min-width:68px;height:36px;min-height:36px;margin:0;padding:0 25px 0 10px;border:1px solid #dce9e5;border-radius:8px;background:#fff;background-image:none;color:#52716d;font-size:13px;font-weight:500;line-height:normal;box-shadow:none;cursor:pointer}
+body .lcsp-page-size svg {position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none}
+body .lcsp-page-buttons {display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+body .lcsp-page-buttons span {min-width:96px;text-align:center;font-size:13px;color:#52716d}
+body .lcsp-page-buttons button {display:inline-grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid #dce9e5;border-radius:8px;background:#fff;color:#52716d;box-shadow:none;cursor:pointer}
+body .lcsp-page-buttons button:hover:not(:disabled) {background:#f1f8f5;border-color:#a5cfc5}
+body .lcsp-page-buttons button:disabled {opacity:.4;cursor:default}
+body .lcsp-footer :is(select,button):focus-visible {outline:2px solid #7cbfb3;outline-offset:3px}
+body .lcsp-scanner-error {padding:16px;color:#52716d}
+@media(max-width:900px) {
+ body .lcsp-search-tools {flex:auto;width:100%;max-width:none}
+ body .lcsp-directory .service-directory-controls {grid-template-columns:repeat(2,minmax(0,1fr))}
+ body .lcsp-directory .service-directory-controls select,body .lcsp-search > input {font-size:16px}
+ body .lcsp-footer {padding:12px 16px;gap:12px}
+ body .lcsp-footer-summary {width:100%;justify-content:space-between;gap:8px 12px}
+ body .lcsp-page-buttons {width:100%;justify-content:center}
+ body .lcsp-page-buttons button {width:40px;height:40px}
+ body .lcsp-page-size select {height:44px;min-height:44px}
+}
+/* LC-LOADING-CARD-UI-v1
+   Append at the very END of src/styles.css.
+   Styles the shared page-loading card introduced in Phase 8F. */
+body section.dashboard-card.empty-state[role="status"][aria-busy="true"] {
+  box-sizing: border-box;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 540px;
+  min-width: 0;
+  min-height: 228px;
+  margin: clamp(20px, 5vh, 48px) auto;
+  padding: 32px clamp(20px, 4vw, 40px);
+  border: 1px solid #dce9e5;
+  border-radius: 22px;
+  background: #fcfefd;
+  box-shadow: 0 6px 24px rgba(38, 77, 67, 0.035);
+  text-align: center;
+  overflow: hidden;
+  transform: none;
+}
+
+/* A small, quiet spinner above the title. */
+body section.dashboard-card.empty-state[role="status"][aria-busy="true"]::before {
+  content: "";
+  position: static;
+  display: block;
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
+  margin: 0 0 6px;
+  padding: 0;
+  border: 2px solid #e0eeea;
+  border-top-color: var(--lc-primary, #147d73);
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  opacity: 1;
+  animation: lc-page-card-spin 1s linear infinite;
+}
+
+body section.dashboard-card.empty-state[role="status"][aria-busy="true"]::after {
+  content: none;
+}
+
+body section.dashboard-card.empty-state[role="status"][aria-busy="true"] > h2 {
+  max-width: 100%;
+  margin: 0;
+  color: #315b53;
+  font-size: clamp(19px, 2vw, 22px);
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+body section.dashboard-card.empty-state[role="status"][aria-busy="true"] > p {
+  max-width: 34ch;
+  margin: 0;
+  color: #6b847d;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+@keyframes lc-page-card-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  body section.dashboard-card.empty-state[role="status"][aria-busy="true"] {
+    min-height: 196px;
+    margin: 20px auto;
+    padding: 28px 20px;
+    border-radius: 18px;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body section.dashboard-card.empty-state[role="status"][aria-busy="true"]::before {
+    animation: none;
+  }
+}
+/* LC-P08H-v1 — append at the very end of src/styles.css. */
+body .lca-pagination.lcah-pagination {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px 24px;padding:14px 24px;background:#fbfdfc;border-top:1px solid #e5efed}
+body .lcah-page-summary {display:flex;align-items:center;flex-wrap:wrap;gap:8px 20px;min-width:0;color:#718985;font-size:13px}
+body .lcah-page-size {display:flex;align-items:center;gap:8px;margin:0;font-size:12px;font-weight:500;color:#718985}
+body .lcah-size-field {position:relative;display:inline-flex;align-items:center}
+body .lcah-size-field select {appearance:none;-webkit-appearance:none;box-sizing:border-box;width:68px;min-width:68px;height:36px;min-height:36px;margin:0;padding:0 25px 0 10px;border:1px solid #dce9e5;border-radius:8px;background:#fff;background-image:none;color:#52716d;font-size:13px;font-weight:500;line-height:normal;box-shadow:none;cursor:pointer}
+body .lcah-size-field > svg {position:absolute;right:9px;top:50%;transform:translateY(-50%);pointer-events:none}
+body .lcah-size-field select:focus-visible {outline:2px solid var(--lc-primary,#147d73);outline-offset:3px}
+body .lcah-size-field select:disabled {opacity:.55;cursor:default}
+body .lcb-member-cell .lcah-member-number {display:block;margin-top:4px;color:#718985;font-size:12px;font-weight:400;line-height:1.4;letter-spacing:normal}
+@media(max-width:700px){
+ body .lca-pagination.lcah-pagination {padding:12px 16px;gap:12px}
+ body .lcah-page-summary {width:100%;justify-content:space-between;gap:8px 12px}
+ body .lcah-pagination nav {display:flex;width:100%;justify-content:center;flex-wrap:wrap;gap:6px}
+ body .lcah-pagination nav button {min-width:40px;min-height:40px}
+ body .lcah-size-field select {height:44px;min-height:44px}
+}
+/* LC-P08I-v1 — append at the end of src/styles.css. */
+body .lcq-search-row {display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:0 24px 20px}
+body .lcq-search-row .lcq-search {display:flex;align-items:center;flex:1 1 240px;gap:10px;min-width:0;margin:0;padding:0 12px;border:1px solid #d7e7e1;border-radius:12px;background:#fff;color:#718985}
+body .lcq-search > svg {flex:none}
+body .lcq-search input {display:block;box-sizing:border-box;width:100%;min-width:0;min-height:44px;margin:0;padding:10px 0;border:0;border-radius:0;background:transparent;color:#315b53;font-size:14px;font-weight:400;line-height:1.5;box-shadow:none}
+body .lcq-search:focus-within {outline:2px solid var(--lc-primary,#147d73);outline-offset:2px}
+body .lcq-search input:focus {outline:0;box-shadow:none}
+body .lcq-search-row > button {min-height:44px;margin:0;white-space:nowrap;font-size:13px}
+@media(max-width:700px){body .lcq-search-row{padding:0 16px 16px}body .lcq-search input{font-size:16px}}
+/* LC-P08J-v1 — append at the end of src/styles.css. */
+body .lcij-recovery {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px 20px;margin:18px 0;padding:16px 18px;border:1px solid #deebe6;border-radius:14px;background:#f9fcfa;box-shadow:none}
+body .lcij-recovery > div {flex:1 1 280px;min-width:0}
+body .lcij-recovery strong {display:block;color:#315b53;font-size:15px;font-weight:650;line-height:1.4}
+body .lcij-recovery p {max-width:68ch;margin:6px 0 0;color:#6c827b;font-size:13px;line-height:1.6}
+body .lcij-recovery > button {display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;margin:0;padding:10px 14px;border:1px solid #d5e5df;border-radius:10px;background:#fff;color:#446b61;font-size:13px;font-weight:600;box-shadow:none}
+body .lcij-recovery > button > svg {flex:none}
+body .lcij-recovery > button:hover:not(:disabled) {background:#f0f7f3;border-color:#b5d1c6;transform:none;box-shadow:none}
+body .lcij-recovery > button:disabled {opacity:.5;cursor:default}
+body .lcij-recovery > button:focus-visible {outline:2px solid var(--lc-primary,#147d73);outline-offset:3px}
+@media(max-width:600px){body .lcij-recovery{padding:14px;gap:12px}body .lcij-recovery > div{flex-basis:100%}body .lcij-recovery > button{width:100%;min-height:44px}}
+/* LC-P08K-v1 — append at the end of src/styles.css. */
+body .lcik-search {margin:18px 0;min-width:0}
+body .lcik-search > label {display:block;margin-bottom:8px;color:#476c63;font-size:14px;font-weight:600}
+body .lcik-search > div {display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+body .lcik-search input {flex:1 1 260px;min-width:0;width:100%;min-height:44px;padding:11px 14px;border:1px solid #d5e5df;border-radius:12px;background:#fff;color:#315b53;font:inherit;font-size:14px;box-shadow:none}
+body .lcik-search button {min-height:44px;padding:10px 14px;border:1px solid #d5e5df;border-radius:10px;background:#f9fcfa;color:#446b61;font-size:13px;box-shadow:none;transform:none}
+body .lcik-search input:focus-visible,body .lcik-search button:focus-visible {outline:2px solid var(--lc-primary,#147d73);outline-offset:3px}
+body .lcik-search p {margin:8px 0 0;color:#6c827b;font-size:13px;line-height:1.6}
+body .lcik-empty {margin:0;padding:24px 16px;text-align:center;color:#6c827b;font-size:14px;line-height:1.6}
+body .lcik-search :disabled {opacity:.55;cursor:default}
+@media(max-width:600px){body .lcik-search input{flex-basis:100%}body .lcik-search button{width:100%}}

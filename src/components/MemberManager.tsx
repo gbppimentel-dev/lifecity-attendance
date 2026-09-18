@@ -1,3 +1,5 @@
+// Change ID: LC-P08N-v1
+// UI refinement: LC-P08A-UI-v2
 // Change ID: LC-P08A-v1
 // Change ID: LC-P07A-v1
 import { uiMessage, uiStatus } from '../lib/uiText'
@@ -78,6 +80,7 @@ type ContactFieldErrors = {
 }
 
 type AttendanceRecord = {
+  report_snapshot?: {service_name?: string | null} | null
   id: string
   checked_in_at: string
   status: 'present' | 'corrected'
@@ -219,6 +222,10 @@ export default function MemberManager() {
   const [attendanceTotal, setAttendanceTotal] = useState(0)
   const [attendancePage, setAttendancePage] = useState(1)
   const [detailsLoading, setDetailsLoading] = useState(false)
+  const [attendanceError, setAttendanceError] = useState('')
+  const attendanceRequest = useRef(0)
+  const detailMemberId = useRef<string | null>(null)
+  useEffect(()=>()=>{attendanceRequest.current++;detailMemberId.current=null},[])
   const [form, setForm] = useState<MemberForm>(emptyForm)
   const [contactFieldErrors, setContactFieldErrors] =
     useState<ContactFieldErrors>({})
@@ -767,52 +774,57 @@ export default function MemberManager() {
   }
 
   async function loadMemberAttendance(memberId: string, page = 1) {
-    const { data, error, count } = await supabase
-      .from('attendance')
-      .select(`
-        id,
-        checked_in_at,
-        status,
-        events (
-          name,
-          starts_at
-        )
-      `, { count: 'exact' })
-      .eq('member_id', memberId)
-      .order('checked_in_at', { ascending: false })
-      .range(
-        (page - 1) * attendancePageSize,
-        page * attendancePageSize - 1,
-      )
-
-    if (error) {
-      setMessage(error.message)
-    } else {
-      const records = (data ?? []) as unknown as AttendanceRecord[]
-      setMemberAttendance(records)
-      setAttendanceTotal(count ?? 0)
+    const request=++attendanceRequest.current
+    const isCurrent=()=>request===attendanceRequest.current && detailMemberId.current===memberId
+    setDetailsLoading(true)
+    setAttendanceError('')
+    setMemberAttendance([])
+    setAttendancePage(page)
+    try {
+      const fetchPage=(requestedPage:number)=>supabase.from('attendance')
+        .select(`id, checked_in_at, status, report_snapshot, events (name, starts_at)`,{count:'exact'})
+        .eq('member_id',memberId)
+        .order('checked_in_at',{ascending:false})
+        .order('id',{ascending:false})
+        .range((requestedPage-1)*attendancePageSize,requestedPage*attendancePageSize-1)
+      let response=await fetchPage(page)
+      if(!isCurrent())return
+      if(response.error)throw response.error
+      const lastPage=Math.max(1,Math.ceil((response.count??0)/attendancePageSize))
+      if(page>lastPage){
+        page=lastPage
+        response=await fetchPage(page)
+        if(!isCurrent())return
+        if(response.error)throw response.error
+      }
+      setMemberAttendance((response.data??[]) as unknown as AttendanceRecord[])
+      setAttendanceTotal(response.count??0)
+      setAttendancePage(page)
+    }catch{
+      if(isCurrent())setAttendanceError('Attendance history could not be loaded. Please try again.')
+    }finally{
+      if(isCurrent())setDetailsLoading(false)
     }
   }
 
   async function openMemberDetails(member: Member) {
+    detailMemberId.current=member.id
     setDetailMember(member)
-    setMemberAttendance([])
     setAttendanceTotal(0)
-    setAttendancePage(1)
-    setDetailsLoading(true)
+    await loadMemberAttendance(member.id,1)
+  }
 
-    await loadMemberAttendance(member.id, 1)
-
+  function closeMemberDetails() {
+    attendanceRequest.current++
+    detailMemberId.current=null
+    setDetailMember(null)
+    setAttendanceError('')
     setDetailsLoading(false)
   }
 
   async function goToAttendancePage(page: number) {
-    if (!detailMember) return
-
-    setDetailsLoading(true)
-    await loadMemberAttendance(detailMember.id, page)
-    setAttendancePage(page)
-    setDetailsLoading(false)
+    if(!detailMember)return
+    await loadMemberAttendance(detailMember.id,Math.max(1,page))
   }
 
   function toggleMemberSelection(memberId: string) {
@@ -2060,12 +2072,6 @@ export default function MemberManager() {
           </div>
         )}
 
-        <div className="lcmp-page-size">
-          <label htmlFor="members-page-size">Members per Page</label>
-          <select id="members-page-size" value={membersPerPage} onChange={(event) => setMembersPerPage(Number(event.target.value))}>
-            <option value={25}>25</option><option value={50}>50</option><option value={100}>100</option>
-          </select>
-        </div>
         {directoryBusy ? (
           <div className="empty-state">
             <p>Loading Members…</p>
@@ -2257,12 +2263,23 @@ export default function MemberManager() {
           </div>
         )}
 
-        {!directoryBusy && !directoryError && visibleMembers.length > 0 && (
-          <div className="member-pagination" aria-label="Member List Pagination">
-            <p>
-              Showing {(activeMemberPage - 1) * membersPerPage + 1}–{Math.min(activeMemberPage * membersPerPage, directoryStats.total)} of {directoryStats.total} Members
-            </p>
-            {memberPageCount > 1 && (
+          <div className="member-pagination lcmp-footer" aria-label="Member List Pagination">
+            <div className="lcmp-footer-summary">
+            <p aria-live="polite">{directoryBusy ? 'Loading members…' : directoryError ? 'Members unavailable' : <>
+
+              Showing {directoryStats.total === 0 ? 0 : (activeMemberPage - 1) * membersPerPage + 1}–{Math.min(activeMemberPage * membersPerPage, directoryStats.total)} of {directoryStats.total} Members
+            </>}</p>
+            <div className="lcmp-page-size">
+              <label htmlFor="members-page-size">Per Page</label>
+              <span className="lcmp-size-field">
+                <select id="members-page-size" aria-label="Members per Page" value={membersPerPage} onChange={(event) => setMembersPerPage(Number(event.target.value))}>
+                  <option value={25}>25</option><option value={50}>50</option><option value={100}>100</option>
+                </select>
+                <ChevronDown size={14} aria-hidden="true" />
+              </span>
+            </div>
+            </div>
+            {!directoryBusy && !directoryError && memberPageCount > 1 && (
               <div className="member-pagination-controls">
                 <button type="button" onClick={() => changeMemberPage(1)} disabled={activeMemberPage === 1} aria-label="First Page"><ChevronsLeft size={17} /></button>
                 <button type="button" onClick={() => changeMemberPage(activeMemberPage - 1)} disabled={activeMemberPage === 1} aria-label="Previous Page"><ChevronLeft size={17} /></button>
@@ -2272,7 +2289,6 @@ export default function MemberManager() {
               </div>
             )}
           </div>
-        )}
       </section>
 
       {selectedMember && (
@@ -2323,7 +2339,7 @@ export default function MemberManager() {
       )}
 
       {detailMember && (
-        <div className="modal-backdrop" onMouseDown={() => setDetailMember(null)}>
+        <div className="modal-backdrop" onMouseDown={() => closeMemberDetails()}>
           <section
             className="member-details-modal"
             onMouseDown={(event) => event.stopPropagation()}
@@ -2342,7 +2358,7 @@ export default function MemberManager() {
                 <button
                   className="secondary-button details-edit-button"
                   onClick={() => {
-                    setDetailMember(null)
+                    closeMemberDetails()
                     openEditForm(detailMember)
                   }}
                 >
@@ -2351,7 +2367,7 @@ export default function MemberManager() {
                 </button>
                 <button
                   className="icon-button details-close-button"
-                  onClick={() => setDetailMember(null)}
+                  onClick={() => closeMemberDetails()}
                   aria-label="Close Member Details"
                   title="Close Details"
                 >
@@ -2411,7 +2427,7 @@ export default function MemberManager() {
               <h3>Ministries</h3>
               <div className="details-ministry-list">
                 {getMemberMinistries(detailMember).length === 0 ? (
-                  <span className="no-ministry">No Ministry Assigned</span>
+                  <span className="no-ministry">None</span>
                 ) : (
                   getMemberMinistries(detailMember).map((ministry) => (
                     <span className="details-ministry-pill" key={ministry.id}>
@@ -2443,7 +2459,7 @@ export default function MemberManager() {
                   <button
                     className="edit-icon-button"
                     onClick={() => {
-                      setDetailMember(null)
+                      closeMemberDetails()
                       openEditForm(detailMember)
                     }}
                     aria-label={`Edit Admin Note for ${memberName(detailMember)}`}
@@ -2463,12 +2479,17 @@ export default function MemberManager() {
                   <p className="muted">Check-in history for this member.</p>
                 </div>
                 <strong className="attendance-total">
-                  {detailsLoading ? '…' : attendanceTotal} Total
+                  {detailsLoading ? 'Loading…' : attendanceError ? 'Unavailable' : `${attendanceTotal} Total`}
                 </strong>
               </div>
 
               {detailsLoading ? (
-                <p className="muted">Loading Attendance…</p>
+                <p className="muted" role="status">Loading attendance…</p>
+              ) : attendanceError ? (
+                <div role="alert">
+                  <p className="muted">{attendanceError}</p>
+                  <button type="button" className="text-button" onClick={()=>void loadMemberAttendance(detailMember.id,attendancePage)}>Retry Attendance</button>
+                </div>
               ) : memberAttendance.length === 0 ? (
                 <p className="muted">No attendance recorded yet.</p>
               ) : (
@@ -2476,12 +2497,12 @@ export default function MemberManager() {
                   <div className="attendance-table">
                     <div className="attendance-table-heading">
                       <span>Event</span>
-                      <span>Checked in</span>
+                      <span>Checked In</span>
                       <span>Status</span>
                     </div>
                     {memberAttendance.map((record) => (
                       <div className="attendance-table-row" key={record.id}>
-                        <strong>{record.events?.name ?? 'Event'}</strong>
+                        <strong>{record.events?.name || record.report_snapshot?.service_name || 'Service Unavailable'}</strong>
                         <span>{formatDateTime(record.checked_in_at)}</span>
                         <span className="attendance-record-status">{uiStatus(record.status)}</span>
                       </div>

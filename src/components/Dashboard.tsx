@@ -1,13 +1,8 @@
+// Change ID: LC-P08C-v1
 // Change ID: LC-UI-LABELS-v3
-import { uiMessage } from '../lib/uiText'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, CalendarDays, Camera, CheckCircle2, Clock3, RefreshCw, Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-
-type Member = {
-  id: string
-  status: 'active' | 'inactive'
-}
 
 type AttendanceEvent = {
   id: string
@@ -76,143 +71,78 @@ function eventPostcardDate(value: string) {
   return { month: parts.month, day: parts.day, weekday: parts.weekday }
 }
 
-function manilaDateParts(value: string | Date) {
-  const parts = Object.fromEntries(
-    new Intl.DateTimeFormat('en-PH', {
-      timeZone: 'Asia/Manila',
-      year: 'numeric',
-      month: '2-digit',
-    })
-      .formatToParts(new Date(value))
-      .filter((part) => part.type !== 'literal')
-      .map((part) => [part.type, part.value]),
-  )
-
-  return { year: parts.year, month: parts.month }
-}
-
-function isWithinDashboardPeriod(
-  value: string,
-  period: DashboardPeriod,
-  currentDate: { year: string; month: string },
-) {
-  if (period === 'all') return true
-
-  const date = manilaDateParts(value)
-  if (period === 'year') return date.year === currentDate.year
-  return date.year === currentDate.year && date.month === currentDate.month
+type DashboardSnapshot = {
+  period: DashboardPeriod
+  as_of: string
+  total_members: number
+  active_members: number
+  total_events: number
+  total_check_ins: number
+  latest_event: AttendanceEvent | null
+  latest_event_check_ins: number
+  latest_sunday_service: AttendanceEvent | null
+  latest_sunday_check_ins: number
+  upcoming_event: AttendanceEvent | null
+  active_scanner_event: AttendanceEvent | null
+  active_scanner_state: 'upcoming' | 'in-progress' | 'completed' | 'archived' | null
+  active_scanner_check_ins: number
+  recent_check_ins: CheckIn[]
 }
 
 export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewRecords }: DashboardProps) {
-  const [members, setMembers] = useState<Member[]>([])
-  const [events, setEvents] = useState<AttendanceEvent[]>([])
-  const [checkIns, setCheckIns] = useState<CheckIn[]>([])
+  const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null)
   const [dashboardPeriod, setDashboardPeriod] = useState<DashboardPeriod>('all')
-  const [loading, setLoading] = useState(true)
+  const [finishedKey, setFinishedKey] = useState('')
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState('')
+  const alive = useRef(true)
+  const sequence = useRef(0)
+  const key = JSON.stringify([dashboardPeriod,activeScannerEventId])
+  const currentRequest = useRef({key,period:dashboardPeriod,scanner:activeScannerEventId})
+  currentRequest.current = {key,period:dashboardPeriod,scanner:activeScannerEventId}
 
   useEffect(() => {
-    void loadDashboard()
-  }, [])
-
+    alive.current=true
+    return () => {alive.current=false;sequence.current++}
+  },[])
+  useEffect(() => {void loadDashboard()},[key])
   useEffect(() => {
-    const channel = supabase
-      .channel('dashboard-attendance-refresh')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'attendance' },
-        () => void loadDashboard(false),
-      )
+    let timer: number | undefined
+    const scheduleRefresh = () => {
+      window.clearTimeout(timer)
+      timer=window.setTimeout(() => void loadDashboard(),250)
+    }
+    const channel=supabase.channel('dashboard-attendance-refresh')
+      .on('postgres_changes',{event:'*',schema:'public',table:'attendance'},scheduleRefresh)
+      .on('postgres_changes',{event:'*',schema:'public',table:'members'},scheduleRefresh)
+      .on('postgres_changes',{event:'*',schema:'public',table:'events'},scheduleRefresh)
       .subscribe()
+    // Re-evaluate Manila month/year boundaries and the three-hour scanner window.
+    const clock=window.setInterval(() => void loadDashboard(),60_000)
+    return () => {window.clearTimeout(timer);window.clearInterval(clock);void supabase.removeChannel(channel)}
+  },[])
 
-    return () => {
-      void supabase.removeChannel(channel)
+  async function loadDashboard() {
+    if(!alive.current)return
+    const request=currentRequest.current
+    const id=++sequence.current
+    const isCurrent=() => alive.current && sequence.current===id && currentRequest.current.key===request.key
+    setRefreshing(true)
+    try {
+      const {data,error:failure}=await supabase.rpc('lc_dashboard_snapshot',{p_period:request.period,p_scanner_event_id:request.scanner || null})
+      if(!isCurrent())return
+      if(failure)throw failure
+      if(!data || data.period!==request.period || !Array.isArray(data.recent_check_ins) || typeof data.total_members!=='number' || typeof data.total_check_ins!=='number')throw new Error('Invalid dashboard response')
+      setSnapshot(data as DashboardSnapshot)
+      setError('')
+    } catch {
+      if(isCurrent()){setSnapshot(null);setError('Could not load the dashboard. Please try again.')}
+    } finally {
+      if(isCurrent()){setFinishedKey(request.key);setRefreshing(false)}
     }
-  }, [])
-
-  async function loadDashboard(showLoading = true) {
-    if (showLoading) setLoading(true)
-    setError('')
-
-    const [membersResult, eventsResult, attendanceResult] = await Promise.all([
-      supabase.from('members').select('id, status'),
-      supabase
-        .from('events')
-        .select('id, name, starts_at, location, admin_note, is_sunday_service, archived_at')
-        .order('starts_at', { ascending: false }),
-      supabase
-        .from('attendance')
-        .select(`
-          id,
-          event_id,
-          checked_in_at,
-          members ( first_name, last_name, member_number ),
-          events ( name )
-        `)
-        .order('checked_in_at', { ascending: false }),
-    ])
-
-    const firstError = membersResult.error ?? eventsResult.error ?? attendanceResult.error
-
-    if (firstError) {
-      setError(firstError.message)
-    } else {
-      setMembers((membersResult.data ?? []) as Member[])
-      setEvents((eventsResult.data ?? []) as AttendanceEvent[])
-      setCheckIns((attendanceResult.data ?? []) as unknown as CheckIn[])
-    }
-
-    if (showLoading) setLoading(false)
   }
 
-  const activeMembers = useMemo(
-    () => members.filter((member) => member.status === 'active'),
-    [members],
-  )
-  const currentDate = manilaDateParts(new Date())
-  const periodEvents = events.filter((event) =>
-    isWithinDashboardPeriod(event.starts_at, dashboardPeriod, currentDate),
-  )
-  const periodCheckIns = checkIns.filter((checkIn) =>
-    isWithinDashboardPeriod(checkIn.checked_in_at, dashboardPeriod, currentDate),
-  )
-  const pastEvents = periodEvents.filter(
-    (event) => new Date(event.starts_at).getTime() <= Date.now(),
-  )
-  const latestEvent = pastEvents[0] ?? null
-  const latestSundayService =
-    pastEvents.find((event) => event.is_sunday_service) ?? null
-  const latestEventCheckIns = latestEvent
-    ? periodCheckIns.filter((checkIn) => checkIn.event_id === latestEvent.id)
-    : []
-  const latestSundayCheckIns = latestSundayService
-    ? periodCheckIns.filter((checkIn) => checkIn.event_id === latestSundayService.id)
-    : []
-  const attendanceRate = activeMembers.length
-    ? Math.round((latestSundayCheckIns.length / activeMembers.length) * 100)
-    : 0
-  const upcomingEvent = [...periodEvents]
-    .filter((event) => new Date(event.starts_at).getTime() > Date.now())
-    .sort(
-      (a, b) =>
-        new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime(),
-    )[0]
-  const recentCheckIns = periodCheckIns.slice(0, 6)
-  const activeScannerEvent = events.find((event) => event.id === activeScannerEventId) ?? null
-  const activeScannerCheckIns = activeScannerEvent
-    ? checkIns.filter((checkIn) => checkIn.event_id === activeScannerEvent.id)
-    : []
-  const activeScannerState = activeScannerEvent
-    ? (() => {
-        if (activeScannerEvent.archived_at) return 'archived'
-        const startsAt = new Date(activeScannerEvent.starts_at).getTime()
-        if (Date.now() < startsAt) return 'upcoming'
-        if (Date.now() < startsAt + 3 * 60 * 60 * 1000) return 'in-progress'
-        return 'completed'
-      })()
-    : null
-  const showActiveCheckIn =
-    activeScannerState === 'upcoming' || activeScannerState === 'in-progress'
+  const loading=finishedKey!==key || (!snapshot && !error)
   if (loading) {
     return (
       <section className="dashboard-loading-skeleton" aria-label="Loading Dashboard" aria-busy="true">
@@ -232,9 +162,28 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
     )
   }
 
-  if (error) {
-    return <p className="error-message">{uiMessage(error)}</p>
+  if (error || !snapshot) {
+    return <section className="dashboard-card empty-state" role="alert">
+      <h2>Dashboard Unavailable</h2><p>{error || 'Please try loading the dashboard again.'}</p>
+      <button type="button" className="secondary-button" disabled={refreshing} onClick={() => void loadDashboard()}><RefreshCw size={16}/>{refreshing ? 'Loading…' : 'Try Again'}</button>
+    </section>
   }
+
+  const activeMemberCount=snapshot.active_members
+  const totalMemberCount=snapshot.total_members
+  const periodEventCount=snapshot.total_events
+  const periodCheckInCount=snapshot.total_check_ins
+  const latestEvent=snapshot.latest_event
+  const latestEventCount=snapshot.latest_event_check_ins
+  const latestSundayService=snapshot.latest_sunday_service
+  const latestSundayCount=snapshot.latest_sunday_check_ins
+  const upcomingEvent=snapshot.upcoming_event
+  const recentCheckIns=snapshot.recent_check_ins
+  const activeScannerEvent=snapshot.active_scanner_event
+  const activeScannerCount=snapshot.active_scanner_check_ins
+  const showActiveCheckIn=snapshot.active_scanner_state==='upcoming'||snapshot.active_scanner_state==='in-progress'
+  const attendanceRate=activeMemberCount ? Math.round(latestSundayCount/activeMemberCount*100) : 0
+  const latestEventRate=activeMemberCount ? Math.round(latestEventCount/activeMemberCount*100) : 0
 
   return (
     <>
@@ -244,7 +193,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
           <h1>Dashboard</h1>
           <p>A quick view of your LifeCity attendance activity.</p>
           <span className="dashboard-hero-caption">
-            {activeMembers.length} Active Members · {periodCheckIns.length} Check-Ins in This View
+            {activeMemberCount} Active Members · {periodCheckInCount} Check-Ins in This View
           </span>
         </div>
 
@@ -262,9 +211,9 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
             </select>
           </label>
 
-          <button className="dashboard-refresh" onClick={() => void loadDashboard()}>
+          <button className="dashboard-refresh" disabled={refreshing} onClick={() => void loadDashboard()}>
             <RefreshCw size={16} />
-            Refresh Snapshot
+            {refreshing ? 'Refreshing…' : 'Refresh Snapshot'}
           </button>
         </div>
 
@@ -285,8 +234,8 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
           </div>
 
           <div className="active-checkin-total">
-            <strong>{activeScannerCheckIns.length}</strong>
-            <span>Check-In{activeScannerCheckIns.length === 1 ? '' : 's'} So Far</span>
+            <strong>{activeScannerCount}</strong>
+            <span>Check-In{activeScannerCount === 1 ? '' : 's'} So Far</span>
           </div>
 
           <button className="primary-button active-checkin-button" onClick={onOpenScanner}>
@@ -300,9 +249,9 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
         <article className="dashboard-stat-card dashboard-metric-card metric-members">
           <div className="dashboard-metric-copy">
             <p className="lc-v3-metric-title">Total Members</p>
-            <small>{activeMembers.length} Active Member{activeMembers.length === 1 ? '' : 's'}</small>
+            <small>{activeMemberCount} Active Member{activeMemberCount === 1 ? '' : 's'}</small>
           </div>
-          <strong>{members.length}</strong>
+          <strong>{totalMemberCount}</strong>
           <span className="dashboard-stat-icon members"><Users size={20} /></span>
         </article>
 
@@ -311,7 +260,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
             <p className="lc-v3-metric-title">Events Created</p>
             <small>{upcomingEvent ? `Next: ${upcomingEvent.name}` : 'No Upcoming Event'}</small>
           </div>
-          <strong>{periodEvents.length}</strong>
+          <strong>{periodEventCount}</strong>
           <span className="dashboard-stat-icon events"><CalendarDays size={20} /></span>
         </article>
 
@@ -320,14 +269,14 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
             <p className="lc-v3-metric-title">Latest Event Attendance</p>
             <small>{latestEvent ? latestEvent.name : 'No Event Recorded Yet'}</small>
           </div>
-          <strong>{latestEventCheckIns.length}</strong>
+          <strong>{latestEventCount}</strong>
           <span className="dashboard-stat-icon attendance"><CheckCircle2 size={20} /></span>
         </article>
 
         <article className="dashboard-stat-card dashboard-metric-card metric-rate">
           <div className="dashboard-metric-copy">
             <p className="lc-v3-metric-title">Latest Sunday Attendance</p>
-            <small>{latestSundayService ? `${latestSundayCheckIns.length} of ${activeMembers.length} Active Members` : 'No Sunday Service Recorded Yet'}</small>
+            <small>{latestSundayService ? `${latestSundayCount} of ${activeMemberCount} Active Members` : 'No Sunday Service Recorded Yet'}</small>
           </div>
           <strong>{latestSundayService ? `${attendanceRate}%` : '—'}</strong>
           <span className="dashboard-stat-icon rate"><Clock3 size={20} /></span>
@@ -349,7 +298,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
               <p className="card-kicker">{latestEvent?.is_sunday_service ? 'Most Recent Sunday Service' : 'Most Recent Event'}</p>
               <h2>{latestEvent?.name ?? 'No Events Yet'}</h2>
             </div>
-            {latestEvent && <span className="status active">{latestEventCheckIns.length} Check-In{latestEventCheckIns.length === 1 ? '' : 's'}</span>}
+            {latestEvent && <span className="status active">{latestEventCount} Check-In{latestEventCount === 1 ? '' : 's'}</span>}
           </div>
 
           {latestEvent ? (
@@ -366,11 +315,11 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
               )}
               {latestEvent.is_sunday_service ? (
                 <>
-                  <div className="attendance-progress" aria-label={`${Math.round((latestEventCheckIns.length / Math.max(activeMembers.length, 1)) * 100)}% Attendance`}>
-                    <span style={{ width: `${Math.min(Math.round((latestEventCheckIns.length / Math.max(activeMembers.length, 1)) * 100), 100)}%` }} />
+                  <div className="attendance-progress" aria-label={`${latestEventRate}% Attendance`}>
+                    <span style={{ width: `${Math.min(latestEventRate, 100)}%` }} />
                   </div>
                   <p className="latest-event-summary">
-                    <strong>{latestEventCheckIns.length}</strong> of {activeMembers.length} Active Members Checked in
+                    <strong>{latestEventCount}</strong> of {activeMemberCount} Active Members Checked in
                   </p>
                 </>
               ) : null}
@@ -411,7 +360,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
               <h2>Recent Check-Ins</h2>
             </div>
             <div className="recent-checkin-actions">
-              <span className="recent-checkin-total">{periodCheckIns.length} Total</span>
+              <span className="recent-checkin-total">{periodCheckInCount} Total</span>
               <button type="button" className="dashboard-records-link" onClick={onViewRecords}>
                 View All Records
                 <ArrowRight size={14} />
@@ -433,16 +382,16 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
                 >
                   <div className="avatar">
                     {checkIn.members
-                      ? `${checkIn.members.first_name[0]}${checkIn.members.last_name[0]}`
+                      ? `${checkIn.members.first_name?.[0] ?? ''}${checkIn.members.last_name?.[0] ?? ''}`
                       : '?'}
                   </div>
                   <div className="recent-checkin-surface">
                     <div className="recent-checkin-copy">
                       <strong>{checkIn.members ? `${checkIn.members.first_name} ${checkIn.members.last_name}` : 'Unknown Member'}</strong>
                       <span>{checkIn.events?.name ?? 'Unknown Event'}</span>
-                      {index === 0 && <em>Just in</em>}
+                      {index === 0 && <em>Latest</em>}
                     </div>
-                    <time>{formatCheckInTime(checkIn.checked_in_at)}</time>
+                    <time dateTime={checkIn.checked_in_at} title={formatEventDate(checkIn.checked_in_at)}>{formatCheckInTime(checkIn.checked_in_at)}</time>
                   </div>
                 </button>
               ))}

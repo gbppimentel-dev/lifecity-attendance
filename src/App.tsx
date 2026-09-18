@@ -1,8 +1,10 @@
+// Change ID: LC-P08F-v1
+// Change ID: LC-P08B-v1
 // Change ID: LC-P07B-v1
 import { uiMessage } from './lib/uiText'
 // Full replacement for src/App.tsx; requires the installed Phase 1 foundation and LC-P02A-v1.sql plus LC-P02B-v1.sql.
 import type { Session } from '@supabase/supabase-js'
-import { type ReactNode, type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { type ReactNode, type FormEvent, lazy, useEffect, useRef, useState } from 'react'
 import {
   ArrowRight,
   RefreshCw,
@@ -14,6 +16,11 @@ import {
   ArchiveRestore,
   Camera,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Search,
   ClipboardList,
   LayoutDashboard,
   Settings,
@@ -25,17 +32,19 @@ import {
   X,
 } from 'lucide-react'
 import MobileAdminNav from './components/MobileAdminNav'
-import MemberPortal from './components/MemberPortal'
-import MemberLinkRequests from './components/MemberLinkRequests'
-import ServiceExport from './components/ServiceExport'
-import SettingsWorkspace from './components/SettingsWorkspace'
 import { useSharedAppearance } from './lib/appearance'
-import AttendanceRecords from './components/AttendanceRecords'
-import GuestPreview from './components/GuestPreview'
-import AttendanceScanner from './components/AttendanceScanner'
-import Dashboard from './components/Dashboard'
-import MemberManager from './components/MemberManager'
 import { supabase } from './lib/supabase'
+import ScreenBoundary from './components/ScreenBoundary'
+
+const MemberPortal = lazy(() => import('./components/MemberPortal'))
+const MemberLinkRequests = lazy(() => import('./components/MemberLinkRequests'))
+const ServiceExport = lazy(() => import('./components/ServiceExport'))
+const SettingsWorkspace = lazy(() => import('./components/SettingsWorkspace'))
+const AttendanceRecords = lazy(() => import('./components/AttendanceRecords'))
+const GuestPreview = lazy(() => import('./components/GuestPreview'))
+const AttendanceScanner = lazy(() => import('./components/AttendanceScanner'))
+const Dashboard = lazy(() => import('./components/Dashboard'))
+const MemberManager = lazy(() => import('./components/MemberManager'))
 
 type Page = 'dashboard' | 'members' | 'events' | 'scanner' | 'records' | 'settings' | 'profile'
 
@@ -224,7 +233,7 @@ export default function App() {
   if (booting || (session && !current)) return (
     <AccountShell compact><div className="lc-auth-check" role="status" aria-live="polite"><div className="lc-auth-check-mark"><ShieldCheck size={32}/></div><p className="eyebrow">Getting Things Ready</p><h1>Making Room for You.</h1><p>Checking your account and opening your LifeCity space.</p><div className="lc-auth-progress" aria-hidden="true"><span/></div><span className="lc-auth-caption">Just a Moment…</span></div></AccountShell>
   )
-  if (!session && showGuest) return <GuestPreview onBack={()=>setShowGuest(false)} onSignIn={()=>void googleSignIn()} signingIn={working} error={oauthError || authError}/>
+  if (!session && showGuest) return <ScreenBoundary label="Guest Preview"><GuestPreview onBack={()=>setShowGuest(false)} onSignIn={()=>void googleSignIn()} signingIn={working} error={oauthError || authError}/></ScreenBoundary>
   if (!session) return (
     <AccountShell>
       <div className="lc-google-welcome" data-change-id="LC-UI-COPY-v2">
@@ -250,7 +259,7 @@ export default function App() {
     return <AdminWorkspace key={session.user.id} account={account} onRefreshAccess={() => setRetry(v=>v+1)}/>
   }
   if (account?.status === 'active' && account.member_id) {
-    return <MemberPortal key={session.user.id} onRefreshAccess={()=>setRetry(v=>v+1)} onSignOut={()=>void signOut()} signingOut={working} authError={uiMessage(authError)}/>
+    return <ScreenBoundary key={session.user.id} label="My Member Space"><MemberPortal onRefreshAccess={()=>setRetry(v=>v+1)} onSignOut={()=>void signOut()} signingOut={working} authError={uiMessage(authError)}/></ScreenBoundary>
   }
   const paused = account?.status === 'suspended'
   return (
@@ -262,7 +271,7 @@ export default function App() {
       {current?.error ? <p className="lc-auth-error" role="alert">{uiMessage(current.error)}</p> : paused
         ? <div className="lc-auth-note is-paused"><strong>A Little Help from Your Administrator</strong><p>Please contact your church administrator to review your access. Once it’s restored, choose Refresh access below.</p></div>
         : <><div className="lc-auth-note"><strong>{account?.member_id ? 'Member Profile Connected' : 'Your Next Step: Connect Your Member Profile'}</strong><p>{account?.member_id ? account.member_name : 'Your account is ready. Send a request below to connect your existing member record.'}</p></div><p className="lc-auth-help">{account?.member_id ? 'Your personal member portal is coming in a future update.' : 'Already registered at church? There’s no need to register again. Your attendance and member ID stay with your existing profile.'}</p></>}
-      {account?.status === 'active' && !current?.error && <MemberLinkRequests key={session.user.id} linked={!!account.member_id} onChanged={()=>setRetry(v=>v+1)}/>}
+      {account?.status === 'active' && !current?.error && <ScreenBoundary key={session.user.id} label="Member Requests"><MemberLinkRequests linked={!!account.member_id} onChanged={()=>setRetry(v=>v+1)}/></ScreenBoundary>}
       {authError && <p className="lc-auth-error" role="alert">{uiMessage(authError)}</p>}
       <div className="lc-auth-state-actions"><button className="lc-auth-primary" onClick={()=>setRetry(v=>v+1)} disabled={working}><RefreshCw size={17}/>Refresh Access</button><button className="lc-auth-signout" onClick={()=>void signOut()} disabled={working}><LogOut size={17}/>{working ? 'Signing Out…' : 'Sign Out'}</button></div>
     </AccountShell>
@@ -274,8 +283,14 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
   const [signingOut, setSigningOut] = useState(false)
   const [logoutError, setLogoutError] = useState('')
   const [page, setPage] = useState<Page>('dashboard')
-  const [isPageTransitioning, setIsPageTransitioning] = useState(false)
   const [events, setEvents] = useState<AttendanceEvent[]>([])
+  const [scannerEvents, setScannerEvents] = useState<AttendanceEvent[]>([])
+  const [scannerCounts, setScannerCounts] = useState<Record<string,number>>({})
+  const [scannerError, setScannerError] = useState('')
+  const [scannerLoading, setScannerLoading] = useState(true)
+  const scannerRequest = useRef(0)
+  const workspaceAlive = useRef(true)
+  useEffect(() => {workspaceAlive.current=true;return () => {workspaceAlive.current=false}},[])
   const [currentTime, setCurrentTime] = useState(() => Date.now())
   const [attendanceCounts, setAttendanceCounts] = useState<Record<string, number>>({})
   const [activeMemberCount, setActiveMemberCount] = useState(0)
@@ -290,12 +305,35 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
   const [serviceYear, setServiceYear] = useState('')
   const [serviceSort, setServiceSort] = useState<'recent' | 'oldest'>('recent')
   const [archiveFilter, setArchiveFilter] = useState<'all' | 'active' | 'archived'>('active')
+  const [serviceSearch, setServiceSearch] = useState('')
+  const [serviceQuery, setServiceQuery] = useState('')
+  const [servicePage, setServicePage] = useState(1)
+  const [servicePageSize, setServicePageSize] = useState(25)
+  const [serviceStats, setServiceStats] = useState({total:0,registered:0,page:1,years:[] as number[]})
+  const [servicesLoading, setServicesLoading] = useState(true)
+  const [servicesError, setServicesError] = useState('')
+  const [loadedServicesKey, setLoadedServicesKey] = useState('')
+  const servicesSequence = useRef(0)
+  const servicesListRef = useRef<HTMLElement | null>(null)
+  const serviceParams = {p_archive:archiveFilter,p_month:serviceMonth?Number(serviceMonth):null,p_year:serviceYear?Number(serviceYear):null,p_sort:serviceSort,p_search:serviceQuery,p_page:servicePage,p_size:servicePageSize}
+  const servicesKey = JSON.stringify([serviceParams,serviceSearch.trim()])
+  const servicesRequest = useRef({key:servicesKey,params:serviceParams,pending:false,page})
+  servicesRequest.current = {key:servicesKey,params:serviceParams,pending:serviceSearch.trim()!==serviceQuery,page}
+  const servicesBusy = servicesLoading || loadedServicesKey!==servicesKey || serviceSearch.trim()!==serviceQuery
+  const servicePageCount = Math.max(1,Math.ceil(serviceStats.total/servicePageSize))
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setServiceQuery(serviceSearch.trim()),300)
+    return () => window.clearTimeout(timer)
+  },[serviceSearch])
+  useEffect(() => {setServicePage(1);setServiceActionTarget(null)},[serviceSearch,archiveFilter,serviceMonth,serviceYear,serviceSort,servicePageSize])
+  useEffect(() => {if(page==='events' && serviceSearch.trim()===serviceQuery) void loadServicePage()},[page,servicesKey])
+
   const [serviceActionTarget, setServiceActionTarget] = useState<
     { kind: 'delete' | 'archive' | 'restore'; item: AttendanceEvent } | null
   >(null)
   const serviceFormRef = useRef<HTMLElement | null>(null)
   const scannerServicePickerRef = useRef<HTMLElement | null>(null)
-  const pageTransitionTimeoutRef = useRef<number | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -309,30 +347,10 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
     return () => data.subscription.unsubscribe()
   }, [])
 
-  useEffect(() => () => {
-    if (pageTransitionTimeoutRef.current !== null) {
-      window.clearTimeout(pageTransitionTimeoutRef.current)
-    }
-  }, [])
-
   function changePage(nextPage: Page) {
     if (nextPage === page) return
-
-    if (pageTransitionTimeoutRef.current !== null) {
-      window.clearTimeout(pageTransitionTimeoutRef.current)
-    }
-
     setPage(nextPage)
-    if (window.matchMedia('(max-width: 900px)').matches) {
-      window.scrollTo({top:0,behavior:'auto'})
-    }
-    setIsPageTransitioning(true)
-
-    const duration = 1000 + Math.floor(Math.random() * 1001)
-    pageTransitionTimeoutRef.current = window.setTimeout(() => {
-      setIsPageTransitioning(false)
-      pageTransitionTimeoutRef.current = null
-    }, duration)
+    if (window.matchMedia('(max-width: 900px)').matches) window.scrollTo({top:0,behavior:'auto'})
   }
 
   useEffect(() => {
@@ -340,52 +358,76 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
     return () => window.clearInterval(interval)
   }, [])
 
+  useEffect(() => {void loadScannerServices()},[])
   useEffect(() => {
-    if (userEmail) {
-      void loadEvents()
+    if(page==='scanner') void loadScannerServices()
+  },[page,currentTime])
+
+  useEffect(() => {
+    let timer: number | undefined
+    const refresh = () => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => void loadEvents(),250)
     }
-  }, [userEmail])
-
-  useEffect(() => {
-    if (!userEmail) return
-
-    const channel = supabase
-      .channel('service-checkin-count-refresh')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'attendance' },
-        () => void loadEvents(),
-      )
+    const channel = supabase.channel('service-checkin-count-refresh')
+      .on('postgres_changes',{event:'*',schema:'public',table:'attendance'},refresh)
+      .on('postgres_changes',{event:'*',schema:'public',table:'events'},refresh)
+      .on('postgres_changes',{event:'*',schema:'public',table:'members'},refresh)
       .subscribe()
+    return () => {window.clearTimeout(timer);void supabase.removeChannel(channel)}
+  },[])
 
-    return () => {
-      void supabase.removeChannel(channel)
+  async function loadServicePage() {
+    if(!workspaceAlive.current || servicesRequest.current.pending) return
+    const {key,params} = servicesRequest.current
+    const sequence = ++servicesSequence.current
+    const isCurrent = () => workspaceAlive.current && sequence===servicesSequence.current && key===servicesRequest.current.key
+    setServicesLoading(true);setServicesError('')
+    try {
+      const {data,error} = await supabase.rpc('lc_services_page',params)
+      if(!isCurrent())return
+      if(error)throw error
+      if(!data || !Array.isArray(data.rows) || !Array.isArray(data.years))throw new Error('Invalid service response')
+      setEvents(data.rows as AttendanceEvent[])
+      setServiceStats({total:data.total,registered:data.registered,page:data.page,years:data.years})
+      setActiveMemberCount(data.active_members)
+      setAttendanceCounts(Object.fromEntries(data.rows.map((row:AttendanceEvent & {check_ins:number}) => [row.id,row.check_ins])))
+    } catch {
+      if(isCurrent())setServicesError('Could not load services. Please try again.')
+    } finally {
+      if(isCurrent()){setServicesLoading(false);setLoadedServicesKey(key)}
     }
-  }, [userEmail])
+  }
+
+  async function loadScannerServices() {
+    if(!workspaceAlive.current)return
+    const sequence = ++scannerRequest.current
+    const isCurrent = () => workspaceAlive.current && sequence===scannerRequest.current
+    try {
+      const {data,error} = await supabase.rpc('lc_scanner_services')
+      if(!isCurrent())return
+      if(error)throw error
+      if(!data || !Array.isArray(data.rows))throw new Error('Invalid scanner response')
+      setScannerEvents(data.rows as AttendanceEvent[])
+      setScannerCounts(Object.fromEntries(data.rows.map((row:AttendanceEvent & {check_ins:number}) => [row.id,row.check_ins])))
+      setScannerEventId(current => data.rows.some((row:AttendanceEvent) => row.id===current) ? current : '')
+      setScannerError('')
+    } catch {
+      if(isCurrent())setScannerError('Could not load check-in services. Please try again.')
+    } finally {if(isCurrent())setScannerLoading(false)}
+  }
 
   async function loadEvents() {
-    const [eventsResult, attendanceResult, membersResult] = await Promise.all([
-      supabase.from('events').select('*').order('starts_at', { ascending: false }),
-      supabase.from('attendance').select('event_id'),
-      supabase.from('members').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+    await Promise.all([
+      servicesRequest.current.page==='events' ? loadServicePage() : Promise.resolve(),
+      loadScannerServices(),
     ])
+  }
 
-    const error = eventsResult.error ?? attendanceResult.error ?? membersResult.error
-    if (error) {
-      setMessage(error.message)
-      return
-    }
-
-    const loadedEvents = eventsResult.data as AttendanceEvent[]
-    setEvents(loadedEvents)
-    setActiveMemberCount(membersResult.count ?? 0)
-    setAttendanceCounts(
-      (attendanceResult.data ?? []).reduce<Record<string, number>>((counts, record) => {
-        counts[record.event_id] = (counts[record.event_id] ?? 0) + 1
-        return counts
-      }, {}),
-    )
-
+  function changeServicePage(next: number) {
+    setServiceActionTarget(null)
+    setServicePage(Math.max(1,Math.min(next,servicePageCount)))
+    window.requestAnimationFrame(() => servicesListRef.current?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}))
   }
 
   async function handleAddEvent(event: FormEvent<HTMLFormElement>) {
@@ -507,6 +549,8 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
   }
 
   function openScannerForService(item: AttendanceEvent) {
+    setScannerEvents(current => current.some(event => event.id===item.id) ? current : [...current,item])
+    setScannerCounts(current => ({...current,[item.id]:attendanceCounts[item.id] ?? 0}))
     setScannerEventId(item.id)
     changePage('scanner')
   }
@@ -522,52 +566,12 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
     finally { setSigningOut(false) }
   }
 
-  const selectedScannerEvent =
-    events.find((event) => event.id === scannerEventId) ?? null
-
-  const serviceYears = useMemo(
-    () =>
-      [...new Set(
-        events.map((item) =>
-          new Intl.DateTimeFormat('en-PH', {
-            timeZone: 'Asia/Manila',
-            year: 'numeric',
-          }).format(new Date(item.starts_at)),
-        ),
-      )].sort((a, b) => Number(b) - Number(a)),
-    [events],
-  )
-
-  const filteredServices = useMemo(() => {
-    const formatter = new Intl.DateTimeFormat('en-PH', {
-      timeZone: 'Asia/Manila',
-      month: 'numeric',
-      year: 'numeric',
-    })
-
-    return events
-      .filter((item) => {
-        const parts = Object.fromEntries(
-          formatter
-            .formatToParts(new Date(item.starts_at))
-            .filter((part) => part.type !== 'literal')
-            .map((part) => [part.type, part.value]),
-        )
-
-        return (
-          (archiveFilter === 'all' ||
-            (archiveFilter === 'active' && !item.archived_at) ||
-            (archiveFilter === 'archived' && item.archived_at)) &&
-          (!serviceMonth || parts.month === serviceMonth) &&
-          (!serviceYear || parts.year === serviceYear)
-        )
-      })
-      .sort((a, b) => {
-        const difference =
-          new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime()
-        return serviceSort === 'recent' ? -difference : difference
-      })
-  }, [archiveFilter, events, serviceMonth, serviceSort, serviceYear])
+  const selectedScannerEvent = scannerError ? null : scannerEvents.find((event) => {
+    const state=getServiceState(event,currentTime).className
+    return event.id===scannerEventId && (state==='upcoming'||state==='in-progress')
+  }) ?? null
+  const serviceYears = serviceStats.years.map(String)
+  const filteredServices = events
 
   return (
     <main className="app-page lc-mobile-workspace">
@@ -637,19 +641,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
       <MobileAdminNav page={page} isOwner={account.role === 'owner'} onNavigate={changePage}/>
 
       <section className="content">
-        {isPageTransitioning && (
-          <div className="page-transition-loader" role="status" aria-live="polite">
-            <div className="page-transition-loader-card">
-              <span className="page-transition-loader-orbit" aria-hidden="true" />
-              <span className="page-transition-loader-dot page-transition-loader-dot-one" aria-hidden="true" />
-              <span className="page-transition-loader-dot page-transition-loader-dot-two" aria-hidden="true" />
-              <div className="page-transition-loader-mark" aria-hidden="true">✦</div>
-              <p>Getting Things Ready</p>
-              <strong>Opening {page === 'events' ? 'services' : page}</strong>
-            </div>
-          </div>
-        )}
-
+        <ScreenBoundary key={page} label={page === 'events' ? 'Services' : page === 'profile' ? 'My Member Space' : page === 'records' ? 'Attendance Records' : page === 'scanner' ? 'Scanner' : page.charAt(0).toUpperCase()+page.slice(1)}>
         {page === 'dashboard' && (
           <Dashboard
             activeScannerEventId={scannerEventId}
@@ -844,12 +836,14 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
               </section>
             )}
 
-            <section className="directory-card lc-services-directory">
+            <section className="directory-card lc-services-directory lcsp-directory" ref={servicesListRef}>
               <div className="directory-toolbar">
                 <div>
                   <h2>All Services</h2>
-                  <p>{filteredServices.length} of {events.length} Shown</p>
+                  <p>{servicesBusy ? 'Loading services…' : servicesError ? 'Services unavailable' : `${serviceStats.total} of ${serviceStats.registered} Services`}</p>
                 </div>
+                <div className="lcsp-search-tools">
+                  <label className="lcsp-search"><Search size={18} aria-hidden="true"/><input value={serviceSearch} onChange={event=>setServiceSearch(event.target.value)} placeholder="Search Services or Locations" aria-label="Search Services or Locations"/></label>
                 <div className="service-directory-controls">
                   <label className="filter-select">
                     Status
@@ -874,12 +868,23 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                       {serviceYears.map((year) => <option key={year} value={year}>{year}</option>)}
                     </select>
                   </label>
+                  <label className="filter-select">
+                    Sort
+                    <select value={serviceSort} onChange={event=>setServiceSort(event.target.value as 'recent'|'oldest')}>
+                      <option value="recent">Recent First</option><option value="oldest">Oldest First</option>
+                    </select>
+                  </label>
+                </div>
                 </div>
               </div>
 
-              <ServiceExport archive={archiveFilter} month={serviceMonth} year={serviceYear} sort={serviceSort} disabled={loading}/>
+              <ServiceExport archive={archiveFilter} month={serviceMonth} year={serviceYear} sort={serviceSort} search={serviceSearch.trim()} disabled={loading||servicesBusy||!!servicesError}/>
 
-              {events.length === 0 ? (
+              {servicesBusy ? (
+                <div className="empty-state" role="status"><p>Loading services…</p></div>
+              ) : servicesError ? (
+                <div className="empty-state" role="alert"><p>{servicesError}</p><button type="button" className="secondary-button" onClick={()=>void loadServicePage()}>Try Again</button></div>
+              ) : serviceStats.registered === 0 ? (
                 <div className="empty-state">
                   <CalendarDays size={30} />
                   <h3>No Services Yet</h3>
@@ -889,25 +894,13 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                 <div className="empty-state">
                   <CalendarDays size={30} />
                   <h3>No Services Found</h3>
-                  <p>Try another month or year.</p>
+                  <p>Try another search, status, month, or year.</p>
                 </div>
               ) : (
                 <div className="event-list services-recovered-list">
                   <div className="service-list-heading">
                     <span>Date</span>
-                    <button
-                      className={`service-sort-button${serviceSort === 'oldest' ? ' sort-oldest' : ''}`}
-                      onClick={() =>
-                        setServiceSort((current) =>
-                          current === 'recent' ? 'oldest' : 'recent',
-                        )
-                      }
-                      title="Change Service Sorting"
-                    >
-                      <strong>Service</strong>
-                      <span>{serviceSort === 'recent' ? 'Recent First' : 'Oldest First'}</span>
-                      <ChevronDown size={16} />
-                    </button>
+                    <span>Service</span>
                     <span className="sunday-service-heading">Sunday</span>
                     <span>Actions</span>
                     <span className="service-check-in-heading">Scanner</span>
@@ -927,6 +920,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                       <div className="event-date">
                         <strong>
                           {new Intl.DateTimeFormat('en', {
+                            timeZone: 'Asia/Manila',
                             month: 'short',
                             day: 'numeric',
                           }).format(new Date(item.starts_at))}
@@ -934,6 +928,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
 
                         <span>
                           {new Intl.DateTimeFormat('en', {
+                            timeZone: 'Asia/Manila',
                             weekday: 'short',
                           }).format(new Date(item.starts_at))}
                         </span>
@@ -1069,6 +1064,19 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                   })}
                 </div>
               )}
+              <div className="lcsp-footer" aria-label="Service List Pagination">
+                <div className="lcsp-footer-summary">
+                  <p aria-live="polite">{servicesBusy ? 'Loading services…' : servicesError ? 'Services unavailable' : `Showing ${serviceStats.total===0?0:(serviceStats.page-1)*servicePageSize+1}–${Math.min(serviceStats.page*servicePageSize,serviceStats.total)} of ${serviceStats.total} Services`}</p>
+                  <div className="lcsp-page-size"><label htmlFor="services-page-size">Per Page</label><span><select id="services-page-size" aria-label="Services per Page" value={servicePageSize} onChange={event=>setServicePageSize(Number(event.target.value))}><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option></select><ChevronDown size={14} aria-hidden="true"/></span></div>
+                </div>
+                {!servicesBusy && !servicesError && servicePageCount>1 && <div className="lcsp-page-buttons">
+                  <button type="button" aria-label="First Page" disabled={serviceStats.page===1} onClick={()=>changeServicePage(1)}><ChevronsLeft size={17}/></button>
+                  <button type="button" aria-label="Previous Page" disabled={serviceStats.page===1} onClick={()=>changeServicePage(serviceStats.page-1)}><ChevronLeft size={17}/></button>
+                  <span>Page {serviceStats.page} of {servicePageCount}</span>
+                  <button type="button" aria-label="Next Page" disabled={serviceStats.page===servicePageCount} onClick={()=>changeServicePage(serviceStats.page+1)}><ChevronRight size={17}/></button>
+                  <button type="button" aria-label="Last Page" disabled={serviceStats.page===servicePageCount} onClick={()=>changeServicePage(servicePageCount)}><ChevronsRight size={17}/></button>
+                </div>}
+              </div>
             </section>
 
           </>
@@ -1131,7 +1139,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                 </span>
                 <strong>
                   {selectedScannerEvent
-                    ? `${attendanceCounts[selectedScannerEvent.id] ?? 0} Check-In${(attendanceCounts[selectedScannerEvent.id] ?? 0) === 1 ? '' : 's'} So Far`
+                    ? `${scannerCounts[selectedScannerEvent.id] ?? 0} Check-In${(scannerCounts[selectedScannerEvent.id] ?? 0) === 1 ? '' : 's'} So Far`
                     : <span className="lc-v3-waiting-title">Waiting to Start</span>}
                 </strong>
                 <span className="scanner-status-note">
@@ -1160,14 +1168,15 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
               <div className="scanner-picker-control">
                 <label>
                   <select
-                    value={scannerEventId}
+                    value={selectedScannerEvent?.id ?? ''}
+                    disabled={scannerLoading||!!scannerError}
                     onChange={(event) => setScannerEventId(event.target.value)}
                     aria-label="Choose Check-In Service"
                     title={selectedScannerEvent ? `${selectedScannerEvent.name} — ${eventDateTime(selectedScannerEvent.starts_at)}` : 'Choose a Service'}
                   >
                     <option value="">Choose an Event</option>
 
-                    {events.filter((event) => {
+                    {scannerEvents.filter((event) => {
                       const serviceState = getServiceState(event, currentTime)
                       return serviceState.className === 'upcoming' || serviceState.className === 'in-progress'
                     }).map((event) => (
@@ -1180,15 +1189,18 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                 {selectedScannerEvent && (
                   <p className="scanner-checkin-count">
                     <i />
-                    {attendanceCounts[selectedScannerEvent.id] ?? 0} Check-In{(attendanceCounts[selectedScannerEvent.id] ?? 0) === 1 ? '' : 's'} So Far
+                    {scannerCounts[selectedScannerEvent.id] ?? 0} Check-In{(scannerCounts[selectedScannerEvent.id] ?? 0) === 1 ? '' : 's'} So Far
                   </p>
                 )}
               </div>
             </section>
 
+            {scannerLoading && <p role="status">Loading check-in services…</p>}
+            {scannerError && <div className="lcsp-scanner-error" role="alert"><p>{scannerError}</p><button type="button" className="secondary-button" onClick={()=>void loadScannerServices()}>Try Again</button></div>}
             <AttendanceScanner event={selectedScannerEvent} />
           </>
         )}
+        </ScreenBoundary>
       </section>
     </main>
   )
