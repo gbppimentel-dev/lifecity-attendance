@@ -1,4 +1,5 @@
-// Replacement ID: member-tools-workspace-scroll-v1
+// Change ID: LC-UI-COPY-v2
+import { uiMessage, uiStatus } from '../lib/uiText'
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Check,
@@ -111,8 +112,8 @@ const sortCycle: SortOption[] = [
 const sortLabels: Record<SortOption, string> = {
   'name-asc': 'A–Z',
   'name-desc': 'Z–A',
-  'added-oldest': 'Added: oldest',
-  'added-newest': 'Added: newest',
+  'added-oldest': 'Added: Oldest',
+  'added-newest': 'Added: Newest',
 }
 
 const attendancePageSize = 10
@@ -1225,7 +1226,7 @@ export default function MemberManager() {
       context.fillText('MINISTRIES', 100, 652)
       const ministryText = getMemberMinistries(member)
         .map((ministry) => ministry.name)
-        .join(' • ') || 'Not assigned'
+        .join(' • ') || 'Not Assigned'
       const ministryLines = wrapName(ministryText, 670, 24)
       context.fillStyle = '#365c57'
       context.font = '500 24px system-ui, sans-serif'
@@ -1254,7 +1255,7 @@ export default function MemberManager() {
       context.drawImage(qrImage, 970, 375, 400, 400)
       context.fillStyle = '#718985'
       context.font = '600 20px system-ui, sans-serif'
-      context.fillText('Private Member Token • Keep this ID safe', 1170, 809)
+      context.fillText('Private member token • Keep this ID safe', 1170, 809)
       context.textAlign = 'left'
 
       context.fillStyle = 'rgba(225, 244, 240, .88)'
@@ -1262,7 +1263,7 @@ export default function MemberManager() {
       context.fill()
       context.fillStyle = '#56736f'
       context.font = '600 20px system-ui, sans-serif'
-      context.fillText('LifeCity Attendance Monitoring  •  Digital member ID', 100, 938)
+      context.fillText('LifeCity Attendance Monitoring  •  Digital Member ID', 100, 938)
 
       const cardBlob = await new Promise<Blob | null>((resolve) =>
         canvas.toBlob(resolve, 'image/png'),
@@ -1386,7 +1387,7 @@ export default function MemberManager() {
     <>
       <section className="members-editorial-hero">
         <div className="members-hero-copy">
-          <p className="eyebrow">Member directory</p>
+          <p className="eyebrow">Member Directory</p>
           <h1>Members</h1>
           <p>
             Manage contact details, ministries, member status, and private QR
@@ -1403,7 +1404,7 @@ export default function MemberManager() {
             aria-expanded={showImport}
           >
             <Download size={18} />
-            Import members
+            Import Members
           </button>
 
           <button
@@ -1427,9 +1428,9 @@ export default function MemberManager() {
         </div>
 
         <button className="members-create-action" onClick={openAddForm}>
-          <span className="members-create-action-kicker">Grow the directory</span>
-          <strong>Add member</strong>
-          <span className="members-create-action-note">Create a private QR profile</span>
+          <span className="members-create-action-kicker">Grow the Directory</span>
+          <strong>Add Member</strong>
+          <span className="members-create-action-note">Create a Private QR Profile</span>
           <span className="members-create-action-icon" aria-hidden="true">
             <UserPlus size={22} />
           </span>
@@ -1441,10 +1442,10 @@ export default function MemberManager() {
       </section>
 
       {(showImport || showMinistryManager || showBranchManager) && (
-        <section className="directory-tools-workspace" ref={directoryToolsRef} aria-label="Directory tools">
+        <section className="directory-tools-workspace" ref={directoryToolsRef} aria-label="Directory Tools">
           <div className="directory-tools-workspace-label">
-            <span>Directory tools</span>
-            <strong>{showImport ? 'Import members' : showMinistryManager ? 'Ministries' : 'Churches'}</strong>
+            <span>Directory Tools</span>
+            <strong>{showImport ? 'Import Members' : showMinistryManager ? 'Ministries' : 'Churches'}</strong>
           </div>
 
       {showImport && (
@@ -1460,8 +1461,8 @@ export default function MemberManager() {
         <section className="ministry-manager-card" ref={ministryManagerRef}>
           <div className="ministry-manager-heading">
             <div>
-              <p className="eyebrow">Directory settings</p>
-              <h2>Manage ministries</h2>
+              <p className="eyebrow">Directory Settings</p>
+              <h2>Manage Ministries</h2>
               <p className="muted">
                 Rename a ministry anytime. A ministry can only be deleted after
                 it is removed from every member, active or inactive.
@@ -1472,7 +1473,7 @@ export default function MemberManager() {
               className="icon-button"
               type="button"
               onClick={() => setShowMinistryManager(false)}
-              aria-label="Close ministry management"
+              aria-label="Close Ministry Management"
             >
               <X size={20} />
             </button>
@@ -1496,7 +1497,7 @@ export default function MemberManager() {
               onClick={() => void addManagedMinistry()}
             >
               <Plus size={17} />
-              Add ministry
+              Add Ministry
             </button>
           </div>
 
@@ -1509,7 +1510,7 @@ export default function MemberManager() {
                   className="secondary-button"
                   onClick={() => viewAffectedMembers(blockedMinistryId)}
                 >
-                  View affected members
+                  View Affected Members
                 </button>
               )}
             </div>
@@ -1540,7 +1541,7 @@ export default function MemberManager() {
                       )}
 
                       <span>
-                        {count} assigned member{count === 1 ? '' : 's'}
+                        {count} Assigned Member{count === 1 ? '' : 's'}
                       </span>
                     </div>
 
@@ -1549,7 +1550,7 @@ export default function MemberManager() {
                         <span className="manager-inline-delete-confirm">
                           <span>Delete?</span>
                           <button type="button" className="manager-inline-keep" onClick={() => setManagerDeleteTarget(null)} aria-label={`Keep ${ministry.name}`} title="Keep"><X size={17} /></button>
-                          <button type="button" className="manager-inline-confirm" onClick={() => void confirmManagerDelete()} aria-label={`Confirm delete ${ministry.name}`} title="Delete"><Check size={17} /></button>
+                          <button type="button" className="manager-inline-confirm" onClick={() => void confirmManagerDelete()} aria-label={`Confirm Delete ${ministry.name}`} title="Delete"><Check size={17} /></button>
                         </span>
                       ) : isRenaming ? (
                         <>
@@ -1557,7 +1558,7 @@ export default function MemberManager() {
                             className="edit-icon-button save-ministry-button"
                             onClick={() => void saveMinistryRename(ministry)}
                             aria-label={`Save ${ministry.name}`}
-                            title="Save name"
+                            title="Save Name"
                           >
                             <Check size={18} />
                           </button>
@@ -1568,7 +1569,7 @@ export default function MemberManager() {
                               setRenamingMinistryId('')
                               setRenameValue('')
                             }}
-                            aria-label="Cancel rename"
+                            aria-label="Cancel Rename"
                             title="Cancel"
                           >
                             <X size={18} />
@@ -1580,7 +1581,7 @@ export default function MemberManager() {
                             className="edit-icon-button"
                             onClick={() => beginRename(ministry)}
                             aria-label={`Rename ${ministry.name}`}
-                            title="Rename ministry"
+                            title="Rename Ministry"
                           >
                             <Pencil size={18} />
                           </button>
@@ -1589,7 +1590,7 @@ export default function MemberManager() {
                             className="delete-icon-button"
                               onClick={() => void deleteMinistry(ministry)}
                               aria-label={`Delete ${ministry.name}`}
-                              title="Delete ministry"
+                              title="Delete Ministry"
                             >
                               <Trash2 size={18} />
                             </button>
@@ -1608,13 +1609,13 @@ export default function MemberManager() {
         <section className="ministry-manager-card branch-manager-card" ref={branchManagerRef}>
           <div className="ministry-manager-heading">
             <div>
-              <p className="eyebrow">Directory settings</p>
-              <h2>Manage churches</h2>
+              <p className="eyebrow">Directory Settings</p>
+              <h2>Manage Churches</h2>
               <p className="muted">
                 Churches work like ministries. A church can only be deleted after it is removed from every member.
               </p>
             </div>
-            <button className="icon-button" type="button" onClick={() => setShowBranchManager(false)} aria-label="Close church management">
+            <button className="icon-button" type="button" onClick={() => setShowBranchManager(false)} aria-label="Close Church Management">
               <X size={20} />
             </button>
           </div>
@@ -1642,7 +1643,7 @@ export default function MemberManager() {
               <p>{managerMessageContent(branchMessage)}</p>
               {blockedBranchId && (
                 <button className="secondary-button" onClick={() => viewAffectedBranchMembers(blockedBranchId)}>
-                  View affected members
+                  View Affected Members
                 </button>
               )}
             </div>
@@ -1661,24 +1662,24 @@ export default function MemberManager() {
                     ) : (
                       <strong>{branch.name}</strong>
                     )}
-                    <span>{count} assigned member{count === 1 ? '' : 's'}</span>
+                    <span>{count} Assigned Member{count === 1 ? '' : 's'}</span>
                   </div>
                   <div className="ministry-management-actions">
                     {isConfirmingDelete ? (
                       <span className="manager-inline-delete-confirm">
                         <span>Delete?</span>
                         <button type="button" className="manager-inline-keep" onClick={() => setManagerDeleteTarget(null)} aria-label={`Keep ${branch.name}`} title="Keep"><X size={17} /></button>
-                        <button type="button" className="manager-inline-confirm" onClick={() => void confirmManagerDelete()} aria-label={`Confirm delete ${branch.name}`} title="Delete"><Check size={17} /></button>
+                        <button type="button" className="manager-inline-confirm" onClick={() => void confirmManagerDelete()} aria-label={`Confirm Delete ${branch.name}`} title="Delete"><Check size={17} /></button>
                       </span>
                     ) : isRenaming ? (
                       <>
-                        <button className="edit-icon-button save-ministry-button" onClick={() => void saveBranchRename(branch)} aria-label={`Save ${branch.name}`} title="Save name"><Check size={18} /></button>
-                        <button className="edit-icon-button" onClick={() => { setRenamingBranchId(''); setBranchRenameValue('') }} aria-label="Cancel rename" title="Cancel"><X size={18} /></button>
+                        <button className="edit-icon-button save-ministry-button" onClick={() => void saveBranchRename(branch)} aria-label={`Save ${branch.name}`} title="Save Name"><Check size={18} /></button>
+                        <button className="edit-icon-button" onClick={() => { setRenamingBranchId(''); setBranchRenameValue('') }} aria-label="Cancel Rename" title="Cancel"><X size={18} /></button>
                       </>
                     ) : (
                       <>
-                        <button className="edit-icon-button" onClick={() => beginBranchRename(branch)} aria-label={`Rename ${branch.name}`} title="Rename church"><Pencil size={18} /></button>
-                        <button className="delete-icon-button" onClick={() => void deleteBranch(branch)} aria-label={`Delete ${branch.name}`} title="Delete church"><Trash2 size={18} /></button>
+                        <button className="edit-icon-button" onClick={() => beginBranchRename(branch)} aria-label={`Rename ${branch.name}`} title="Rename Church"><Pencil size={18} /></button>
+                        <button className="delete-icon-button" onClick={() => void deleteBranch(branch)} aria-label={`Delete ${branch.name}`} title="Delete Church"><Trash2 size={18} /></button>
                       </>
                     )}
                   </div>
@@ -1699,12 +1700,12 @@ export default function MemberManager() {
           <div className="member-editor-heading">
             <div>
               <p className="eyebrow">
-                {editingMember ? 'Update member' : 'New member'}
+                {editingMember ? 'Update Member' : 'New Member'}
               </p>
               <h2>
                 {editingMember
                   ? `Edit ${memberName(editingMember)}`
-                  : 'Register a member'}
+                  : 'Register a Member'}
               </h2>
             </div>
 
@@ -1730,7 +1731,7 @@ export default function MemberManager() {
                 className="icon-button"
                 type="button"
                 onClick={closeForm}
-                aria-label="Close member form"
+                aria-label="Close Member Form"
               >
                 <X size={20} />
               </button>
@@ -1740,7 +1741,7 @@ export default function MemberManager() {
           <form className="member-form" onSubmit={handleSave}>
             <label>
               <span className="field-label-text">
-                First name <span className="required-mark">*</span>
+                First Name <span className="required-mark">*</span>
               </span>
               <input
                 value={form.firstName}
@@ -1754,7 +1755,7 @@ export default function MemberManager() {
 
             <label>
               <span className="field-label-text">
-                Last name <span className="required-mark">*</span>
+                Last Name <span className="required-mark">*</span>
               </span>
               <input
                 value={form.lastName}
@@ -1814,7 +1815,7 @@ export default function MemberManager() {
             </label>
 
             <label className="wide-field admin-note-field">
-              <span className="field-label-text">Admin note</span>
+              <span className="field-label-text">Admin Note</span>
               <span className="admin-note-help">
                 Private to admins. This will not appear on the member ID.
               </span>
@@ -1836,7 +1837,7 @@ export default function MemberManager() {
                   <p>Choose at least one church this member serves in.</p>
                 </div>
                 <span className="picker-count">
-                  {form.branchIds.length} selected
+                  {form.branchIds.length} Selected
                 </span>
               </div>
 
@@ -1890,7 +1891,7 @@ export default function MemberManager() {
                   <p>Choose every ministry this member belongs to.</p>
                 </div>
                 <span className="picker-count">
-                  {form.ministryIds.length} selected
+                  {form.ministryIds.length} Selected
                 </span>
               </div>
 
@@ -1938,12 +1939,12 @@ export default function MemberManager() {
                   onClick={() => void addMinistry()}
                 >
                   <Plus size={17} />
-                  Add ministry
+                  Add Ministry
                 </button>
               </div>
             </section>
 
-            {message && <p className="error-message wide-field">{message}</p>}
+            {message && <p className="error-message wide-field">{uiMessage(message)}</p>}
 
             <div className="form-actions wide-field">
               {editingMember && (
@@ -1973,8 +1974,8 @@ export default function MemberManager() {
                 {saving
                   ? 'Saving…'
                   : editingMember
-                    ? 'Save changes'
-                    : 'Save member'}
+                    ? 'Save Changes'
+                    : 'Save Member'}
               </button>
             </div>
           </form>
@@ -1984,7 +1985,7 @@ export default function MemberManager() {
       <section className="directory-card" ref={directoryListRef}>
         <div className="directory-toolbar member-toolbar">
           <div>
-            <h2>All members</h2>
+            <h2>All Members</h2>
             <p>
               {visibleMembers.length} of {members.length} registered
             </p>
@@ -1996,7 +1997,7 @@ export default function MemberManager() {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search members"
+                placeholder="Search Members"
               />
             </label>
 
@@ -2006,8 +2007,8 @@ export default function MemberManager() {
                 value={ministryFilter}
                 onChange={(event) => setMinistryFilter(event.target.value)}
               >
-                <option value="all">All ministries</option>
-                <option value="none">No ministry</option>
+                <option value="all">All Ministries</option>
+                <option value="none">No Ministry</option>
                 {ministries.map((ministry) => (
                   <option key={ministry.id} value={ministry.id}>
                     {ministry.name}
@@ -2019,7 +2020,7 @@ export default function MemberManager() {
             <label className={`filter-select ${filterSpotlight === 'branch' ? 'filter-select-spotlight' : ''}`}>
               <Settings2 size={17} />
               <select value={branchFilter} onChange={(event) => setBranchFilter(event.target.value)}>
-              <option value="all">All churches</option>
+              <option value="all">All Churches</option>
                 {branchesForFilter.map((branch) => (
                   <option key={branch.id} value={branch.id}>{branch.name}</option>
                 ))}
@@ -2032,7 +2033,7 @@ export default function MemberManager() {
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value)}
               >
-                <option value="all">All members</option>
+                <option value="all">All Members</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
                 <option value="vip">VIP</option>
@@ -2045,7 +2046,7 @@ export default function MemberManager() {
               onClick={() => (bulkMode ? closeBulkMode() : setBulkMode(true))}
             >
               <ListChecks size={17} />
-              {bulkMode ? 'Done' : 'Bulk actions'}
+              {bulkMode ? 'Done' : 'Bulk Actions'}
             </button>
           </div>
         </div>
@@ -2054,8 +2055,8 @@ export default function MemberManager() {
           <div className="bulk-action-bar">
             <span className="bulk-selection-count">
               {selectedMemberIds.length === 0
-                ? 'Select members to begin'
-                : `${selectedMemberIds.length} selected`}
+                ? 'Select Members to Begin'
+                : `${selectedMemberIds.length} Selected`}
             </span>
             {selectedMemberIds.length > 0 && (
               <>
@@ -2064,14 +2065,14 @@ export default function MemberManager() {
                   disabled={bulkSaving}
                   onClick={() => void updateSelectedMembersStatus('active')}
                 >
-                  Mark active
+                  Mark Active
                 </button>
                 <button
                   className="bulk-action-button"
                   disabled={bulkSaving}
                   onClick={() => void updateSelectedMembersStatus('inactive')}
                 >
-                  Mark inactive
+                  Mark Inactive
                 </button>
                 <button
                   className="bulk-delete-button"
@@ -2081,7 +2082,7 @@ export default function MemberManager() {
                     setShowBulkDelete(true)
                   }}
                 >
-                  Delete selected
+                  Delete Selected
                 </button>
                 <button
                   className="text-button"
@@ -2101,14 +2102,14 @@ export default function MemberManager() {
         ) : visibleMembers.length === 0 ? (
           <div className="empty-state">
             <Users size={30} />
-            <h3>No members found</h3>
+            <h3>No Members Found</h3>
             <p>Try another search or add a new member.</p>
           </div>
         ) : (
           <div className={`member-list ${bulkMode ? 'is-bulk-mode' : ''}`}>
             <div className="member-list-heading">
               {bulkMode && (
-                <label className="member-select-control" title="Select visible members">
+                <label className="member-select-control" title="Select Visible Members">
                   <input
                     type="checkbox"
                     checked={
@@ -2118,7 +2119,7 @@ export default function MemberManager() {
                       )
                     }
                     onChange={togglePageMemberSelection}
-                    aria-label="Select members on this page"
+                    aria-label="Select Members on This Page"
                   />
                 </label>
               )}
@@ -2130,7 +2131,7 @@ export default function MemberManager() {
                   sortBy === 'name-desc' ? 'sort-descending' : ''
                 }`}
                 onClick={cycleSort}
-                title="Change member sorting"
+                title="Change Member Sorting"
               >
                 <strong>Member</strong>
                 <span>{sortLabels[sortBy]}</span>
@@ -2177,13 +2178,13 @@ export default function MemberManager() {
                         onClick={() => void toggleStar(member)}
                         aria-label={
                           member.is_starred
-                            ? `Remove VIP status from ${memberName(member)}`
+                            ? `Remove VIP Status from ${memberName(member)}`
                             : `Mark ${memberName(member)} as VIP`
                         }
                         title={
                           member.is_starred
-                            ? 'Remove VIP pin'
-                            : 'Pin as VIP member'
+                            ? 'Remove VIP Pin'
+                            : 'Pin as VIP Member'
                         }
                       >
                         <Star
@@ -2196,8 +2197,8 @@ export default function MemberManager() {
                         <button
                           className="member-note-button"
                           onClick={() => setNoteMember(member)}
-                          aria-label={`View admin note for ${memberName(member)}`}
-                          title="View admin note"
+                          aria-label={`View Admin Note for ${memberName(member)}`}
+                          title="View Admin Note"
                         >
                           <StickyNote size={17} />
                         </button>
@@ -2227,7 +2228,7 @@ export default function MemberManager() {
                           <span
                             className="more-ministries-label"
                           >
-                            +{remainingMinistryCount} more
+                            +{remainingMinistryCount} More
                           </span>
                         )}
                       </>
@@ -2246,7 +2247,7 @@ export default function MemberManager() {
                     )}
                   </div>
 
-                  <span className={`member-status-icon ${member.status}`} title={member.status === 'active' ? 'Active member' : 'Inactive member'} aria-label={member.status === 'active' ? 'Active member' : 'Inactive member'}>
+                  <span className={`member-status-icon ${member.status}`} title={member.status === 'active' ? 'Active Member' : 'Inactive Member'} aria-label={member.status === 'active' ? 'Active Member' : 'Inactive Member'}>
                     {member.status === 'active' ? <Check size={16} /> : <X size={16} />}
                   </span>
 
@@ -2284,17 +2285,17 @@ export default function MemberManager() {
         )}
 
         {visibleMembers.length > 0 && (
-          <div className="member-pagination" aria-label="Member list pagination">
+          <div className="member-pagination" aria-label="Member List Pagination">
             <p>
               Showing {(activeMemberPage - 1) * membersPerPage + 1}–{Math.min(activeMemberPage * membersPerPage, visibleMembers.length)} of {visibleMembers.length} members
             </p>
             {memberPageCount > 1 && (
               <div className="member-pagination-controls">
-                <button type="button" onClick={() => changeMemberPage(1)} disabled={activeMemberPage === 1} aria-label="First page"><ChevronsLeft size={17} /></button>
-                <button type="button" onClick={() => changeMemberPage(activeMemberPage - 1)} disabled={activeMemberPage === 1} aria-label="Previous page"><ChevronLeft size={17} /></button>
+                <button type="button" onClick={() => changeMemberPage(1)} disabled={activeMemberPage === 1} aria-label="First Page"><ChevronsLeft size={17} /></button>
+                <button type="button" onClick={() => changeMemberPage(activeMemberPage - 1)} disabled={activeMemberPage === 1} aria-label="Previous Page"><ChevronLeft size={17} /></button>
                 <span>Page {activeMemberPage} of {memberPageCount}</span>
-                <button type="button" onClick={() => changeMemberPage(activeMemberPage + 1)} disabled={activeMemberPage === memberPageCount} aria-label="Next page"><ChevronRight size={17} /></button>
-                <button type="button" onClick={() => changeMemberPage(memberPageCount)} disabled={activeMemberPage === memberPageCount} aria-label="Last page"><ChevronsRight size={17} /></button>
+                <button type="button" onClick={() => changeMemberPage(activeMemberPage + 1)} disabled={activeMemberPage === memberPageCount} aria-label="Next Page"><ChevronRight size={17} /></button>
+                <button type="button" onClick={() => changeMemberPage(memberPageCount)} disabled={activeMemberPage === memberPageCount} aria-label="Last Page"><ChevronsRight size={17} /></button>
               </div>
             )}
           </div>
@@ -2313,12 +2314,12 @@ export default function MemberManager() {
             <button
               className="close-button"
               onClick={() => setSelectedMember(null)}
-              aria-label="Close QR code"
+              aria-label="Close QR Code"
             >
               <X size={20} />
             </button>
 
-            <p className="eyebrow">Member QR code</p>
+            <p className="eyebrow">Member QR Code</p>
             <h2>{memberName(selectedMember)}</h2>
             <p className="muted">{selectedMember.member_number}</p>
 
@@ -2360,7 +2361,7 @@ export default function MemberManager() {
                 {detailMember.last_name[0]}
               </div>
               <div>
-                <p className="eyebrow">Member details</p>
+                <p className="eyebrow">Member Details</p>
                 <h2>{memberName(detailMember)}</h2>
                 <p className="muted">{detailMember.member_number}</p>
               </div>
@@ -2378,8 +2379,8 @@ export default function MemberManager() {
                 <button
                   className="icon-button details-close-button"
                   onClick={() => setDetailMember(null)}
-                  aria-label="Close member details"
-                  title="Close details"
+                  aria-label="Close Member Details"
+                  title="Close Details"
                 >
                   <X size={20} />
                 </button>
@@ -2392,11 +2393,11 @@ export default function MemberManager() {
                 <dl className="member-details-list">
                   <div>
                     <dt>Email</dt>
-                    <dd>{detailMember.email || 'Not provided'}</dd>
+                    <dd>{detailMember.email || 'Not Provided'}</dd>
                   </div>
                   <div>
                     <dt>Mobile #</dt>
-                    <dd>{detailMember.mobile || 'Not provided'}</dd>
+                    <dd>{detailMember.mobile || 'Not Provided'}</dd>
                   </div>
                   <div>
                     <dt>Registered</dt>
@@ -2437,7 +2438,7 @@ export default function MemberManager() {
               <h3>Ministries</h3>
               <div className="details-ministry-list">
                 {getMemberMinistries(detailMember).length === 0 ? (
-                  <span className="no-ministry">No ministry assigned</span>
+                  <span className="no-ministry">No Ministry Assigned</span>
                 ) : (
                   getMemberMinistries(detailMember).map((ministry) => (
                     <span className="details-ministry-pill" key={ministry.id}>
@@ -2463,7 +2464,7 @@ export default function MemberManager() {
               <section className="member-details-section admin-note-details">
                 <div className="admin-note-heading">
                   <div>
-                    <h3>Admin note</h3>
+                    <h3>Admin Note</h3>
                     <p className="muted">Private to administrators.</p>
                   </div>
                   <button
@@ -2472,8 +2473,8 @@ export default function MemberManager() {
                       setDetailMember(null)
                       openEditForm(detailMember)
                     }}
-                    aria-label={`Edit admin note for ${memberName(detailMember)}`}
-                    title="Edit admin note"
+                    aria-label={`Edit Admin Note for ${memberName(detailMember)}`}
+                    title="Edit Admin Note"
                   >
                     <Pencil size={17} />
                   </button>
@@ -2489,7 +2490,7 @@ export default function MemberManager() {
                   <p className="muted">Check-in history for this member.</p>
                 </div>
                 <strong className="attendance-total">
-                  {detailsLoading ? '…' : attendanceTotal} total
+                  {detailsLoading ? '…' : attendanceTotal} Total
                 </strong>
               </div>
 
@@ -2509,7 +2510,7 @@ export default function MemberManager() {
                       <div className="attendance-table-row" key={record.id}>
                         <strong>{record.events?.name ?? 'Event'}</strong>
                         <span>{formatDateTime(record.checked_in_at)}</span>
-                        <span className="attendance-record-status">{record.status}</span>
+                        <span className="attendance-record-status">{uiStatus(record.status)}</span>
                       </div>
                     ))}
                   </div>
@@ -2555,11 +2556,11 @@ export default function MemberManager() {
             <button
               className="close-button"
               onClick={() => setNoteMember(null)}
-              aria-label="Close admin note"
+              aria-label="Close Admin Note"
             >
               <X size={20} />
             </button>
-            <p className="eyebrow">Private admin note</p>
+            <p className="eyebrow">Private Admin Note</p>
             <h2>{memberName(noteMember)}</h2>
             <p className="admin-note-copy">{noteMember.admin_note}</p>
             <div className="confirmation-actions">
@@ -2574,7 +2575,7 @@ export default function MemberManager() {
                 }}
               >
                 <Pencil size={18} />
-                Edit note
+                Edit Note
               </button>
             </div>
           </section>
@@ -2590,11 +2591,11 @@ export default function MemberManager() {
             <button
               className="close-button"
               onClick={() => setDeleteTarget(null)}
-              aria-label="Close delete confirmation"
+              aria-label="Close Delete Confirmation"
             >
               <X size={20} />
             </button>
-            <p className="eyebrow">Permanent action</p>
+            <p className="eyebrow">Permanent Action</p>
             <h2>Delete {memberName(deleteTarget)}?</h2>
             <p className="muted">
               This permanently removes the member and their related attendance
@@ -2618,7 +2619,7 @@ export default function MemberManager() {
                 onClick={() => void deleteMember()}
               >
                 <Trash2 size={18} />
-                {saving ? 'Deleting…' : 'Permanently delete'}
+                {saving ? 'Deleting…' : 'Permanently Delete'}
               </button>
             </div>
           </section>
@@ -2634,12 +2635,12 @@ export default function MemberManager() {
             <button
               className="close-button"
               onClick={() => setShowBulkDelete(false)}
-              aria-label="Close bulk delete confirmation"
+              aria-label="Close Bulk Delete Confirmation"
             >
               <X size={20} />
             </button>
-            <p className="eyebrow">Permanent bulk action</p>
-            <h2>Delete {selectedMemberIds.length} members?</h2>
+            <p className="eyebrow">Permanent Bulk Action</p>
+            <h2>Delete {selectedMemberIds.length} Members?</h2>
             <p className="muted">
               This removes every selected member and their related attendance
               records. To continue, type the exact phrase below.
@@ -2662,7 +2663,7 @@ export default function MemberManager() {
                 onClick={() => void deleteSelectedMembers()}
               >
                 <Trash2 size={18} />
-                {bulkSaving ? 'Deleting…' : 'Permanently delete'}
+                {bulkSaving ? 'Deleting…' : 'Permanently Delete'}
               </button>
             </div>
           </section>

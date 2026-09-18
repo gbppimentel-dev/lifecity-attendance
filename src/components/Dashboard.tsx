@@ -1,4 +1,5 @@
-// Replacement ID: dashboard-loading-skeleton-v1
+// Change ID: LC-UI-LABELS-v3
+import { uiMessage } from '../lib/uiText'
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowRight, CalendarDays, Camera, CheckCircle2, Clock3, RefreshCw, Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
@@ -214,7 +215,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
     activeScannerState === 'upcoming' || activeScannerState === 'in-progress'
   if (loading) {
     return (
-      <section className="dashboard-loading-skeleton" aria-label="Loading dashboard" aria-busy="true">
+      <section className="dashboard-loading-skeleton" aria-label="Loading Dashboard" aria-busy="true">
         <div className="dashboard-skeleton-hero">
           <span className="dashboard-skeleton-kicker" />
           <span className="dashboard-skeleton-title" />
@@ -232,7 +233,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
   }
 
   if (error) {
-    return <p className="error-message">{error}</p>
+    return <p className="error-message">{uiMessage(error)}</p>
   }
 
   return (
@@ -243,7 +244,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
           <h1>Dashboard</h1>
           <p>A quick view of your LifeCity attendance activity.</p>
           <span className="dashboard-hero-caption">
-            {activeMembers.length} active members · {periodCheckIns.length} check-ins in this view
+            {activeMembers.length} Active Members · {periodCheckIns.length} Check-Ins in This View
           </span>
         </div>
 
@@ -253,17 +254,17 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
             <select
               value={dashboardPeriod}
               onChange={(event) => setDashboardPeriod(event.target.value as DashboardPeriod)}
-              aria-label="Dashboard date range"
+              aria-label="Dashboard Date Range"
             >
-              <option value="all">All time</option>
-              <option value="month">This month</option>
-              <option value="year">This year</option>
+              <option value="all">All Time</option>
+              <option value="month">This Month</option>
+              <option value="year">This Year</option>
             </select>
           </label>
 
           <button className="dashboard-refresh" onClick={() => void loadDashboard()}>
             <RefreshCw size={16} />
-            Refresh snapshot
+            Refresh Snapshot
           </button>
         </div>
 
@@ -273,9 +274,9 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
       </section>
 
       {showActiveCheckIn && activeScannerEvent && (
-        <section className="active-checkin-panel" aria-label="Current check-in">
+        <section className="active-checkin-panel" aria-label="Current Check-In">
           <div className="active-checkin-copy">
-            <p className="card-kicker">Currently checking in</p>
+            <p className="card-kicker">Currently Checking in</p>
             <h2>{activeScannerEvent.name}</h2>
             <p>
               {formatEventDate(activeScannerEvent.starts_at)}
@@ -285,21 +286,21 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
 
           <div className="active-checkin-total">
             <strong>{activeScannerCheckIns.length}</strong>
-            <span>check-in{activeScannerCheckIns.length === 1 ? '' : 's'} so far</span>
+            <span>Check-In{activeScannerCheckIns.length === 1 ? '' : 's'} So Far</span>
           </div>
 
           <button className="primary-button active-checkin-button" onClick={onOpenScanner}>
             <Camera size={17} />
-            Open scanner
+            Open Scanner
           </button>
         </section>
       )}
 
-      <section className="dashboard-stats" aria-label="Attendance overview">
+      <section className="dashboard-stats" aria-label="Attendance Overview">
         <article className="dashboard-stat-card dashboard-metric-card metric-members">
           <div className="dashboard-metric-copy">
-            <p>Total members</p>
-            <small>{activeMembers.length} active member{activeMembers.length === 1 ? '' : 's'}</small>
+            <p className="lc-v3-metric-title">Total Members</p>
+            <small>{activeMembers.length} Active Member{activeMembers.length === 1 ? '' : 's'}</small>
           </div>
           <strong>{members.length}</strong>
           <span className="dashboard-stat-icon members"><Users size={20} /></span>
@@ -307,8 +308,8 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
 
         <article className="dashboard-stat-card dashboard-metric-card metric-events">
           <div className="dashboard-metric-copy">
-            <p>Events created</p>
-            <small>{upcomingEvent ? `Next: ${upcomingEvent.name}` : 'No upcoming event'}</small>
+            <p className="lc-v3-metric-title">Events Created</p>
+            <small>{upcomingEvent ? `Next: ${upcomingEvent.name}` : 'No Upcoming Event'}</small>
           </div>
           <strong>{periodEvents.length}</strong>
           <span className="dashboard-stat-icon events"><CalendarDays size={20} /></span>
@@ -316,8 +317,8 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
 
         <article className="dashboard-stat-card dashboard-metric-card metric-attendance">
           <div className="dashboard-metric-copy">
-            <p>Latest event attendance</p>
-            <small>{latestEvent ? latestEvent.name : 'No event recorded yet'}</small>
+            <p className="lc-v3-metric-title">Latest Event Attendance</p>
+            <small>{latestEvent ? latestEvent.name : 'No Event Recorded Yet'}</small>
           </div>
           <strong>{latestEventCheckIns.length}</strong>
           <span className="dashboard-stat-icon attendance"><CheckCircle2 size={20} /></span>
@@ -325,8 +326,8 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
 
         <article className="dashboard-stat-card dashboard-metric-card metric-rate">
           <div className="dashboard-metric-copy">
-            <p>Latest Sunday attendance</p>
-            <small>{latestSundayService ? `${latestSundayCheckIns.length} of ${activeMembers.length} active members` : 'No Sunday service recorded yet'}</small>
+            <p className="lc-v3-metric-title">Latest Sunday Attendance</p>
+            <small>{latestSundayService ? `${latestSundayCheckIns.length} of ${activeMembers.length} Active Members` : 'No Sunday Service Recorded Yet'}</small>
           </div>
           <strong>{latestSundayService ? `${attendanceRate}%` : '—'}</strong>
           <span className="dashboard-stat-icon rate"><Clock3 size={20} /></span>
@@ -345,10 +346,10 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
           <span className="event-postcard-spark" aria-hidden="true">✦</span>
           <div className="dashboard-card-heading">
             <div>
-              <p className="card-kicker">{latestEvent?.is_sunday_service ? 'Most recent Sunday service' : 'Most recent event'}</p>
-              <h2>{latestEvent?.name ?? 'No events yet'}</h2>
+              <p className="card-kicker">{latestEvent?.is_sunday_service ? 'Most Recent Sunday Service' : 'Most Recent Event'}</p>
+              <h2>{latestEvent?.name ?? 'No Events Yet'}</h2>
             </div>
-            {latestEvent && <span className="status active">{latestEventCheckIns.length} check-in{latestEventCheckIns.length === 1 ? '' : 's'}</span>}
+            {latestEvent && <span className="status active">{latestEventCheckIns.length} Check-In{latestEventCheckIns.length === 1 ? '' : 's'}</span>}
           </div>
 
           {latestEvent ? (
@@ -359,17 +360,17 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
               </p>
               {latestEvent.admin_note && (
                 <p className="dashboard-service-note">
-                  <span>Service note</span>
+                  <span>Service Note</span>
                   {latestEvent.admin_note}
                 </p>
               )}
               {latestEvent.is_sunday_service ? (
                 <>
-                  <div className="attendance-progress" aria-label={`${Math.round((latestEventCheckIns.length / Math.max(activeMembers.length, 1)) * 100)}% attendance`}>
+                  <div className="attendance-progress" aria-label={`${Math.round((latestEventCheckIns.length / Math.max(activeMembers.length, 1)) * 100)}% Attendance`}>
                     <span style={{ width: `${Math.min(Math.round((latestEventCheckIns.length / Math.max(activeMembers.length, 1)) * 100), 100)}%` }} />
                   </div>
                   <p className="latest-event-summary">
-                    <strong>{latestEventCheckIns.length}</strong> of {activeMembers.length} active members checked in
+                    <strong>{latestEventCheckIns.length}</strong> of {activeMembers.length} Active Members Checked in
                   </p>
                 </>
               ) : null}
@@ -388,8 +389,8 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
             </div>
           )}
           <span className="event-postcard-spark" aria-hidden="true">✦</span>
-          <p className="card-kicker">Next event</p>
-          <h2>{upcomingEvent?.name ?? 'Nothing scheduled'}</h2>
+          <p className="card-kicker">Next Event</p>
+          <h2>{upcomingEvent?.name ?? 'Nothing Scheduled'}</h2>
           <p className="muted">
             {upcomingEvent
               ? `${formatEventDate(upcomingEvent.starts_at)}${upcomingEvent.location ? ` · ${upcomingEvent.location}` : ''}`
@@ -397,7 +398,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
           </p>
           {upcomingEvent?.admin_note && (
             <p className="dashboard-service-note dashboard-upcoming-note">
-              <span>Service note</span>
+              <span>Service Note</span>
               {upcomingEvent.admin_note}
             </p>
           )}
@@ -406,13 +407,13 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
         <article className="dashboard-card recent-checkins-card">
           <div className="dashboard-card-heading">
             <div>
-              <p className="card-kicker">Live activity</p>
-              <h2>Recent check-ins</h2>
+              <p className="card-kicker">Live Activity</p>
+              <h2>Recent Check-Ins</h2>
             </div>
             <div className="recent-checkin-actions">
-              <span className="recent-checkin-total">{periodCheckIns.length} total</span>
+              <span className="recent-checkin-total">{periodCheckIns.length} Total</span>
               <button type="button" className="dashboard-records-link" onClick={onViewRecords}>
-                View all records
+                View All Records
                 <ArrowRight size={14} />
               </button>
             </div>
@@ -428,7 +429,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
                   className={`recent-checkin-row${index === 0 ? ' is-fresh' : ''}`}
                   key={checkIn.id}
                   onClick={onViewRecords}
-                  aria-label={`View attendance records after ${checkIn.members ? `${checkIn.members.first_name} ${checkIn.members.last_name}` : 'this check-in'}`}
+                  aria-label={`View Attendance Records After ${checkIn.members ? `${checkIn.members.first_name} ${checkIn.members.last_name}` : 'This Check-In'}`}
                 >
                   <div className="avatar">
                     {checkIn.members
@@ -437,8 +438,8 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
                   </div>
                   <div className="recent-checkin-surface">
                     <div className="recent-checkin-copy">
-                      <strong>{checkIn.members ? `${checkIn.members.first_name} ${checkIn.members.last_name}` : 'Unknown member'}</strong>
-                      <span>{checkIn.events?.name ?? 'Unknown event'}</span>
+                      <strong>{checkIn.members ? `${checkIn.members.first_name} ${checkIn.members.last_name}` : 'Unknown Member'}</strong>
+                      <span>{checkIn.events?.name ?? 'Unknown Event'}</span>
                       {index === 0 && <em>Just in</em>}
                     </div>
                     <time>{formatCheckInTime(checkIn.checked_in_at)}</time>
@@ -453,4 +454,3 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
     </>
   )
 }
-

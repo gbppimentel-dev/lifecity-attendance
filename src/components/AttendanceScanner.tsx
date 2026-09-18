@@ -1,4 +1,5 @@
-// Replacement ID: scanner-recent-and-kiosk-v1
+// Change ID: LC-UI-COPY-v2
+import { uiMessage } from '../lib/uiText'
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { CheckCircle2, Expand, Flashlight, FlashlightOff, Minimize, ScanLine, Search, SwitchCamera, TriangleAlert, X } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
@@ -387,7 +388,7 @@ export default function AttendanceScanner({ event }: Props) {
     return (
       <section className="scanner-empty">
         <ScanLine size={36} />
-        <h2>Select an event first</h2>
+        <h2>Select an Event First</h2>
         <p>Choose a service or gathering above before opening the scanner.</p>
       </section>
     )
@@ -397,8 +398,8 @@ export default function AttendanceScanner({ event }: Props) {
     <section ref={scannerLayoutRef} className={`scanner-layout${isKioskMode ? ' is-kiosk-mode' : ''}`}>
       <div className="scanner-camera-heading">
         <div>
-          <p className="card-kicker">Camera scanner</p>
-          <h2>Scan member QR</h2>
+          <p className="card-kicker">Camera Scanner</p>
+          <h2>Scan Member QR</h2>
           <p>Hold the QR code inside the frame to check in automatically.</p>
         </div>
         <div className="scanner-camera-actions">
@@ -406,17 +407,17 @@ export default function AttendanceScanner({ event }: Props) {
             type="button"
             className={`scanner-camera-switch${isKioskMode ? ' is-active' : ''}`}
             onClick={() => void toggleKioskMode()}
-            title={isKioskMode ? 'Exit kiosk mode' : 'Open kiosk mode'}
+            title={isKioskMode ? 'Exit Kiosk Mode' : 'Open Kiosk Mode'}
           >
             {isKioskMode ? <Minimize size={16} /> : <Expand size={16} />}
-            {isKioskMode ? 'Exit kiosk' : 'Kiosk mode'}
+            {isKioskMode ? 'Exit Kiosk' : 'Kiosk Mode'}
           </button>
           {torchSupported && (
             <button
               type="button"
               className={`scanner-camera-switch${torchOn ? ' is-active' : ''}`}
               onClick={() => void toggleTorch()}
-              title={torchOn ? 'Turn off flashlight' : 'Turn on flashlight'}
+              title={torchOn ? 'Turn Off Flashlight' : 'Turn on Flashlight'}
               aria-pressed={torchOn}
             >
               {torchOn ? <FlashlightOff size={16} /> : <Flashlight size={16} />}
@@ -428,10 +429,10 @@ export default function AttendanceScanner({ event }: Props) {
               type="button"
               className="scanner-camera-switch"
               onClick={switchCamera}
-              title="Switch camera"
+              title="Switch Camera"
             >
               <SwitchCamera size={16} />
-              Switch camera
+              Switch Camera
             </button>
           )}
           <span className="scanner-ready-status"><i />Ready</span>
@@ -444,7 +445,7 @@ export default function AttendanceScanner({ event }: Props) {
 
       {recentCheckIns.length > 0 && (
         <div className="scanner-recent-checkins" aria-live="polite">
-          <span>Last checked in</span>
+          <span>Last Checked in</span>
           <div>
             {recentCheckIns.map((checkIn, index) => (
               <p key={`${checkIn.memberName}-${checkIn.time}-${index}`}>
@@ -459,7 +460,7 @@ export default function AttendanceScanner({ event }: Props) {
       {cameraError && (
         <div className="scan-result error">
           <TriangleAlert size={28} />
-          <p>{cameraError}</p>
+          <p>{uiMessage(cameraError)}</p>
         </div>
       )}
 
@@ -473,7 +474,7 @@ export default function AttendanceScanner({ event }: Props) {
 
           <div>
             {result.memberName && <strong>{result.memberName}</strong>}
-            <p>{result.message}</p>
+            <p>{uiMessage(result.message)}</p>
             {result.time && <span>{result.time}</span>}
           </div>
         </div>
@@ -494,7 +495,7 @@ export default function AttendanceScanner({ event }: Props) {
                 setMemberSearch(event.target.value)
                 setSelectedMember(null)
               }}
-              placeholder="Search members"
+              placeholder="Search Members"
               aria-label="Search for a member to check in"
             />
           </div>
@@ -521,7 +522,7 @@ export default function AttendanceScanner({ event }: Props) {
                   setSelectedMember(null)
                   setMemberSearch('')
                 }}
-                aria-label="Clear selected member"
+                aria-label="Clear Selected Member"
               >
                 <X size={16} />
               </button>

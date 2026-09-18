@@ -1,4 +1,5 @@
-// Replacement ID: member-import-review-v1
+// Change ID: LC-UI-COPY-v2
+import { uiMessage } from '../lib/uiText'
 import { type ChangeEvent, Fragment, useMemo, useRef, useState } from 'react'
 import Papa from 'papaparse'
 import {
@@ -163,16 +164,16 @@ function validateRows(rows: ImportRow[], existingContacts: ExistingContact[]) {
 }
 
 function memberName(row: Pick<ImportRow, 'firstName' | 'lastName'>) {
-  return `${row.firstName.trim()} ${row.lastName.trim()}`.trim() || 'This member'
+  return `${row.firstName.trim()} ${row.lastName.trim()}`.trim() || 'This Member'
 }
 
 function fieldNeedsAttention(row: ImportRow, field: 'name' | 'email' | 'mobile' | 'branch') {
   const errors = row.errors ?? []
   const checks = {
-    name: ['First name and last name'],
-    email: ['Email must', 'email is already', 'email appears'],
-    mobile: ['Mobile must', 'mobile number is already', 'mobile number appears'],
-    branch: ['Church is required'],
+    name: ['First Name and Last Name'],
+    email: ['Email Must', 'Email is Already', 'Email Appears'],
+    mobile: ['Mobile Must', 'Mobile Number is Already', 'Mobile Number Appears'],
+    branch: ['Church is Required'],
   }
   return errors.some((error) => checks[field].some((check) => error.toLowerCase().includes(check.toLowerCase())))
 }
@@ -598,8 +599,8 @@ export default function MemberImport({ onImported, onClose }: Props) {
         </div>
 
         <div>
-          <p className="eyebrow">Bulk registration</p>
-          <h2>Import members from CSV</h2>
+          <p className="eyebrow">Bulk Registration</p>
+          <h2>Import Members from CSV</h2>
           <p className="muted">
             Download the template, add member details, churches, and ministries, then
             upload it here.
@@ -619,8 +620,8 @@ export default function MemberImport({ onImported, onClose }: Props) {
             className="csv-close-button"
             type="button"
             onClick={onClose}
-            aria-label="Close member import"
-            title="Close import"
+            aria-label="Close Member Import"
+            title="Close Import"
           >
             <X size={18} />
           </button>
@@ -630,22 +631,22 @@ export default function MemberImport({ onImported, onClose }: Props) {
       <div className="csv-import-steps">
         <span>
           <strong>1</strong>
-          Download template
+          Download Template
         </span>
         <span>
           <strong>2</strong>
-          Add member details
+          Add Member Details
         </span>
         <span>
           <strong>3</strong>
-          Upload and review
+          Upload and Review
         </span>
       </div>
 
       <label className="csv-upload-zone">
         <input ref={fileInputRef} type="file" accept=".csv,text/csv" onChange={handleFileChange} />
         <Upload size={28} />
-        <strong>{fileName || 'Choose a CSV file'}</strong>
+        <strong>{fileName || 'Choose a CSV File'}</strong>
         <span>
           Required: first_name, last_name, churches · Optional: email, mobile,
           ministries, admin_note
@@ -656,8 +657,8 @@ export default function MemberImport({ onImported, onClose }: Props) {
         <section className="csv-import-success" role="status">
           <div className="csv-success-orbit" aria-hidden="true"><CheckCircle2 size={30} /></div>
           <div>
-            <p className="eyebrow">Import complete</p>
-            <h3>{importSuccess.imported} member{importSuccess.imported === 1 ? '' : 's'} added to the directory</h3>
+            <p className="eyebrow">Import Complete</p>
+            <h3>{importSuccess.imported} Member{importSuccess.imported === 1 ? '' : 's'} Added to the Directory</h3>
             <p>{importSuccess.skipped > 0 ? `${importSuccess.skipped} row${importSuccess.skipped === 1 ? ' was' : 's were'} not imported and can be included in your next file.` : 'Everything in this file was added successfully.'}</p>
           </div>
         </section>
@@ -666,16 +667,16 @@ export default function MemberImport({ onImported, onClose }: Props) {
       {rows.length > 0 && (
         <>
           <div className="csv-summary" ref={reviewToolbarRef}>
-            <span>{rows.length} row(s) found</span>
-            <span className="valid-count">{validCount} valid</span>
+            <span>{rows.length} Row(s) Found</span>
+            <span className="valid-count">{validCount} Valid</span>
 
             {invalidCount > 0 && (
               <span className="invalid-count">
-                {invalidCount} need attention
+                {invalidCount} Need Attention
               </span>
             )}
             {possibleDuplicateCount > 0 && (
-              <span className="possible-duplicate-count">{possibleDuplicateCount} possible duplicate{possibleDuplicateCount === 1 ? '' : 's'}</span>
+              <span className="possible-duplicate-count">{possibleDuplicateCount} Possible Duplicate{possibleDuplicateCount === 1 ? '' : 's'}</span>
             )}
           </div>
 
@@ -683,25 +684,25 @@ export default function MemberImport({ onImported, onClose }: Props) {
             <div className="csv-review-notice" role="status">
               <CheckCircle2 size={17} />
               <span>{reviewNotice}</span>
-              <button type="button" onClick={() => setReviewNotice('')} aria-label="Dismiss confirmation"><X size={15} /></button>
+              <button type="button" onClick={() => setReviewNotice('')} aria-label="Dismiss Confirmation"><X size={15} /></button>
             </div>
           )}
 
           <div className="csv-review-toolbar">
-            <div className="csv-review-filters" aria-label="Import review filters">
+            <div className="csv-review-filters" aria-label="Import Review Filters">
               <button
                 className={filter === 'all' ? 'is-active' : ''}
                 type="button"
                 onClick={() => { setFilter('all'); setPage(1) }}
               >
-                All rows
+                All Rows
               </button>
               <button
                 className={filter === 'errors' ? 'is-active is-error' : 'is-error'}
                 type="button"
                 onClick={() => { setFilter('errors'); setPage(1) }}
               >
-                Needs attention ({invalidCount})
+                Needs Attention ({invalidCount})
               </button>
               <button
                 className={filter === 'ready' ? 'is-active is-ready' : 'is-ready'}
@@ -718,7 +719,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
                 checked={errorsFirst}
                 onChange={(event) => setErrorsFirst(event.target.checked)}
               />
-              Errors first
+              Errors First
             </label>
           </div>
 
@@ -743,28 +744,28 @@ export default function MemberImport({ onImported, onClose }: Props) {
                   <span>{row.ministryNames.join(', ') || '—'}</span>
                   <span>{row.branchNames.join(', ') || '—'}</span>
                   <span className={row.error ? 'csv-error' : row.duplicateNameReason ? 'csv-possible-duplicate' : 'csv-valid'}>
-                    {row.error ? <><span className="csv-error-count" aria-label={`${row.errorCount} issues`}>{row.errorCount} issue{row.errorCount === 1 ? '' : 's'}</span><span>{row.error}</span></> : row.duplicateNameReason ? <><span className="csv-duplicate-pill">Possible duplicate</span><label className="csv-duplicate-override"><input type="checkbox" checked={row.nameDuplicateOverride} onChange={(event) => setRows((currentRows) => currentRows.map((currentRow) => currentRow.rowNumber === row.rowNumber ? { ...currentRow, nameDuplicateOverride: event.target.checked } : currentRow))} />Import anyway</label></> : <><CheckCircle2 size={15} /> Ready</>}
+                    {row.error ? <><span className="csv-error-count" aria-label={`${row.errorCount} issues`}>{row.errorCount} issue{row.errorCount === 1 ? '' : 's'}</span><span>{uiMessage(row.error)}</span></> : row.duplicateNameReason ? <><span className="csv-duplicate-pill">Possible Duplicate</span><label className="csv-duplicate-override"><input type="checkbox" checked={row.nameDuplicateOverride} onChange={(event) => setRows((currentRows) => currentRows.map((currentRow) => currentRow.rowNumber === row.rowNumber ? { ...currentRow, nameDuplicateOverride: event.target.checked } : currentRow))} />Import Anyway</label></> : <><CheckCircle2 size={15} /> Ready</>}
                   </span>
                   <span className="csv-row-actions">
-                    <button className="csv-row-edit-button" type="button" onClick={() => openInlineEditor(row)} aria-label={`Edit row ${row.rowNumber}`} title="Edit row"><Pencil size={15} /></button>
-                    <button className="csv-row-remove-button" type="button" onClick={() => removeRow(row.rowNumber)} aria-label={`Remove row ${row.rowNumber}`} title="Remove row"><Trash2 size={15} /></button>
+                    <button className="csv-row-edit-button" type="button" onClick={() => openInlineEditor(row)} aria-label={`Edit Row ${row.rowNumber}`} title="Edit Row"><Pencil size={15} /></button>
+                    <button className="csv-row-remove-button" type="button" onClick={() => removeRow(row.rowNumber)} aria-label={`Remove Row ${row.rowNumber}`} title="Remove Row"><Trash2 size={15} /></button>
                   </span>
                 </article>
 
                 {editingRowNumber === row.rowNumber && editDraft && (
-                  <section className="csv-inline-editor" aria-label={`Editing row ${row.rowNumber}`}>
+                  <section className="csv-inline-editor" aria-label={`Editing Row ${row.rowNumber}`}>
                     <div className="csv-editor-heading"><span>Editing {memberName(editDraft)}</span><small>Changes are checked before they are saved.</small></div>
-                    {editorFeedback && <p className="csv-editor-feedback"><span>Needs attention</span>{editorFeedback}</p>}
-                    <label><span className="csv-field-label">First name <b>*</b></span><input className={fieldNeedsAttention(editDraft, 'name') ? 'needs-attention' : ''} placeholder="Juan" value={editDraft.firstName} onChange={(event) => setEditDraft({ ...editDraft, firstName: event.target.value })} /></label>
-                    <label><span className="csv-field-label">Last name <b>*</b></span><input className={fieldNeedsAttention(editDraft, 'name') ? 'needs-attention' : ''} placeholder="Dela Cruz" value={editDraft.lastName} onChange={(event) => setEditDraft({ ...editDraft, lastName: event.target.value })} /></label>
+                    {editorFeedback && <p className="csv-editor-feedback"><span>Needs attention</span>{uiMessage(editorFeedback)}</p>}
+                    <label><span className="csv-field-label">First Name <b>*</b></span><input className={fieldNeedsAttention(editDraft, 'name') ? 'needs-attention' : ''} placeholder="Juan" value={editDraft.firstName} onChange={(event) => setEditDraft({ ...editDraft, firstName: event.target.value })} /></label>
+                    <label><span className="csv-field-label">Last Name <b>*</b></span><input className={fieldNeedsAttention(editDraft, 'name') ? 'needs-attention' : ''} placeholder="Dela Cruz" value={editDraft.lastName} onChange={(event) => setEditDraft({ ...editDraft, lastName: event.target.value })} /></label>
                     <label><span className="csv-field-label">Email</span><input className={fieldNeedsAttention(editDraft, 'email') ? 'needs-attention' : ''} type="email" value={editDraft.email} onChange={(event) => setEditDraft({ ...editDraft, email: event.target.value })} /></label>
-                    <label>Mobile<input className={fieldNeedsAttention(editDraft, 'mobile') ? 'needs-attention' : ''} inputMode="numeric" placeholder="11-digit mobile number (09xxxxxxxxx)" value={editDraft.mobile} onChange={(event) => setEditDraft({ ...editDraft, mobile: event.target.value })} /></label>
+                    <label>Mobile<input className={fieldNeedsAttention(editDraft, 'mobile') ? 'needs-attention' : ''} inputMode="numeric" placeholder="11-Digit Mobile Number (09xxxxxxxxx)" value={editDraft.mobile} onChange={(event) => setEditDraft({ ...editDraft, mobile: event.target.value })} /></label>
                     <label><span className="csv-field-label">Churches <b>*</b></span><input className={fieldNeedsAttention(editDraft, 'branch') ? 'needs-attention' : ''} placeholder="LifeCity - Main" value={branchText} onChange={(event) => setBranchText(event.target.value)} /></label>
                     <label><span className="csv-field-label">Ministries</span><input value={ministryText} onChange={(event) => setMinistryText(event.target.value)} /></label>
-                    <label className="csv-editor-note">Admin note<input value={editDraft.adminNote} onChange={(event) => setEditDraft({ ...editDraft, adminNote: event.target.value })} /></label>
+                    <label className="csv-editor-note">Admin Note<input value={editDraft.adminNote} onChange={(event) => setEditDraft({ ...editDraft, adminNote: event.target.value })} /></label>
                     <div className="csv-editor-actions">
                       <button className="secondary-button" type="button" onClick={() => { setEditingRowNumber(null); setEditDraft(null); setEditorFeedback('') }}>Cancel</button>
-                      <button className="primary-button" type="button" onClick={saveInlineEdit}><Save size={17} />Save & validate</button>
+                      <button className="primary-button" type="button" onClick={saveInlineEdit}><Save size={17} />Save & Validate</button>
                     </div>
                   </section>
                 )}
@@ -776,9 +777,9 @@ export default function MemberImport({ onImported, onClose }: Props) {
             <p>Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredRows.length)} of {filteredRows.length} filtered row(s).</p>
             {totalPages > 1 && (
               <div>
-                <button type="button" disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)} aria-label="Previous page"><ChevronLeft size={18} /></button>
+                <button type="button" disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)} aria-label="Previous Page"><ChevronLeft size={18} /></button>
                 <span>Page {currentPage} of {totalPages}</span>
-                <button type="button" disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)} aria-label="Next page"><ChevronRight size={18} /></button>
+                <button type="button" disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)} aria-label="Next Page"><ChevronRight size={18} /></button>
               </div>
             )}
           </div>
@@ -794,13 +795,13 @@ export default function MemberImport({ onImported, onClose }: Props) {
               <Upload size={18} />
               {importing
                 ? 'Importing…'
-                : `Import ${validCount} valid member(s)`}
+                : `Import ${validCount} Valid Member(s)`}
             </button>
           </div>
         </>
       )}
 
-      {message && <p className="csv-message">{message}</p>}
+      {message && <p className="csv-message">{uiMessage(message)}</p>}
 
     </section>
   )
