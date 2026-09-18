@@ -1,4 +1,4 @@
-// Replacement ID: page-transition-loader-v1
+// Change ID: services-recovery-merged-20260918-v2
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CalendarDays,
@@ -112,6 +112,9 @@ export default function App() {
   const [serviceYear, setServiceYear] = useState('')
   const [serviceSort, setServiceSort] = useState<'recent' | 'oldest'>('recent')
   const [archiveFilter, setArchiveFilter] = useState<'all' | 'active' | 'archived'>('active')
+  const [serviceActionTarget, setServiceActionTarget] = useState<
+    { kind: 'delete' | 'archive' | 'restore'; item: AttendanceEvent } | null
+  >(null)
   const serviceFormRef = useRef<HTMLElement | null>(null)
   const scannerServicePickerRef = useRef<HTMLElement | null>(null)
   const pageTransitionTimeoutRef = useRef<number | null>(null)
@@ -268,53 +271,41 @@ export default function App() {
     setLoading(false)
   }
 
-  async function deleteService(item: AttendanceEvent) {
+  async function requestDeleteService(item: AttendanceEvent) {
     setMessage('')
-
-    const { count, error: attendanceError } = await supabase
-      .from('attendance')
-      .select('id', { count: 'exact', head: true })
-      .eq('event_id', item.id)
-
-    if (attendanceError) {
-      setMessage(attendanceError.message)
-      return
-    }
-
-    if ((count ?? 0) > 0) {
-      if (window.confirm('This event has attendance records and cannot be deleted. Archive it instead? You can restore it later.')) {
-        await setServiceArchive(item, true)
-      }
-      return
-    }
-
-    if (!window.confirm(`Delete “${item.name}”? This cannot be undone.`)) {
-      return
-    }
-
-    setLoading(true)
-    const { error } = await supabase.from('events').delete().eq('id', item.id)
-
-    if (error) {
-      setMessage(error.message)
-    } else {
-      await loadEvents()
-    }
-
-    setLoading(false)
+    setServiceActionTarget({ kind: 'delete', item })
   }
 
-  async function setServiceArchive(item: AttendanceEvent, archived: boolean) {
+  async function confirmServiceAction() {
+    if (!serviceActionTarget || loading) return
+    const { kind, item } = serviceActionTarget
     setLoading(true)
-    const { error } = await supabase
-      .from('events')
-      .update({ archived_at: archived ? new Date().toISOString() : null })
-      .eq('id', item.id)
-
-    if (error) setMessage(error.message)
-    else await loadEvents()
-
-    setLoading(false)
+    setMessage('')
+    try {
+      if (kind === 'delete') {
+        const { count, error: checkError } = await supabase.from('attendance')
+          .select('id', { count: 'exact', head: true }).eq('event_id', item.id)
+        if (checkError) throw checkError
+        if ((count ?? 0) > 0) {
+          setServiceActionTarget({ kind: 'archive', item })
+          setMessage('This service now has attendance records. Archive it instead to preserve its history.')
+          return
+        }
+        const { error } = await supabase.from('events').delete().eq('id', item.id)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('events')
+          .update({ archived_at: kind === 'archive' ? new Date().toISOString() : null })
+          .eq('id', item.id)
+        if (error) throw error
+      }
+      setServiceActionTarget(null)
+      await loadEvents()
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : (error as { message?: string }).message ?? 'Unable to update the service. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   function openCreateService() {
@@ -755,8 +746,9 @@ export default function App() {
                   <p>Try another month or year.</p>
                 </div>
               ) : (
-                <div className="event-list">
+                <div className="event-list services-recovered-list">
                   <div className="service-list-heading">
+                    <span>Date</span>
                     <button
                       className={`service-sort-button${serviceSort === 'oldest' ? ' sort-oldest' : ''}`}
                       onClick={() =>
@@ -770,8 +762,9 @@ export default function App() {
                       <span>{serviceSort === 'recent' ? 'Recent first' : 'Oldest first'}</span>
                       <ChevronDown size={16} />
                     </button>
-                    <span className="sunday-service-heading">Sunday Service?</span>
+                    <span className="sunday-service-heading">Sunday</span>
                     <span>Actions</span>
+                    <span className="service-check-in-heading">Check in</span>
                   </div>
 
                   {filteredServices.map((item) => {
@@ -780,8 +773,11 @@ export default function App() {
                       serviceState.className === 'upcoming' ||
                       serviceState.className === 'in-progress'
 
+                    const isActionTarget = serviceActionTarget?.item.id === item.id
+
                     return (
-                    <article className="event-row" key={item.id}>
+                    <div className="service-list-item" key={item.id}>
+                    <article className="event-row">
                       <div className="event-date">
                         <strong>
                           {new Intl.DateTimeFormat('en', {
@@ -835,6 +831,9 @@ export default function App() {
                           disabled={loading}
                           aria-label={`Mark ${item.name} as a Sunday service`}
                         />
+                        <span className="service-sunday-checkbox-track" aria-hidden="true">
+                          <span />
+                        </span>
                       </label>
 
                       <div className="service-row-actions">
@@ -847,25 +846,15 @@ export default function App() {
                           <Pencil size={20} />
                         </button>
                         {item.archived_at ? (
-                          <button className="service-action-button" onClick={() => void setServiceArchive(item, false)} title="Unarchive event" aria-label={`Unarchive ${item.name}`}>
+                          <button className="service-action-button" onClick={() => setServiceActionTarget({ kind: 'restore', item })} title="Restore service" aria-label={`Restore ${item.name}`}>
                             <ArchiveRestore size={19} />
                           </button>
                         ) : (
                           <>
-                            {canScan && (
-                              <button
-                                className="service-action-button service-scan-button"
-                                onClick={() => openScannerForService(item)}
-                                title="Open scanner for this event"
-                                aria-label={`Scan check-ins for ${item.name}`}
-                              >
-                                <Camera size={19} />
-                              </button>
-                            )}
                             {(attendanceCounts[item.id] ?? 0) === 0 && (
                               <button
                                 className="service-action-button danger"
-                                onClick={() => void deleteService(item)}
+                                onClick={() => void requestDeleteService(item)}
                                 title="Delete event"
                                 aria-label={`Delete ${item.name}`}
                               >
@@ -873,14 +862,62 @@ export default function App() {
                               </button>
                             )}
                             {(attendanceCounts[item.id] ?? 0) > 0 && (
-                              <button className="service-action-button" onClick={() => void setServiceArchive(item, true)} title="Archive event" aria-label={`Archive ${item.name}`}>
+                              <button className="service-action-button" onClick={() => setServiceActionTarget({ kind: 'archive', item })} title="Archive event" aria-label={`Archive ${item.name}`}>
                                 <Archive size={19} />
                               </button>
                             )}
                           </>
                         )}
                       </div>
+                      <div className="service-checkin-cell">
+                        {canScan ? (
+                          <button
+                            className="service-checkin-button"
+                            onClick={() => openScannerForService(item)}
+                            title="Open scanner for this service"
+                          >
+                            <Camera size={16} />
+                            <span>{scannerEventId === item.id ? 'Checking in' : 'Check in'}</span>
+                          </button>
+                        ) : (
+                          <span className="service-checkin-unavailable">
+                            {item.archived_at ? 'Archived' : 'Closed'}
+                          </span>
+                        )}
+                      </div>
+
                     </article>
+                    {isActionTarget && (
+                      <div className={`service-inline-confirmation ${serviceActionTarget.kind}`}>
+                        <div>
+                          <strong>
+                            {serviceActionTarget.kind === 'delete'
+                              ? `Delete ${item.name}?`
+                              : serviceActionTarget.kind === 'archive'
+                                ? `Archive ${item.name}?`
+                                : `Restore ${item.name}?`}
+                          </strong>
+                          <span>
+                            {serviceActionTarget.kind === 'delete'
+                              ? 'This event has no check-ins and will be permanently removed.'
+                              : serviceActionTarget.kind === 'archive'
+                                ? 'Attendance history will be kept. You can restore the service later.'
+                                : 'This service will return to the active list and can be used again.'}
+                          </span>
+                        </div>
+                        <div className="service-inline-confirmation-actions">
+                          <button type="button" className="secondary-button" disabled={loading} onClick={() => setServiceActionTarget(null)}>Cancel</button>
+                          <button type="button" className={serviceActionTarget.kind === 'delete' ? 'danger-button' : 'primary-button'} onClick={() => void confirmServiceAction()} disabled={loading}>
+                            {serviceActionTarget.kind === 'delete'
+                              ? 'Delete service'
+                              : serviceActionTarget.kind === 'archive'
+                                ? 'Archive service'
+                                : 'Restore service'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    </div>
                     )
                   })}
                 </div>
