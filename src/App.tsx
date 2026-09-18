@@ -1,4 +1,4 @@
-// Change ID: LC-P04B-v1
+// Change ID: LC-P07B-v1
 import { uiMessage } from './lib/uiText'
 // Full replacement for src/App.tsx; requires the installed Phase 1 foundation and LC-P02A-v1.sql plus LC-P02B-v1.sql.
 import type { Session } from '@supabase/supabase-js'
@@ -24,9 +24,12 @@ import {
   Users,
   X,
 } from 'lucide-react'
+import MobileAdminNav from './components/MobileAdminNav'
 import MemberPortal from './components/MemberPortal'
 import MemberLinkRequests from './components/MemberLinkRequests'
-import AccountsSettings from './components/AccountsSettings'
+import ServiceExport from './components/ServiceExport'
+import SettingsWorkspace from './components/SettingsWorkspace'
+import { useSharedAppearance } from './lib/appearance'
 import AttendanceRecords from './components/AttendanceRecords'
 import GuestPreview from './components/GuestPreview'
 import AttendanceScanner from './components/AttendanceScanner'
@@ -138,6 +141,7 @@ function AccountShell({ children, compact = false }: { children: ReactNode; comp
 }
 
 export default function App() {
+  useSharedAppearance()
   const [session, setSession] = useState<Session | null>(null)
   const [booting, setBooting] = useState(true)
   const [authError, setAuthError] = useState('')
@@ -319,6 +323,9 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
     }
 
     setPage(nextPage)
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      window.scrollTo({top:0,behavior:'auto'})
+    }
     setIsPageTransitioning(true)
 
     const duration = 1000 + Math.floor(Math.random() * 1001)
@@ -563,7 +570,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
   }, [archiveFilter, events, serviceMonth, serviceSort, serviceYear])
 
   return (
-    <main className="app-page">
+    <main className="app-page lc-mobile-workspace">
       <header className="topbar">
         <div className="brand">
           <div className="brand-icon small">
@@ -572,7 +579,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
           <span>LifeCity Attendance</span>
         </div>
 
-        <nav className="main-nav">
+        <nav className="main-nav" aria-label="Desktop Workspace Navigation">
           <button
             className={page === 'dashboard' ? 'nav-active' : ''}
             onClick={() => changePage('dashboard')}
@@ -627,6 +634,8 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
         </details>
       </header>
 
+      <MobileAdminNav page={page} isOwner={account.role === 'owner'} onNavigate={changePage}/>
+
       <section className="content">
         {isPageTransitioning && (
           <div className="page-transition-loader" role="status" aria-live="polite">
@@ -650,7 +659,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
         )}
 
         {page === 'profile' && (account.member_id ? <MemberPortal key={account.user_id} embedded onRefreshAccess={onRefreshAccess}/> : <MemberLinkRequests key={account.user_id} linked={false} onChanged={onRefreshAccess}/>)}
-        {page === 'settings' && account.role === 'owner' && <AccountsSettings currentUserId={account.user_id} onLinkChanged={onRefreshAccess}/>}
+        {page === 'settings' && account.role === 'owner' && <SettingsWorkspace currentUserId={account.user_id} onLinkChanged={onRefreshAccess}/>}
         {page === 'members' && <MemberManager />}
 
         {page === 'events' && (
@@ -835,7 +844,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
               </section>
             )}
 
-            <section className="directory-card">
+            <section className="directory-card lc-services-directory">
               <div className="directory-toolbar">
                 <div>
                   <h2>All Services</h2>
@@ -868,6 +877,8 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                 </div>
               </div>
 
+              <ServiceExport archive={archiveFilter} month={serviceMonth} year={serviceYear} sort={serviceSort} disabled={loading}/>
+
               {events.length === 0 ? (
                 <div className="empty-state">
                   <CalendarDays size={30} />
@@ -899,7 +910,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                     </button>
                     <span className="sunday-service-heading">Sunday</span>
                     <span>Actions</span>
-                    <span className="service-check-in-heading">Check in</span>
+                    <span className="service-check-in-heading">Scanner</span>
                   </div>
 
                   {filteredServices.map((item) => {
@@ -939,7 +950,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                           {item.name}
                         </strong>
                         {canScan && scannerEventId === item.id && (
-                          <span className="current-scanner-indicator">Currently Checking in</span>
+                          <span className="current-scanner-indicator">Selected for Scanner</span>
                         )}
                         <span>
                           {eventDateTime(item.starts_at)}
@@ -1010,9 +1021,10 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                             className="service-checkin-button"
                             onClick={() => openScannerForService(item)}
                             title="Open Scanner for This Service"
+                            aria-label={`Open Scanner for ${item.name}`}
                           >
                             <Camera size={16} />
-                            <span>{scannerEventId === item.id ? 'Checking in' : 'Check in'}</span>
+                            <span>Open Scanner</span>
                           </button>
                         ) : (
                           <span className="service-checkin-unavailable">

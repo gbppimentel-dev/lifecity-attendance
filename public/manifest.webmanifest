@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "LifeCity Attendance",
+  "short_name": "LifeCity",
+  "description": "Your LifeCity member space, services, and attendance.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3faf7",
+  "theme_color": "#147d73",
+  "prefer_related_applications": false,
+  "icons": [
+    {"src": "icons/lifecity-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/lifecity-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/lifecity-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

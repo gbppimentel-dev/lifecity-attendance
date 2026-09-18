@@ -1,4 +1,5 @@
-// Change ID: LC-UI-COPY-v2
+// Change ID: LC-P08A-v1
+// Change ID: LC-P07A-v1
 import { uiMessage, uiStatus } from '../lib/uiText'
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -26,6 +27,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react'
 import MemberImport from './MemberImport'
 import { supabase } from '../lib/supabase'
+import { memberCsv, type ExportMember } from '../lib/memberCsv'
 
 type Ministry = {
   id: string
@@ -165,6 +167,33 @@ function formatDateTime(value: string) {
 }
 
 export default function MemberManager() {
+  const [csvBusy,setCsvBusy]=useState(false)
+  const [csvMessage,setCsvMessage]=useState('')
+  const [csvError,setCsvError]=useState('')
+  const csvLock=useRef(false)
+  const csvMounted=useRef(true)
+  useEffect(()=>{csvMounted.current=true;return()=>{csvMounted.current=false}},[])
+  async function exportDirectory(detailed:boolean){
+    if(csvLock.current)return
+    csvLock.current=true;setCsvBusy(true);setCsvMessage('');setCsvError('')
+    // Capture the current filter and sort selection before the request starts.
+    const selectedSort=sortBy
+    try{
+      const {data,error}=await supabase.rpc('lc_export_members_v2',{p_search:search,p_ministry:ministryFilter,p_church:branchFilter,p_status:statusFilter,p_detailed:detailed,p_sort:selectedSort})
+      if(error)throw error
+      if(!csvMounted.current)return
+      if(!data||!Array.isArray(data.rows))throw new Error('Invalid export response')
+      const rows=data.rows as ExportMember[]
+      if(!rows.length){setCsvMessage('No members match these filters.');return}
+      const content=memberCsv(rows,detailed,'server')
+      const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8;'}))
+      const link=document.createElement('a');link.href=url;link.download=`LifeCity-Members-${detailed?'Detailed':'Quick'}-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(link)
+      try{link.click()}finally{link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),30000)}
+      setCsvMessage(`CSV prepared with ${rows.length.toLocaleString()} matching members across all pages. Your browser handles the download.`)
+    }catch(failure){if(csvMounted.current)setCsvError((failure as {code?:string}).code==='P0001'?(failure as {message:string}).message:'Could not export members. Confirm LC-P08A-v1.sql is installed and your admin access is active, then try again.')}
+    finally{csvLock.current=false;if(csvMounted.current)setCsvBusy(false)}
+  }
   const [members, setMembers] = useState<Member[]>([])
   const [ministries, setMinistries] = useState<Ministry[]>([])
   const [branches, setBranches] = useState<Branch[]>([])
@@ -217,6 +246,21 @@ export default function MemberManager() {
   const [bulkMode, setBulkMode] = useState(false)
   const [filterSpotlight, setFilterSpotlight] = useState<'ministry' | 'branch' | null>(null)
   const [memberPage, setMemberPage] = useState(1)
+  const [membersPerPage, setMembersPerPage] = useState(25)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [directoryError, setDirectoryError] = useState('')
+  const [directoryStats, setDirectoryStats] = useState({total:0,registered:0,active:0,page:1,ministry_counts:{} as Record<string,number>,branch_counts:{} as Record<string,number>})
+  const requestSequence = useRef(0)
+  const filterKey = JSON.stringify([searchQuery,ministryFilter,branchFilter,statusFilter,sortBy,membersPerPage])
+  const requestKey = JSON.stringify([filterKey,memberPage,search.trim()])
+  const currentRequestKey = useRef(requestKey)
+  currentRequestKey.current = requestKey
+  const pageRequest = {p_search:searchQuery,p_ministry:ministryFilter,p_church:branchFilter,p_status:statusFilter,p_sort:sortBy,p_page:memberPage,p_size:membersPerPage}
+  const latestPageRequest = useRef({key:requestKey,params:pageRequest,pending:false})
+  latestPageRequest.current = {key:requestKey,params:pageRequest,pending:search.trim() !== searchQuery}
+  const [loadedKey, setLoadedKey] = useState('')
+  const directoryBusy = loading || loadedKey !== requestKey || search.trim() !== searchQuery
+
 
   const importRef = useRef<HTMLDivElement | null>(null)
   const ministryManagerRef = useRef<HTMLElement | null>(null)
@@ -226,12 +270,18 @@ export default function MemberManager() {
   const directoryListRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
-    void loadData()
-  }, [])
+    const timer = window.setTimeout(() => setSearchQuery(search.trim()), 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
 
   useEffect(() => {
     setMemberPage(1)
-  }, [search, ministryFilter, branchFilter, statusFilter, sortBy])
+    setSelectedMemberIds([])
+  }, [search, ministryFilter, branchFilter, statusFilter, sortBy, membersPerPage])
+
+  useEffect(() => {
+    if (search.trim() === searchQuery) void loadData()
+  }, [requestKey])
 
   function scrollToSection(
     ref: React.RefObject<HTMLElement | HTMLDivElement | null>,
@@ -265,64 +315,30 @@ export default function MemberManager() {
   }
 
   async function loadData() {
+    if (!csvMounted.current || latestPageRequest.current.pending) return
+    const {key,params} = latestPageRequest.current
+    const sequence = ++requestSequence.current
+    const isCurrent = () => csvMounted.current && sequence === requestSequence.current && key === currentRequestKey.current
     setLoading(true)
-
-    const [membersResult, ministriesResult, branchesResult] = await Promise.all([
-      supabase
-        .from('members')
-        .select(`
-          id,
-          member_number,
-          first_name,
-          last_name,
-          email,
-          mobile,
-          status,
-          qr_token,
-          is_starred,
-          admin_note,
-          created_at,
-          member_ministries (
-            ministry_id,
-            ministries (
-              id,
-              name
-            )
-          ),
-          member_branches (
-            branch_id,
-            branches (
-              id,
-              name
-            )
-          )
-        `)
-        .order('created_at', { ascending: false }),
-      supabase.from('ministries').select('id, name').order('name'),
-      supabase.from('branches').select('id, name').order('name'),
-    ])
-
-    if (membersResult.error) {
-      setMessage(membersResult.error.message)
-    } else {
-      setMembers((membersResult.data ?? []) as unknown as Member[])
-    }
-
-    if (ministriesResult.error) {
-      setMessage(ministriesResult.error.message)
-    } else {
-      setMinistries((ministriesResult.data ?? []) as Ministry[])
-    }
-
-    if (branchesResult.error) {
-      setMessage(branchesResult.error.message)
-      setBranchLoadError(branchesResult.error.message)
-    } else {
-      setBranches((branchesResult.data ?? []) as Branch[])
+    setDirectoryError('')
+    try {
+      const {data,error} = await supabase.rpc('lc_members_page', params)
+      if (!isCurrent()) return
+      if (error) throw error
+      if (!data || !Array.isArray(data.rows) || !Array.isArray(data.ministries) || !Array.isArray(data.branches)) throw new Error('Invalid directory response')
+      setMembers(data.rows as Member[])
+      setMinistries(data.ministries as Ministry[])
+      setBranches(data.branches as Branch[])
+      setDirectoryStats({total:data.total,registered:data.registered,active:data.active,page:data.page,ministry_counts:data.ministry_counts,branch_counts:data.branch_counts})
       setBranchLoadError('')
+    } catch {
+      if (isCurrent()) {
+        setDirectoryError('Could not load members. Please try again.')
+        setBranchLoadError('Directory data is unavailable. Please retry loading members.')
+      }
+    } finally {
+      if (isCurrent()) { setLoading(false); setLoadedKey(key) }
     }
-
-    setLoading(false)
   }
 
   function openAddForm() {
@@ -747,13 +763,7 @@ export default function MemberManager() {
       return
     }
 
-    setMembers((current) =>
-      current.map((item) =>
-        item.id === member.id
-          ? { ...item, is_starred: !item.is_starred }
-          : item,
-      ),
-    )
+    await loadData()
   }
 
   async function loadMemberAttendance(memberId: string, page = 1) {
@@ -900,11 +910,7 @@ export default function MemberManager() {
   }
 
   function ministryMemberCount(ministryId: string) {
-    return members.filter((member) =>
-      getMemberMinistries(member).some(
-        (ministry) => ministry.id === ministryId,
-      ),
-    ).length
+    return directoryStats.ministry_counts[ministryId] ?? 0
   }
 
   function messageTone(message: string) {
@@ -922,9 +928,7 @@ export default function MemberManager() {
   }
 
   function branchMemberCount(branchId: string) {
-    return members.filter((member) =>
-      getMemberBranches(member).some((branch) => branch.id === branchId),
-    ).length
+    return directoryStats.branch_counts[branchId] ?? 0
   }
 
   function beginRename(ministry: Ministry) {
@@ -970,6 +974,7 @@ export default function MemberManager() {
   }
 
   async function deleteMinistry(ministry: Ministry) {
+    if (directoryBusy || directoryError) {setMinistryMessage('Wait for the directory to finish loading, or retry if it failed.');return}
     const count = ministryMemberCount(ministry.id)
 
     if (count > 0) {
@@ -986,6 +991,13 @@ export default function MemberManager() {
 
   async function confirmManagerDelete() {
     if (!managerDeleteTarget) return
+    if (directoryBusy || directoryError) {
+      const notify = managerDeleteTarget.kind === 'ministry' ? setMinistryMessage : setBranchMessage
+      notify('Wait for the directory to finish loading, or retry if it failed.')
+      return
+    }
+    const assigned = managerDeleteTarget.kind === 'ministry' ? ministryMemberCount(managerDeleteTarget.item.id) : branchMemberCount(managerDeleteTarget.item.id)
+    if (assigned > 0) {setManagerDeleteTarget(null);return}
 
     const { kind, item } = managerDeleteTarget
     const table = kind === 'ministry' ? 'ministries' : 'branches'
@@ -1009,7 +1021,7 @@ export default function MemberManager() {
     setMinistryMessage('')
     setFilterSpotlight('ministry')
     window.setTimeout(() => {
-      directoryListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      directoryListRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
     }, 50)
     window.setTimeout(() => setFilterSpotlight(null), 1150)
   }
@@ -1043,6 +1055,7 @@ export default function MemberManager() {
   }
 
   async function deleteBranch(branch: Branch) {
+    if (directoryBusy || directoryError) {setBranchMessage('Wait for the directory to finish loading, or retry if it failed.');return}
     const count = branchMemberCount(branch.id)
     if (count > 0) {
       setBlockedBranchId(branch.id)
@@ -1060,7 +1073,7 @@ export default function MemberManager() {
     setBranchMessage('')
     setFilterSpotlight('branch')
     window.setTimeout(() => {
-      directoryListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      directoryListRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
     }, 50)
     window.setTimeout(() => setFilterSpotlight(null), 1150)
   }
@@ -1255,7 +1268,7 @@ export default function MemberManager() {
       context.drawImage(qrImage, 970, 375, 400, 400)
       context.fillStyle = '#718985'
       context.font = '600 20px system-ui, sans-serif'
-      context.fillText('Private member token • Keep this ID safe', 1170, 809)
+      context.fillText('Private Member Token • Keep This ID Safe', 1170, 809)
       context.textAlign = 'left'
 
       context.fillStyle = 'rgba(225, 244, 240, .88)'
@@ -1286,66 +1299,7 @@ export default function MemberManager() {
     }
   }
 
-  const visibleMembers = useMemo(() => {
-    const query = search.trim().toLowerCase()
-
-    const filtered = members.filter((member) => {
-      const memberMinistries = getMemberMinistries(member)
-      const memberBranches = getMemberBranches(member)
-
-      const matchesSearch =
-        !query ||
-        [
-          member.first_name,
-          member.last_name,
-          member.member_number,
-          member.email ?? '',
-          member.mobile ?? '',
-          ...memberMinistries.map((ministry) => ministry.name),
-          ...memberBranches.map((branch) => branch.name),
-        ]
-          .join(' ')
-          .toLowerCase()
-          .includes(query)
-
-      const matchesMinistry =
-        ministryFilter === 'all' ||
-        (ministryFilter === 'none'
-          ? memberMinistries.length === 0
-          : memberMinistries.some((ministry) => ministry.id === ministryFilter))
-
-      const matchesStatus =
-        statusFilter === 'all' ||
-        (statusFilter === 'vip'
-          ? member.is_starred
-          : member.status === statusFilter)
-
-      const matchesBranch =
-        branchFilter === 'all' || memberBranches.some((branch) => branch.id === branchFilter)
-
-      return matchesSearch && matchesMinistry && matchesBranch && matchesStatus
-    })
-
-    return [...filtered].sort((a, b) => {
-      if (a.is_starred !== b.is_starred) {
-        return a.is_starred ? -1 : 1
-      }
-
-      const nameCompare = memberName(a).localeCompare(memberName(b))
-
-      if (sortBy === 'name-desc') return -nameCompare
-
-      if (sortBy === 'added-oldest') {
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      }
-
-      if (sortBy === 'added-newest') {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      }
-
-      return nameCompare
-    })
-  }, [members, search, ministryFilter, branchFilter, statusFilter, sortBy])
+  const visibleMembers = members
 
   const branchesForFilter = useMemo(
     () => [
@@ -1355,20 +1309,16 @@ export default function MemberManager() {
     [branches],
   )
 
-  const membersPerPage = 15
-  const memberPageCount = Math.max(1, Math.ceil(visibleMembers.length / membersPerPage))
-  const activeMemberPage = Math.min(memberPage, memberPageCount)
-  const pageMembers = visibleMembers.slice(
-    (activeMemberPage - 1) * membersPerPage,
-    activeMemberPage * membersPerPage,
-  )
+  const memberPageCount = Math.max(1, Math.ceil(directoryStats.total / membersPerPage))
+  const activeMemberPage = directoryStats.page
+  const pageMembers = members
 
   function changeMemberPage(nextPage: number) {
     const page = Math.max(1, Math.min(nextPage, memberPageCount))
     if (page === activeMemberPage) return
     setMemberPage(page)
     window.setTimeout(() => {
-      directoryListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      directoryListRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
     }, 20)
   }
 
@@ -1394,7 +1344,7 @@ export default function MemberManager() {
             codes.
           </p>
           <span className="members-hero-caption">
-            {members.filter((member) => member.status === 'active').length} active people in your directory
+            {directoryStats.active} Active People in Your Directory
           </span>
 
           <div className="members-hero-tools">
@@ -1483,7 +1433,7 @@ export default function MemberManager() {
             <input
               value={newManagedMinistryName}
               onChange={(event) => setNewManagedMinistryName(event.target.value)}
-              placeholder="Add a ministry, e.g. Worship Team"
+              placeholder="Add a Ministry, e.g. Worship Team"
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   event.preventDefault()
@@ -1624,7 +1574,7 @@ export default function MemberManager() {
             <input
               value={newManagedBranchName}
               onChange={(event) => setNewManagedBranchName(event.target.value)}
-              placeholder="Add a new Church, e.g. LifeCity - Main"
+              placeholder="Add a New Church, e.g. LifeCity - Main"
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   event.preventDefault()
@@ -1824,7 +1774,7 @@ export default function MemberManager() {
                 onChange={(event) =>
                   setForm({ ...form, adminNote: event.target.value })
                 }
-                placeholder="Add a helpful reminder about this member"
+                placeholder="Add a Helpful Reminder About This Member"
                 rows={3}
                 maxLength={1000}
               />
@@ -1846,7 +1796,7 @@ export default function MemberManager() {
                   <p className="muted">Add your first church below.</p>
                   {branchLoadError && (
                     <p className="branch-load-error">
-                      Could not load churches: {branchLoadError}
+                      Could Not Load Churches: {branchLoadError}
                     </p>
                   )}
                 </>
@@ -1869,7 +1819,7 @@ export default function MemberManager() {
                 <input
                   value={newBranchName}
                   onChange={(event) => setNewBranchName(event.target.value)}
-                  placeholder="Add a new Church, e.g. LifeCity - Main"
+                  placeholder="Add a New Church, e.g. LifeCity - Main"
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
                       event.preventDefault()
@@ -1924,7 +1874,7 @@ export default function MemberManager() {
                 <input
                   value={newMinistryName}
                   onChange={(event) => setNewMinistryName(event.target.value)}
-                  placeholder="Add a new ministry, e.g. Worship Team"
+                  placeholder="Add a New Ministry, e.g. Worship Team"
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
                       event.preventDefault()
@@ -1987,7 +1937,7 @@ export default function MemberManager() {
           <div>
             <h2>All Members</h2>
             <p>
-              {visibleMembers.length} of {members.length} registered
+              {directoryStats.total} of {directoryStats.registered} Registered
             </p>
           </div>
 
@@ -2036,7 +1986,7 @@ export default function MemberManager() {
                 <option value="all">All Members</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
-                <option value="vip">VIP</option>
+                <option value="vip">Starred</option>
               </select>
             </label>
 
@@ -2051,12 +2001,27 @@ export default function MemberManager() {
           </div>
         </div>
 
+        <details className="lcmx-export">
+          <summary><Download size={17}/><span>Export Members</span><small>Current filters · All pages</small></summary>
+          <div className="lcmx-body">
+            <p>Export every matching member in the current sort order, with starred members first. Bulk selections do not limit the export.</p>
+            <div className="lcmx-options">
+              <button type="button" disabled={csvBusy||directoryBusy||!!directoryError||saving||bulkSaving} onClick={()=>void exportDirectory(false)}><Download size={18}/><span><strong>Quick CSV</strong><small>Contact details, status, Starred, churches, and ministries.</small></span></button>
+              <button type="button" disabled={csvBusy||directoryBusy||!!directoryError||saving||bulkSaving} onClick={()=>void exportDirectory(true)}><Download size={18}/><span><strong>Detailed CSV</strong><small>Quick CSV fields plus IDs, registration time, and private admin notes.</small></span></button>
+            </div>
+            <p className="lcmx-hint">Exports use the latest saved directory data. Up to 20,000 matching members per file; narrow your filters for larger directories. In Excel, import Mobile as Text to retain leading zeros.</p>
+            {csvBusy&&<p role="status">Preparing your member export…</p>}
+            {csvMessage&&<p className="lcmx-success" role="status">{csvMessage}</p>}
+            {csvError&&<p className="lcmx-error" role="alert">{csvError}</p>}
+          </div>
+        </details>
+
         {bulkMode && (
           <div className="bulk-action-bar">
             <span className="bulk-selection-count">
               {selectedMemberIds.length === 0
                 ? 'Select Members to Begin'
-                : `${selectedMemberIds.length} Selected`}
+                : `${selectedMemberIds.length} Selected Across Pages`}
             </span>
             {selectedMemberIds.length > 0 && (
               <>
@@ -2095,10 +2060,18 @@ export default function MemberManager() {
           </div>
         )}
 
-        {loading ? (
+        <div className="lcmp-page-size">
+          <label htmlFor="members-page-size">Members per Page</label>
+          <select id="members-page-size" value={membersPerPage} onChange={(event) => setMembersPerPage(Number(event.target.value))}>
+            <option value={25}>25</option><option value={50}>50</option><option value={100}>100</option>
+          </select>
+        </div>
+        {directoryBusy ? (
           <div className="empty-state">
-            <p>Loading members…</p>
+            <p>Loading Members…</p>
           </div>
+        ) : directoryError ? (
+          <div className="lcmp-load-error" role="alert"><p>{directoryError}</p><button type="button" className="secondary-button" onClick={() => void loadData()}>Try Again</button></div>
         ) : visibleMembers.length === 0 ? (
           <div className="empty-state">
             <Users size={30} />
@@ -2178,13 +2151,13 @@ export default function MemberManager() {
                         onClick={() => void toggleStar(member)}
                         aria-label={
                           member.is_starred
-                            ? `Remove VIP Status from ${memberName(member)}`
-                            : `Mark ${memberName(member)} as VIP`
+                            ? `Unstar ${memberName(member)}`
+                            : `Mark ${memberName(member)} as Starred`
                         }
                         title={
                           member.is_starred
-                            ? 'Remove VIP Pin'
-                            : 'Pin as VIP Member'
+                            ? 'Remove Star'
+                            : 'Mark as Starred'
                         }
                       >
                         <Star
@@ -2284,10 +2257,10 @@ export default function MemberManager() {
           </div>
         )}
 
-        {visibleMembers.length > 0 && (
+        {!directoryBusy && !directoryError && visibleMembers.length > 0 && (
           <div className="member-pagination" aria-label="Member List Pagination">
             <p>
-              Showing {(activeMemberPage - 1) * membersPerPage + 1}–{Math.min(activeMemberPage * membersPerPage, visibleMembers.length)} of {visibleMembers.length} members
+              Showing {(activeMemberPage - 1) * membersPerPage + 1}–{Math.min(activeMemberPage * membersPerPage, directoryStats.total)} of {directoryStats.total} Members
             </p>
             {memberPageCount > 1 && (
               <div className="member-pagination-controls">
@@ -2495,7 +2468,7 @@ export default function MemberManager() {
               </div>
 
               {detailsLoading ? (
-                <p className="muted">Loading attendance…</p>
+                <p className="muted">Loading Attendance…</p>
               ) : memberAttendance.length === 0 ? (
                 <p className="muted">No attendance recorded yet.</p>
               ) : (
