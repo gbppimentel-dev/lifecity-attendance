@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.lifecity_attendance.twa",
+        "sha256_cert_fingerprints": ["E5:DB:20:E7:F9:7F:9D:5E:F1:BE:73:DA:32:30:4E:52:E4:26:BB:6C:32:4A:CD:E7:60:78:62:BC:4C:B1:08:F4"]
+      }
+    }]
