@@ -24516,3 +24516,117 @@ body .lc-service-trigger { display:flex; align-items:center; gap:12px; width:100
   body .lc-auth-page .lcr-panel { min-width:0; padding:16px; }
   body .lc-auth-page .lc-auth-state-actions { flex-direction:column; }
 }
+/* Desktop landing page: balanced, single-screen layout */
+@media (min-width: 901px) {
+  body .lc-auth-page:not(.lc-auth-compact) {
+    box-sizing: border-box;
+    min-height: 100dvh;
+    padding: clamp(16px, 3vh, 32px) 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(12px, 2vh, 22px);
+  }
+
+  body .lc-auth-page:not(.lc-auth-compact) > * {
+    flex-shrink: 0;
+  }
+
+  body .lc-auth-page:not(.lc-auth-compact) .lc-auth-story,
+  body .lc-auth-page:not(.lc-auth-compact) .lc-auth-body {
+    padding: clamp(24px, 4vh, 40px) 32px;
+  }
+
+  body .lc-auth-page:not(.lc-auth-compact) .lc-auth-art {
+    height: clamp(110px, 20vh, 180px);
+    margin-top: 12px;
+  }
+
+  body .lc-auth-page:not(.lc-auth-compact) .lc-auth-footer {
+    margin: 0;
+  }
+}
+
+/* Tighter spacing for shorter desktop windows */
+@media (min-width: 901px) and (max-height: 760px) {
+  body .lc-auth-page:not(.lc-auth-compact) .lc-auth-story h1 {
+    font-size: 34px;
+    margin-bottom: 14px;
+  }
+
+  body .lc-auth-page:not(.lc-auth-compact) .lc-auth-intro {
+    margin-bottom: 18px;
+  }
+
+  body .lc-auth-page:not(.lc-auth-compact) .lc-auth-help {
+    margin-top: 14px;
+  }
+
+  body .lc-auth-page:not(.lc-auth-compact) .lc-auth-art {
+    height: 120px;
+  }
+
+  body .lc-auth-page:not(.lc-auth-compact) .lc-auth-orbit {
+    width: 150px;
+    height: 150px;
+  }
+
+  body .lc-auth-page:not(.lc-auth-compact) .lc-auth-art-card {
+    padding: 16px;
+    gap: 8px;
+  }
+}
+/* Landing footer */
+body .lc-landing-footer {
+  width: min(100%, 1100px);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin: 0;
+  text-align: center;
+  color: #9695a8;
+}
+
+body .lc-landing-footer .lc-footer-credit {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+body .lc-landing-footer .lc-footer-credit span {
+  margin: 0 3px;
+  color: inherit;
+}
+
+body .lc-landing-footer .lc-footer-verse {
+  margin: 0;
+  color: #aaa8b9;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+body .lc-landing-footer .lc-footer-tech {
+  min-height: 36px;
+  margin: 2px 0 0;
+  padding: 6px 14px;
+  border: 0;
+  background: transparent;
+  color: #9695a8;
+  font: inherit;
+  font-size: 13px;
+}
+
+body .lc-landing-footer .lc-footer-tech:disabled {
+  opacity: 1;
+  cursor: default;
+  transform: none;
+}
+
+body .lc-landing-footer .lc-footer-tech {
+  font-size: 9px;
+}
+

@@ -1,3 +1,4 @@
+// Change ID: LC-CAMERA-STARTUP-v2
 // Change ID: LC-MOBILE-CAMERA-v1
 // Change ID: LC-P08L-v1
 // Change ID: LC-P08E-v1
@@ -250,15 +251,36 @@ export default function AttendanceScanner({ event }: Props) {
       const reader=document.getElementById('attendance-reader')
       if(!reader)return
       reader.replaceChildren()
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+        setCameraState('error')
+        setCameraError(!window.isSecureContext
+          ? 'Camera access requires HTTPS or localhost. Open this app using a secure URL, then retry.'
+          : 'Camera access is not available in this browser. Open the app in a browser with camera support.')
+        return
+      }
       try{
         scanner=new Html5Qrcode('attendance-reader',{verbose:false})
         await scanner.start(
-          cameraId?{deviceId:{exact:cameraId}}:{facingMode:{ideal:facingMode}},
+          cameraId?{deviceId:{exact:cameraId}}:{facingMode},
           {fps:10,qrbox:(width,height)=>{const size=Math.min(250,Math.floor(Math.min(width,height)*.8));return {width:size,height:size}},aspectRatio:1},
           text=>{if(!disposed)void recordAttendance(text)},()=>{},
         )
-      }catch{
-        if(!disposed){setCameraState('error');setCameraError('Could not start this camera. Allow camera access, close other apps using it, then choose Retry Camera or Switch Camera.')}
+      }catch(error){
+        if(!disposed){
+          const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+          let message = 'Could not start this camera. Choose Retry Camera or Switch Camera. If it still fails, check the browser console for the camera error.'
+          if (/NotAllowedError|PermissionDeniedError|permission denied/i.test(detail)) {
+            message = 'Camera permission was denied. Allow camera access for this site in your browser and system settings, then choose Retry Camera.'
+          } else if (/NotFoundError|DevicesNotFoundError/i.test(detail)) {
+            message = 'No camera was found. Connect or enable a camera, then choose Retry Camera.'
+          } else if (/NotReadableError|TrackStartError|could not start video source/i.test(detail)) {
+            message = 'The camera could not be opened. Close other apps or browser tabs using it, then choose Retry Camera.'
+          } else if (/OverconstrainedError|ConstraintNotSatisfiedError/i.test(detail)) {
+            message = 'The selected camera or camera settings are unavailable. Choose Switch Camera to try another camera.'
+          }
+          console.error('LifeCity camera startup failed:', error)
+          setCameraState('error');setCameraError(message)
+        }
         return
       }
       if(disposed)return

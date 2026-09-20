@@ -187,13 +187,51 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
 
   return (
     <>
+      <style>{`
+        @media (min-width: 901px) {
+          body .lc-mobile-workspace > .content:has(.lc-dashboard-footer) {
+            padding-bottom: 8px;
+          }
+          body .lc-mobile-workspace:has(.lc-dashboard-footer) {
+            padding-bottom: 0;
+          }
+        }
+
+        body .dashboard-editorial-hero .dashboard-hero-caption {
+          text-transform: none !important;
+        }
+        body .dashboard-editorial-hero .dashboard-refresh,
+        body .recent-checkins-card .recent-checkin-total {
+          transform: none !important;
+          rotate: none !important;
+        }
+        body .lc-dashboard-footer {
+          width: 100%; margin: 36px auto 0; padding: 20px 16px 12px;
+          display: grid; justify-items: center; gap: 5px;
+          text-align: center; color: #858392;
+        }
+        body .lc-dashboard-footer .lc-dashboard-credit {
+          margin: 0; font-size: 12px; font-weight: 400; line-height: 1.5;
+        }
+        body .lc-dashboard-footer .lc-dashboard-verse {
+          max-width: 850px; margin: 0; font-size: 11px;
+          font-weight: 400; font-style: italic; line-height: 1.6;
+          color: #9693a3; text-wrap: balance;
+        }
+        body .lc-dashboard-footer .lc-dashboard-tech {
+          min-height: 28px; margin: 2px 0 0; padding: 4px 12px;
+          border: 0; background: transparent; color: #858392;
+          font: inherit; font-size: 10px; line-height: 1.5;
+          opacity: 1; cursor: default; transform: none; box-shadow: none;
+        }
+      `}</style>
       <section className="dashboard-editorial-hero">
         <div className="dashboard-hero-copy">
           <p className="eyebrow">Overview</p>
           <h1>Dashboard</h1>
           <p>A quick view of your LifeCity attendance activity.</p>
           <span className="dashboard-hero-caption">
-            {activeMemberCount} Active Members · {periodCheckInCount} Check-Ins in This View
+            {activeMemberCount} Active Members · {periodCheckInCount} check-ins in this view
           </span>
         </div>
 
@@ -400,6 +438,12 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
         </article>
       </section>
 
+
+      <footer className="lc-dashboard-footer">
+        <p className="lc-dashboard-credit">© {new Date().getFullYear()} LifeCity Attendance · LifeCity Church of Christ</p>
+        <p className="lc-dashboard-verse">“So whether you eat or drink or whatever you do, do it all for the glory of God.” — 1 Corinthians 10:31</p>
+        <button type="button" className="lc-dashboard-tech" disabled title="Available when the app is complete">Tech Stack</button>
+      </footer>
     </>
   )
 }

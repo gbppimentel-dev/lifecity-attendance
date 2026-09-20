@@ -2,10 +2,14 @@
 // Change ID: LC-P08B-v1
 // Change ID: LC-P07B-v1
 import { uiMessage } from './lib/uiText'
+import './landing.css'
 // Full replacement for src/App.tsx; requires the installed Phase 1 foundation and LC-P02A-v1.sql plus LC-P02B-v1.sql.
 import type { Session } from '@supabase/supabase-js'
 import { type ReactNode, type FormEvent, lazy, useEffect, useRef, useState } from 'react'
 import {
+  Heart,
+  QrCode,
+  Sparkles,
   ArrowRight,
   RefreshCw,
   ShieldCheck,
@@ -136,17 +140,55 @@ function AccountBrand() {
 }
 
 function AccountShell({ children, compact = false }: { children: ReactNode; compact?: boolean }) {
-  return <main className={'lc-auth-page' + (compact ? ' lc-auth-compact' : '')} data-change-id="LC-UI-COPY-v2">
-    <header className="lc-auth-brand"><AccountBrand/><span>A place to belong.</span></header>
+  return <main className={'lc-auth-page lc-auth-layout-v2' + (compact ? ' lc-auth-compact' : '')} data-change-id="LC-UI-COPY-v2">
+    <header className="lc-auth-brand"><AccountBrand/></header>
     <section className="lc-auth-frame">
       {!compact && <aside className="lc-auth-story">
-        <p className="eyebrow">Gather. Connect. Grow.</p><h1>Every Face.<br/>Every Gathering.<br/><em>One community.</em></h1>
-        <p>A little less admin.<br/>A little more time together.</p>
-        <div className="lc-auth-art" aria-hidden="true"><div className="lc-auth-orbit"/><div className="lc-auth-art-card"><Users size={30}/><strong>Life Happens Together.</strong><span>LifeCity Community</span></div><span className="lc-auth-sticker"><CalendarDays size={18}/>See You at Church</span></div>
+        <p className="eyebrow">Gather. Connect. Grow.</p><h1>Grow in Faith.<br/><em>Find Community.</em></h1>
+        <p>Your church community, connected.<br/>Check-in and stay involved.</p>
+        <div className="lc-playful-art" aria-hidden="true">
+          <span className="lc-playful-orbit" />
+          <div className="lc-float-card lc-float-community"><div className="lc-playful-card">
+            <span className="lc-playful-icon"><Users size={27}/></span>
+            <strong>Life Happens Together.</strong><small>LifeCity Community</small>
+            <span className="lc-playful-dots"><i/><i/><i/></span>
+          </div></div>
+          <div className="lc-float-card lc-float-faith"><div className="lc-playful-card">
+            <Heart size={19}/><strong>Rooted in Faith</strong><small>Growing together.</small>
+          </div></div>
+          <div className="lc-float-card lc-float-checkin"><div className="lc-playful-card">
+            <QrCode size={23}/><span><strong>Check In. Connect.</strong><small>Every gathering matters.</small></span>
+          </div></div>
+          <div className="lc-float-card lc-float-sunday"><div className="lc-playful-card">
+            <CalendarDays size={19}/><strong>See You at Church</strong>
+          </div></div>
+          <Sparkles className="lc-playful-spark" size={21}/>
+          <span className="lc-playful-dot"/>
+        </div>
       </aside>}
       <div className="lc-auth-body">{children}</div>
     </section>
-    <footer className="lc-auth-footer">LifeCity Attendance <span>•</span> Connected in Community</footer>
+    <footer className="lc-auth-footer lc-landing-footer">
+  <p className="lc-footer-credit">
+    © {new Date().getFullYear()} LifeCity Attendance
+    <span aria-hidden="true"> • </span>
+    LifeCity Church of Christ
+  </p>
+
+  <p className="lc-footer-verse">
+    “So whether you eat or drink or whatever you do, do it all for
+    the glory of God.” — 1 Corinthians 10:31
+  </p>
+
+  <button
+    type="button"
+    className="lc-footer-tech"
+    disabled
+    title="Available when the app is complete"
+  >
+    Tech Stack
+  </button>
+</footer>
   </main>
 }
 
@@ -239,8 +281,8 @@ export default function App() {
     <AccountShell>
       <div className="lc-google-welcome" data-change-id="LC-UI-COPY-v2">
         <p className="eyebrow">Your LifeCity Space</p>
-        <h2>Good to See You.</h2>
-        <p className="lc-auth-intro">Your community, your member ID, and the moments we share. All in one place.</p>
+        <h2>Welcome to LifeCity!</h2>
+        <p className="lc-auth-intro">Connect with your LifeCity family. Sign in to view your member QR code and get ready for our next gathering.</p>
         <button type="button" className="lc-google-button lc-google-only-button" disabled={working} aria-busy={working} onClick={()=>void googleSignIn()}>
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M43.6 24.5c0-1.5-.1-2.9-.4-4.3H24v8.1h11a9.4 9.4 0 0 1-4.1 6.2v5.2h6.7c3.9-3.6 6-8.9 6-15.2Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.7-5.2c-1.8 1.2-4.1 1.9-6.8 1.9-5.3 0-9.8-3.6-11.4-8.4H5.7v5.4A20.4 20.4 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.6 27.4a12.2 12.2 0 0 1 0-7.8v-5.4H5.7a20.3 20.3 0 0 0 0 18.6l6.9-5.4Z"/><path fill="#EA4335" d="M24 11.2c3 0 5.6 1 7.6 3l5.7-5.7A19.3 19.3 0 0 0 24 3 20.4 20.4 0 0 0 5.7 14.2l6.9 5.4c1.6-4.8 6.1-8.4 11.4-8.4Z"/></svg>
           <span>{working ? 'Connecting to Google…' : 'Continue with Google'}</span>
@@ -250,7 +292,7 @@ export default function App() {
         <button type="button" className="lcg-welcome-link" disabled={working} onClick={()=>setShowGuest(true)}>Explore as a Guest <ArrowRight size={16}/></button>
         <div className="lc-google-welcome-note">
           <span className="lc-google-note-icon" aria-hidden="true"><ShieldCheck size={22}/></span>
-          <div><strong>One Account. A Warm Welcome.</strong><p>Use Google to sign in or create your LifeCity login. No separate LifeCity password to remember.</p></div>
+          <div><strong>Secure sign-in with Google.</strong><p>Use your Google account to get started. New to LifeCity Attendance? Your account is created when you first sign in—no extra password needed.</p></div>
         </div>
         <p className="lc-auth-help">Already registered at church? After signing in, request to connect your existing member profile. Your member ID and attendance stay together.</p>
       </div>

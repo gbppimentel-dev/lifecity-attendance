@@ -1,0 +1,163 @@
+/* Account footer and desktop landing composition. */
+body .lc-auth-page.lc-auth-layout-v2 > .lc-landing-footer {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1100px;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 12px 16px 0;
+  color: #858392;
+  text-align: center;
+}
+body .lc-auth-page.lc-auth-layout-v2 .lc-footer-credit {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+body .lc-auth-page.lc-auth-layout-v2 .lc-footer-credit span {
+  margin: 0 4px;
+  color: inherit;
+}
+body .lc-auth-page.lc-auth-layout-v2 .lc-footer-verse {
+  max-width: 850px;
+  margin: 0;
+  color: #9693a3;
+  font-size: 11px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.6;
+  text-wrap: balance;
+}
+body .lc-auth-page.lc-auth-layout-v2 .lc-footer-tech {
+  min-height: 28px;
+  margin: 2px 0 0;
+  padding: 4px 12px;
+  border: 0;
+  background: transparent;
+  color: #858392;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+body .lc-auth-page.lc-auth-layout-v2 .lc-footer-tech:disabled {
+  opacity: 1;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+@media (min-width: 901px) {
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) {
+    box-sizing: border-box;
+    min-height: 100dvh;
+    height: auto;
+    padding: 0 32px 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(20px, 1fr) auto auto minmax(24px, 1fr) auto;
+    justify-items: center;
+    align-items: start;
+    align-content: normal;
+    gap: 0;
+  }
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) > .lc-auth-brand {
+    grid-row: 2;
+    margin: 0 0 18px;
+  }
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) > .lc-auth-frame {
+    grid-row: 3;
+  }
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) > .lc-landing-footer {
+    grid-row: 5;
+  }
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) :is(.lc-auth-story, .lc-auth-body) {
+    padding: clamp(24px, 4vh, 40px) 32px;
+  }
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-art {
+    height: clamp(110px, 18vh, 160px);
+    margin-top: 12px;
+  }
+}
+@media (min-width: 901px) and (max-height: 760px) {
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story h1 {
+    font-size: 34px;
+    margin-bottom: 14px;
+  }
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-intro { margin-bottom: 18px; }
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-help { margin-top: 14px; }
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-art { height: 120px; }
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-orbit { width: 150px; height: 150px; }
+  body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-art-card { padding: 16px; gap: 8px; }
+}
+
+/* Align both edges of the Google sign-in explanation. */
+body .lc-auth-page.lc-auth-layout-v2 .lc-google-welcome-note p {
+  text-align: justify;
+  text-align-last: left;
+}
+
+/* Decorative card collage: motion stays within its own reserved space. */
+body .lc-auth-layout-v2 .lc-playful-art {
+  position: relative; isolation: isolate; width: 100%; max-width: 410px;
+  height: 260px; margin: 20px auto 0;
+}
+.lc-playful-orbit {
+  position: absolute; width: 210px; height: 210px; left: 50%; top: 20px;
+  transform: translateX(-50%); border: 1px solid #bddcd2; border-radius: 50%;
+}
+.lc-playful-orbit::after {
+  content: ''; position: absolute; inset: 17px; border: 1px dashed #c9bce1;
+  border-radius: 50%; animation: lc-collage-orbit 38s linear infinite;
+}
+.lc-float-card { position: absolute; animation: lc-card-drift 6s ease-in-out infinite; }
+.lc-playful-card {
+  display: grid; gap: 7px; padding: 16px; border: 1px solid #d1e5de;
+  border-radius: 19px; background: #fff; color: #398477;
+  box-shadow: 5px 7px 0 #376f6410; transform: rotate(var(--card-angle, 0deg));
+  transition: transform 260ms ease, box-shadow 260ms ease;
+}
+.lc-playful-card strong { font-size: 13px; line-height: 1.4; }
+.lc-playful-card small { color: #79958a; font-size: 11px; line-height: 1.5; }
+.lc-playful-icon { display: grid; place-items: center; width: 43px; height: 43px; border-radius: 13px; background: #e9f6ef; }
+.lc-float-community { left: 11%; top: 59px; width: 66%; z-index: 2; --card-angle: -4deg; }
+.lc-float-community .lc-playful-card { padding: 19px; }
+.lc-float-community strong { font-size: 15px; }
+.lc-playful-dots { display: flex; gap: 4px; position: absolute; top: 23px; right: 19px; }
+.lc-playful-dots i { width: 6px; height: 6px; border-radius: 50%; background: #acd7c9; }
+.lc-playful-dots i:nth-child(2) { background: #cbbde6; }
+.lc-playful-dots i:nth-child(3) { background: #ebcc85; }
+.lc-float-faith { right: 1%; top: 0; z-index: 3; --card-angle: 5deg; animation-delay: -2s; }
+.lc-float-faith .lc-playful-card { background: #f1ecfb; border-color: #dfd4ef; color: #8770ae; padding: 13px 16px; }
+.lc-float-faith small { color: #8b7f9b; }
+.lc-float-checkin { left: 0; bottom: 0; z-index: 4; --card-angle: -3deg; animation-delay: -4s; }
+.lc-float-checkin .lc-playful-card { display: flex; align-items: center; gap: 10px; background: #e8f6f1; padding: 13px; }
+.lc-float-checkin span { display: grid; gap: 3px; }
+.lc-float-sunday { right: 0; bottom: 53px; z-index: 5; --card-angle: 4deg; animation-delay: -1s; }
+.lc-float-sunday .lc-playful-card { display: flex; align-items: center; gap: 8px; padding: 12px; background: #fff4d9; border-color: #eedbab; color: #ad8131; }
+.lc-float-sunday strong { font-size: 11px; font-weight: 600; }
+.lc-playful-spark { position: absolute; top: 20px; left: 9%; color: #cbac63; animation: lc-spark-breathe 4s ease-in-out infinite; }
+.lc-playful-dot { position: absolute; bottom: 16px; right: 16%; width: 8px; height: 8px; border-radius: 50%; background: #b5a1d5; animation: lc-spark-breathe 5s ease-in-out infinite; }
+@keyframes lc-card-drift { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+@keyframes lc-collage-orbit { to { rotate: 360deg; } }
+@keyframes lc-spark-breathe { 0%, 100% { opacity: .55; scale: .9; } 50% { opacity: 1; scale: 1.1; } }
+@media (hover: hover) and (pointer: fine) {
+  .lc-float-card:hover { animation-play-state: paused; z-index: 6; }
+  .lc-float-card:hover .lc-playful-card { transform: translateY(-5px) rotate(0deg); box-shadow: 0 12px 23px #376f6420; }
+}
+@media (min-width: 901px) and (max-height: 760px) {
+  body .lc-auth-layout-v2 .lc-playful-art { height: 222px; margin-top: 12px; }
+  .lc-float-community { top: 37px; }
+  .lc-float-community .lc-playful-card { padding: 14px; gap: 5px; }
+  .lc-float-faith .lc-playful-card { padding: 10px 13px; gap: 4px; }
+  .lc-float-sunday { bottom: 43px; }
+}
+/* Keep the existing compact mobile landing layout. */
+@media (max-width: 900px) { body .lc-auth-layout-v2 .lc-playful-art { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .lc-float-card, .lc-playful-orbit::after, .lc-playful-spark, .lc-playful-dot { animation: none; }
+  .lc-playful-card { transition: none; }
+  .lc-float-card:hover .lc-playful-card { transform: rotate(var(--card-angle, 0deg)); }
+}
