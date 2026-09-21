@@ -8,6 +8,10 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Web Wrap-Up',title:'Meet the Tools Behind LifeCity',highlights:[
+  note('Explore the new Tech Stack page from the footer, with searchable categories and optional animated graphics.'),
+  note('The public repository now includes a detailed README and a source-based technology and backend inventory.')
+ ]},
  {version:'Pre-Launch · Updates That Fit Your Space',title:'Made for Your View',highlights:[
   note('What’s New and Version History now show updates relevant to your access.'),
   note('A friendlier feedback confirmation takes you back to exploring the app.',signedIn),
