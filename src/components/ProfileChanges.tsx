@@ -2,7 +2,7 @@
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Pencil, Search, RefreshCw, Check, X } from 'lucide-react'
+import { Pencil, Search, RefreshCw, Check, X, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 type Values={first_name:string;last_name:string;email:string;churches:string[];ministries:string[]}
 type Named={id:string;name:string}
@@ -122,6 +122,32 @@ export function OwnerProfileRequests(){
  const pages=Math.max(1,Math.ceil((data?.total||0)/20))
  function turn(n:number){setPage(n);section.current?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
  return <section className="lpe-owner-panel" ref={section} data-change-id="LC-UI-COPY-v2">
+  <style>{`
+    body .lpe-owner-panel .lcq-search-row {padding:0;margin:16px 0 20px;gap:10px;}
+    body .lpe-owner-panel .lcq-search-row > label.lcq-search {
+      display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:10px;
+      flex:1 1 240px;min-width:0;min-height:46px;margin:0;padding:0 14px;
+      border:1px solid #d7e7e1;border-radius:12px;background:#fff;color:#718985;
+    }
+    body .lpe-owner-panel .lcq-search-row > label.lcq-search > svg {
+      position:static;flex:0 0 17px;width:17px;height:17px;margin:0;transform:none;
+    }
+    body .lpe-owner-panel .lcq-search-row > label.lcq-search > input {
+      flex:1 1 0%;width:0;min-width:0;min-height:46px;margin:0;padding:11px 0;
+      border:0;border-radius:0;background:transparent;box-shadow:none;
+      color:#315b53;font:inherit;font-size:14px;font-weight:400;line-height:1.5;
+    }
+    body .lpe-owner-panel .lcq-search-row > label.lcq-search > input::placeholder {color:#879b93;font-weight:400;opacity:1;}
+    body .lpe-owner-panel .lcq-search-row > label.lcq-search:focus-within {outline:2px solid #78a991;outline-offset:3px;}
+    body .lpe-owner-panel .lcq-search-row > label.lcq-search > input:focus {outline:none;box-shadow:none;}
+    body .lpe-owner-panel .lpe-pagination > div {display:flex;align-items:center;gap:8px;}
+    body .lpe-owner-panel .lpe-pagination > div > button {display:inline-flex;align-items:center;justify-content:center;width:40px;min-width:40px;height:40px;padding:0;border-radius:10px;}
+    body .lpe-owner-panel .lpe-pagination > div > button > svg {flex-shrink:0;}
+    @media(max-width:700px) {
+      body .lpe-owner-panel .lcq-search-row > label.lcq-search > input {font-size:16px;}
+      body .lpe-owner-panel .lpe-pagination > div > button {width:44px;min-width:44px;height:44px;}
+    }
+  `}</style>
   <header className="lpe-heading"><div><p className="eyebrow">Member Details · Owner Review</p><h2>Profile Change Requests</h2><p>Approve verified changes to an existing member profile.</p></div><button className="lpe-button" disabled={saving||loading} onClick={()=>setRevision(v=>v+1)}><RefreshCw size={15}/>Refresh</button></header>
   <div className="lpe-toolbar"><label>Request Status<select disabled={saving} value={status} onChange={e=>{setStatus(e.target.value);setPage(1)}}>{['pending','approved','declined','cancelled','all'].map(v=><option key={v} value={v}>{v==='pending'?'Pending Review':v==='all'?'All Requests':v[0].toUpperCase()+v.slice(1)}</option>)}</select></label><span>{loading||searching?'Loading…':(data?.total||0)+' Requests'}</span></div>
   <div className="lcq-search-row"><label className="lcq-search"><Search size={17} aria-hidden="true"/><input type="search" aria-label="Search Profile Change Requests" placeholder="Name, Email, or Member ID" disabled={saving} value={requestSearch} onChange={e=>{setRequestSearch(e.target.value);setPage(1)}}/></label>{requestSearch && <button type="button" className="lpe-button" disabled={saving} onClick={()=>{setRequestSearch('');setRequestQuery('');setPage(1)}}>Clear Search</button>}</div>
@@ -129,7 +155,7 @@ export function OwnerProfileRequests(){
   {loading||searching?<p className="lpe-help" role="status">Loading Profile Requests…</p>:data&&<>
    {data.rows.length===0&&<p className="lpe-empty">{requestQuery ? 'No profile requests match this search. Try another name, email, or member ID.' : `No ${status==='all'?'':status+' '}profile requests.`}</p>}
    {data.rows.map(r=><OwnerRequestRow key={r.id+':'+r.updated_at} request={r} catalog={data} busy={saving} onBusy={setSaving} onDone={()=>{setNotice('Profile request reviewed.');setRevision(v=>v+1)}}/>)}
-   <nav className="lpe-pagination" aria-label="Profile Request Pages"><span>{data.page} / {pages} · 20 Per Page</span><div>{[{label:'First',n:1,off:data.page===1},{label:'Previous',n:data.page-1,off:data.page===1},{label:'Next',n:data.page+1,off:data.page>=pages},{label:'Last',n:pages,off:data.page>=pages}].map(x=><button key={x.label} className="lpe-button" disabled={saving||x.off} onClick={()=>turn(x.n)}>{x.label}</button>)}</div></nav>
+   <nav className="lpe-pagination" aria-label="Profile Request Pages"><span>{data.page} / {pages} · 20 Per Page</span><div>{[{label:'First page',icon:ChevronsLeft,n:1,off:data.page===1},{label:'Previous page',icon:ChevronLeft,n:data.page-1,off:data.page===1},{label:'Next page',icon:ChevronRight,n:data.page+1,off:data.page>=pages},{label:'Last page',icon:ChevronsRight,n:pages,off:data.page>=pages}].map(x=><button type="button" key={x.label} className="lpe-button" aria-label={x.label} title={x.label} disabled={saving||x.off} onClick={()=>turn(x.n)}><x.icon size={18} aria-hidden="true"/></button>)}</div></nav>
   </>}
  </section>
 }

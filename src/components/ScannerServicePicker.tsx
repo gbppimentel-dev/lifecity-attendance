@@ -32,12 +32,74 @@ export default function ScannerServicePicker({ services, value, disabled, now, o
 
   function choose(id: string) { onChange(id); setOpen(false) }
   return <>
+    <style>{`
+      body .lc-service-sheet label.lc-service-search {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 10px;
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        margin: 20px 0 0;
+        padding: 0 14px;
+        box-sizing: border-box;
+        border: 1px solid #cde0d9;
+        border-radius: 12px;
+        background: #fff;
+        color: #718985;
+      }
+      body .lc-service-sheet label.lc-service-search > svg {
+        position: static;
+        display: block;
+        flex: 0 0 18px;
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        transform: none;
+      }
+      body .lc-service-sheet label.lc-service-search > input {
+        display: block;
+        flex: 1 1 0%;
+        width: 0;
+        min-width: 0;
+        max-width: 100%;
+        min-height: 48px;
+        margin: 0;
+        padding: 12px 0;
+        box-sizing: border-box;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: #315b53;
+        font: inherit;
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 1.5;
+        text-transform: none;
+        box-shadow: none;
+      }
+      body .lc-service-sheet label.lc-service-search > input::placeholder {
+        color: #879b96;
+        opacity: 1;
+        font-weight: 400;
+      }
+      body .lc-service-sheet label.lc-service-search:focus-within {
+        outline: 2px solid #318d7e;
+        outline-offset: 3px;
+      }
+      body .lc-service-sheet label.lc-service-search > input:focus {
+        outline: none;
+        box-shadow: none;
+      }
+    `}</style>
     <button ref={trigger} type="button" className="lc-service-trigger" disabled={disabled} aria-haspopup="dialog" aria-expanded={open} onClick={() => { setSearch(''); setOpen(true) }}>
       <CalendarDays size={21}/><span>{selected ? 'Change Service' : 'Choose a Service'}</span><ChevronDown size={18}/>
     </button>
     <dialog ref={dialog} className="lc-service-sheet" aria-labelledby="lc-service-sheet-title" onCancel={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) setOpen(false) } }}>
       <header><div><p className="card-kicker">Check-In Service</p><h2 id="lc-service-sheet-title">Choose a Service</h2></div><button type="button" className="lc-service-close" aria-label="Close service picker" onClick={() => setOpen(false)} autoFocus><X size={20}/></button></header>
-      <label className="lc-service-search"><Search size={18}/><input type="search" placeholder="Search services or locations" aria-label="Search check-in services" value={search} onChange={event => setSearch(event.target.value)}/></label>
+      <label className="lc-service-search"><Search size={18} aria-hidden="true"/><input type="search" placeholder="Search services or locations" aria-label="Search check-in services" value={search} onChange={event => setSearch(event.target.value)}/></label>
       <p className="lc-service-count" role="status">{matches.length} service{matches.length === 1 ? '' : 's'} available</p>
       <div className="lc-service-options">
         {matches.map(service => <button type="button" key={service.id} className={'lc-service-option' + (service.id === value ? ' is-selected' : '')} aria-pressed={service.id === value} onClick={() => choose(service.id)}>
