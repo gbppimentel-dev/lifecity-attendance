@@ -86,6 +86,8 @@ export default function AttendanceScanner({ event }: Props) {
   const [torchOn, setTorchOn] = useState(false)
   const [recentCheckIns, setRecentCheckIns] = useState<RecentCheckIn[]>([])
   const [isKioskMode, setIsKioskMode] = useState(false)
+  const kioskButtonRef = useRef<HTMLButtonElement>(null)
+  const nativeKiosk = useRef(false)
   const processingRef = useRef(false)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const scannerLayoutRef = useRef<HTMLElement | null>(null)
@@ -318,16 +320,45 @@ export default function AttendanceScanner({ event }: Props) {
         try{scanner.clear()}catch{/* Reader may already be removed. */}
       })
     }
-  },[event?.id,cameraId,facingMode,cameraRetry])
+  },[event?.id,cameraId,facingMode,cameraRetry,isKioskMode])
 
   useEffect(() => {
     function updateKioskMode() {
-      setIsKioskMode(document.fullscreenElement === scannerLayoutRef.current)
+      const active = document.fullscreenElement === scannerLayoutRef.current
+      if (nativeKiosk.current && !active) setIsKioskMode(false)
+      nativeKiosk.current = active
     }
-
     document.addEventListener('fullscreenchange', updateKioskMode)
     return () => document.removeEventListener('fullscreenchange', updateKioskMode)
   }, [])
+
+  useEffect(() => {
+    if (!isKioskMode) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    // Also isolate the viewport-filling fallback when native fullscreen is unavailable.
+    const siblings: {element:HTMLElement; inert:boolean}[] = []
+    let branch: HTMLElement | null = scannerLayoutRef.current
+    while (branch?.parentElement && branch !== document.body) {
+      for (const sibling of Array.from(branch.parentElement.children)) {
+        if (sibling !== branch && sibling instanceof HTMLElement) {
+          siblings.push({element:sibling,inert:sibling.inert}); sibling.inert=true
+        }
+      }
+      branch=branch.parentElement
+    }
+    function escape(e:KeyboardEvent) { if(e.key==='Escape') setIsKioskMode(false) }
+    window.addEventListener('keydown',escape)
+    kioskButtonRef.current?.focus({preventScroll:true})
+    return () => {
+      document.body.style.overflow=previous
+      siblings.forEach(({element,inert})=>{element.inert=inert})
+      window.removeEventListener('keydown',escape)
+      kioskButtonRef.current?.focus({preventScroll:true})
+    }
+  },[isKioskMode])
+
+  useEffect(()=>{if(!event) setIsKioskMode(false)},[event])
 
   function switchCamera() {
     if(cameraState==='starting'||torchLock.current)return
@@ -360,15 +391,16 @@ export default function AttendanceScanner({ event }: Props) {
   }
 
   async function toggleKioskMode() {
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen()
-      } else {
-        await scannerLayoutRef.current?.requestFullscreen()
+    if (isKioskMode) {
+      setIsKioskMode(false)
+      if(document.fullscreenElement===scannerLayoutRef.current) {
+        try {await document.exitFullscreen()} catch { /* The viewport layout still exits. */ }
       }
-    } catch {
-      setCameraError('Full-screen mode could not be opened in this browser.')
+      return
     }
+    setIsKioskMode(true)
+    try { await scannerLayoutRef.current?.requestFullscreen?.() }
+    catch { /* Keep the accessible viewport-filling kiosk if fullscreen is blocked. */ }
   }
 
   function submitMemberSearch(formEvent: FormEvent<HTMLFormElement>) {
@@ -399,8 +431,8 @@ export default function AttendanceScanner({ event }: Props) {
 
   if (!event) {
     return (
-      <section className="scanner-empty">
-        <ScanLine size={36} />
+      <section className="scanner-empty lc-scanner-idle">
+        <div className="lc-scanner-idle-art" aria-hidden="true"><ScanLine size={36}/><span/></div>
         <h2>Select an Event First</h2>
         <p>Choose a service or gathering above before opening the scanner.</p>
       </section>
@@ -411,14 +443,16 @@ export default function AttendanceScanner({ event }: Props) {
     <section ref={scannerLayoutRef} className={`scanner-layout${isKioskMode ? ' is-kiosk-mode' : ''}`}>
       <div className="scanner-camera-heading">
         <div>
-          <p className="card-kicker">Camera Scanner</p>
+          <p className="card-kicker">{isKioskMode ? 'LifeCity · Self check-in' : 'Camera Scanner'}</p>
           <h2>Scan Member QR</h2>
           <p>Hold the QR code inside the frame to check in automatically.</p>
         </div>
         <div className="scanner-camera-actions">
           <button
             type="button"
-            className={`scanner-camera-switch${isKioskMode ? ' is-active' : ''}`}
+            ref={kioskButtonRef}
+            aria-pressed={isKioskMode}
+            className={`scanner-camera-switch lc-kiosk-toggle${isKioskMode ? ' is-active' : ''}`}
             onClick={() => void toggleKioskMode()}
             title={isKioskMode ? 'Exit Kiosk Mode' : 'Open Kiosk Mode'}
           >
@@ -428,7 +462,7 @@ export default function AttendanceScanner({ event }: Props) {
           {(
             <button
               type="button"
-              className={`scanner-camera-switch${torchOn ? ' is-active' : ''}`}
+              className={`scanner-camera-switch lc-camera-icon${torchOn ? ' is-active' : ''}`}
               onClick={() => void toggleTorch()}
               disabled={!torchSupported || cameraState!=='ready' || torchBusy}
               aria-label={torchSupported?'Toggle Flashlight':'Flashlight Unavailable on This Camera'}
@@ -436,19 +470,19 @@ export default function AttendanceScanner({ event }: Props) {
               aria-pressed={torchOn}
             >
               {torchOn ? <FlashlightOff size={16} /> : <Flashlight size={16} />}
-              {torchOn ? 'Flash On' : 'Flash'}
+
             </button>
           )}
           {(
             <button
               type="button"
-              className="scanner-camera-switch"
+              className="scanner-camera-switch lc-camera-icon"
+              aria-label="Switch camera"
               onClick={switchCamera}
               disabled={cameraState==='starting'||torchBusy}
               title="Switch Camera"
             >
               <SwitchCamera size={16} />
-              Switch Camera
             </button>
           )}
           {cameraState==='error' && <button type="button" className="scanner-camera-switch" onClick={()=>{setCameraState('starting');setCameraRetry(value=>value+1)}}>Retry Camera</button>}
@@ -458,10 +492,14 @@ export default function AttendanceScanner({ event }: Props) {
         </div>
       </div>
 
+      <div className="lc-scanner-workspace">
       <div className="scanner-camera-stage">
         <div id="attendance-reader" className="scanner-reader" />
       </div>
 
+      <aside className="lc-scanner-feedback" aria-label="Check-in feedback">
+      {isKioskMode && <div className="lc-kiosk-service"><p className="card-kicker">You’re checking in to</p><h2 title={event.name}>{event.name}</h2><p>{new Date(event.starts_at).toLocaleString([], {dateStyle:'medium',timeStyle:'short'})}</p></div>}
+      {isKioskMode && !result && !processing && !cameraError && <div className="lc-kiosk-welcome"><ScanLine size={44} aria-hidden="true"/><h2>Ready when you are.</h2><p>Hold your member QR code in the camera frame. Your confirmation will appear here.</p></div>}
       {recentCheckIns.length > 0 && (
         <div className="scanner-recent-checkins" aria-live="polite">
           <span>Last Checked in</span>
@@ -501,7 +539,10 @@ export default function AttendanceScanner({ event }: Props) {
         </div>
       )}
 
-      <section className="manual-checkin-card">
+      {isKioskMode && <p className="lc-kiosk-tip">Need help? Exit kiosk to search for a member.</p>}
+      </aside>
+      </div>
+      <section className="manual-checkin-card" hidden={isKioskMode}>
         <div className="manual-checkin-heading">
           <p>Manual Check-In</p>
           <span>Use member search only when a QR code cannot be scanned.</span>

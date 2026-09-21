@@ -1,3 +1,4 @@
+import { MotionPresence } from '../lib/motion'
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
 // Requires records-complete-v4-20260918.sql. Full replacement for src/components/AttendanceRecords.tsx.
@@ -353,7 +354,7 @@ export default function AttendanceRecords(_props: Props) {
     }
     return (<section className="records-card records-table-v1" data-change-id="records-complete-v4-20260918">
       <div className="records-toolbar"><div><p className="records-section-kicker">Attendance Ledger</p><h2>Your Check-In History</h2><p>Completed services by default. Export every matching record across all pages.</p></div><button className="primary-button" aria-expanded={exportOpen} aria-controls="records-export-center" onClick={() => setExportOpen(!exportOpen)} disabled={exporting}><Download size={18}/>Export CSV</button></div>
-      {exportOpen && <section id="records-export-center" className="rh-export-center" aria-label="CSV Export Center">
+      <MotionPresence show={Boolean(exportOpen)}>{exportOpen && <section id="records-export-center" className="rh-export-center" aria-label="CSV Export Center">
         <div className="rh-export-heading"><div><p className="records-section-kicker">CSV Export Center</p><h3>Your Report, Ready to Share</h3><p>{busy ? "Updating results…" : `${report.total.toLocaleString()} matching records`} · All pages · Current filters and sort order</p></div><button className="rt-icon" aria-label="Close Export Center" disabled={exporting} onClick={() => setExportOpen(false)}><X size={17}/></button></div>
         <div className="rh-export-choices">
           <button className="rh-export-choice" disabled={busy || !!error || exporting || removing || !report.total} onClick={() => void exportCsv("quick")}><Download size={22}/><span><strong>Quick CSV</strong><small>8 core columns · Member, Churches, ministries, service, check-in and attendance status.</small></span></button>
@@ -361,7 +362,7 @@ export default function AttendanceRecords(_props: Props) {
         </div>
         <p className="rh-history-note">New check-ins preserve details at entry. Earlier records are labelled “Backfilled from current data” in Detailed CSV.</p>
         {exporting && <div className="rh-export-progress" role="status"><progress max={report.total || 1} value={exportProgress}/><span>{exportProgress.toLocaleString()} / {report.total.toLocaleString()} Prepared</span><button className="rt-button" onClick={() => { cancelExport.current = true; }}>Cancel Export</button></div>}
-      </section>}
+      </section>}</MotionPresence>
       <div className="records-summary-shelf rh-summary-v4">{[{ label: "Check-Ins Found", value: report.total, Icon: ScanLine, color: "mint" }, { label: "Unique Members", value: report.members, Icon: UsersRound, color: "violet" }, { label: "Services Included", value: report.services, Icon: CalendarDays, color: "gold" }].map(({ label, value, Icon, color }) => <div className="records-summary-item" key={label}><span className={`records-summary-icon ${color}`}><Icon size={17}/></span><div><strong>{busy ? <span className="rh-skeleton rh-number-skeleton" aria-label="Loading"/> : value.toLocaleString()}</strong><span>{label}</span></div></div>)}<div className="records-summary-item rh-top-group"><span className="records-summary-icon violet"><UsersRound size={17}/></span><div><strong>{busy ? "—" : report.top_group?.name ?? "No Affiliations"}</strong><span>{busy ? "Most Attended Church" : report.top_group ? `Most Attended ${uiStatus(report.top_group.kind)} · ${report.top_group.check_ins.toLocaleString()} Check-Ins` : "No Church or ministry in these results"}</span>{!busy && report.top_group && report.top_group.ties > 1 && <small>+{report.top_group.ties-1} Tied</small>}</div></div></div>
       <fieldset className="records-filter-panel rh-filter-fieldset" disabled={exporting || removing}>
         <div className="records-filter-panel-heading">

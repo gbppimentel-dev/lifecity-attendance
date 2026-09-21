@@ -1,8 +1,8 @@
 // Change ID: LC-P08F-v1
 // Change ID: LC-P08B-v1
 // Change ID: LC-P07B-v1
+import { changeWithMotion, MotionPresence, motionEnabled } from './lib/motion'
 import { uiMessage } from './lib/uiText'
-import './landing.css'
 // Full replacement for src/App.tsx; requires the installed Phase 1 foundation and LC-P02A-v1.sql plus LC-P02B-v1.sql.
 import type { Session } from '@supabase/supabase-js'
 import { type ReactNode, type FormEvent, lazy, useEffect, useRef, useState } from 'react'
@@ -377,6 +377,27 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
     { kind: 'delete' | 'archive' | 'restore'; item: AttendanceEvent } | null
   >(null)
   const serviceFormRef = useRef<HTMLElement | null>(null)
+  const [serviceFormScrollRequest, setServiceFormScrollRequest] = useState(0)
+
+  useEffect(() => {
+    if (!showEventForm || !serviceFormScrollRequest) return
+    let secondFrame = 0
+    // Wait for React's form commit and the next layout frame before measuring.
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        const form = serviceFormRef.current
+        if (!form) return
+        const header = document.querySelector<HTMLElement>('.lc-mobile-workspace > .topbar')
+        const position = header ? getComputedStyle(header).position : ''
+        const headerHeight = header && (position === 'sticky' || position === 'fixed')
+          ? header.getBoundingClientRect().height : 0
+        const target = Math.max(0, window.scrollY + form.getBoundingClientRect().top - headerHeight - 20)
+        window.scrollTo({ top: target, behavior: motionEnabled() ? 'smooth' : 'auto' })
+      })
+    })
+    return () => { window.cancelAnimationFrame(firstFrame); window.cancelAnimationFrame(secondFrame) }
+  }, [showEventForm, serviceFormScrollRequest])
+
   const scannerServicePickerRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
@@ -393,7 +414,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
 
   function changePage(nextPage: Page) {
     if (nextPage === page) return
-    setPage(nextPage)
+    changeWithMotion(() => setPage(nextPage))
     if (window.matchMedia('(max-width: 900px)').matches) window.scrollTo({top:0,behavior:'auto'})
   }
 
@@ -565,9 +586,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
     setEventForm(emptyEvent)
     setShowEventForm(true)
 
-    window.requestAnimationFrame(() => {
-      serviceFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
+    setServiceFormScrollRequest(value => value + 1)
   }
 
   function openEditService(item: AttendanceEvent) {
@@ -584,12 +603,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
     })
     setShowEventForm(true)
 
-    window.requestAnimationFrame(() => {
-      serviceFormRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      })
-    })
+    setServiceFormScrollRequest(value => value + 1)
   }
 
   function openScannerForService(item: AttendanceEvent) {
@@ -671,7 +685,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
         </nav>
 
         <details className="lc-account-menu lc-account-menu-v2" onKeyDown={e=>{if(e.key==='Escape'){e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus()}}}>
-          <summary><span className="lc-account-avatar" aria-hidden="true">{(account.display_name || userEmail || 'L').slice(0,1).toUpperCase()}</span><span><small>Logged in as</small><strong>{account.role === 'owner' ? 'Owner' : 'Administrator'}</strong></span><ChevronDown size={15}/></summary>
+          <summary><span className="lc-account-avatar" aria-hidden="true">{(account.display_name || userEmail || 'L').slice(0,1).toUpperCase()}</span><span><small>Logged In as</small><strong>{account.role === 'owner' ? 'Owner' : 'Administrator'}</strong></span><ChevronDown size={15}/></summary>
           <div className="lc-account-popover">
             <div className="lc-menu-identity"><span className="lc-menu-kicker">Your Account</span><strong>{account.display_name && !account.display_name.includes('@') ? account.display_name : 'LifeCity Account'}</strong><span className="lc-menu-email">{maskedEmail(userEmail)}</span></div>
             <dl className="lc-menu-facts"><div><dt>Access Role</dt><dd>{account.role === 'owner' ? 'Owner' : 'Administrator'}</dd></div><div><dt>Member Profile</dt><dd>{account.member_id ? (account.member_name || 'Connected') : 'Not Linked Yet'}</dd></div></dl>
@@ -684,7 +698,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
 
       <MobileAdminNav page={page} isOwner={account.role === 'owner'} onNavigate={changePage}/>
 
-      <section className="content">
+      <section key={page} className="content">
         <ScreenBoundary key={page} label={page === 'events' ? 'Services' : page === 'profile' ? 'My Member Space' : page === 'records' ? 'Attendance Records' : page === 'scanner' ? 'Scanner' : page.charAt(0).toUpperCase()+page.slice(1)}>
         {page === 'dashboard' && (
           <Dashboard
@@ -733,7 +747,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
               <span className="services-hero-spark services-hero-spark-two" aria-hidden="true">✦</span>
             </section>
 
-            {showEventForm && (
+            <MotionPresence show={Boolean(showEventForm)}>{showEventForm && (
               <section className="form-card service-form-card" ref={serviceFormRef}>
                 <div className="service-form-heading">
                   <div>
@@ -767,7 +781,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                           name: event.target.value,
                         })
                       }
-                      placeholder="Sunday Worship"
+                      placeholder="Superbook (SEP) 4th Sunday - Endure 2026"
                       required
                     />
                   </label>
@@ -819,7 +833,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                   <label className="wide-field service-note-field">
                     <span>Service Note <em>Optional</em></span>
                     <small>
-                      Private to admins. Use this to explain unusual attendance later—for example, a combined service, rainy Sunday, or youth outreach.
+                      Private to admins. Use this to explain unusual attendance.
                     </small>
                     <textarea
                       value={eventForm.adminNote}
@@ -829,7 +843,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                           adminNote: event.target.value,
                         })
                       }
-                      placeholder="Example: Combined service because of the holiday."
+                      placeholder="Example: Combined Service, Rainy Sunday, Church Anniversary, etc."
                       rows={3}
                     />
                   </label>
@@ -878,7 +892,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                   </div>
                 </form>
               </section>
-            )}
+            )}</MotionPresence>
 
             <section className="directory-card lc-services-directory lcsp-directory" ref={servicesListRef}>
               <div className="directory-toolbar">
@@ -1141,12 +1155,16 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
               <button
                 type="button"
                 className="records-hero-action"
-                onClick={() =>
-                  document.querySelector('.records-card')?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start',
+                onClick={() => {
+                  window.requestAnimationFrame(() => {
+                    const card=document.querySelector<HTMLElement>('.records-card')
+                    if(!card)return
+                    const header=document.querySelector<HTMLElement>('.lc-mobile-workspace > .topbar')
+                    const position=header?getComputedStyle(header).position:''
+                    const offset=header&&(position==='sticky'||position==='fixed')?header.getBoundingClientRect().height:0
+                    window.scrollTo({top:Math.max(0,window.scrollY+card.getBoundingClientRect().top-offset-20),behavior:motionEnabled()?'smooth':'auto'})
                   })
-                }
+                }}
               >
                 <span className="records-hero-action-kicker">Reporting Center</span>
                 <strong>View Records</strong>

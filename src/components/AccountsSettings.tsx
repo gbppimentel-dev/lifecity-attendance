@@ -102,7 +102,7 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
   <OwnerProfileRequests/>
   <MemberLinkRequests owner onChanged={()=>{setRefresh(v=>v+1);onLinkChanged()}}/>
   <section className="lca-panel" ref={listRef} aria-labelledby="lca-heading" aria-busy={busy}>
-   <header className="lca-heading"><div><p className="eyebrow">People Behind the Logins</p><h2 id="lca-heading">Accounts</h2><p>Access status is separate from a member’s Active / Inactive status.</p></div><button type="button" className="secondary-button" disabled={saving || loading} onClick={()=>{setRefresh(v=>v+1);setNotice('')}}><RefreshCw size={16}/>Refresh</button></header>
+   <header className="lca-heading"><div><p className="eyebrow">People Behind the Logins</p><h2 id="lca-heading">Accounts</h2><p>Access status is separate from a member’s Active / Inactive status.</p></div><button type="button" className="secondary-button lc-refresh-icon" aria-label="Refresh accounts" title="Refresh accounts" aria-busy={loading} disabled={saving || loading} onClick={()=>{setRefresh(v=>v+1);setNotice('')}}><RefreshCw size={17} aria-hidden="true"/></button></header>
    <div className="lca-toolbar lca-filter-toolbar">
     <div className="lca-filter-top"><label><span>Find an Account</span><div className="lca-search"><Search size={17}/><input type="search" value={search} onChange={e=>{setSearch(e.target.value);setPending(null);setLinkTarget(null)}} placeholder="Name, Email, Member ID or Account ID" disabled={saving}/></div></label>
      <div className="lca-filter-tools"><span aria-live="polite">{busy ? 'Updating…' : (data?.total ?? 0)+' Accounts Found'}</span><button type="button" className="secondary-button" disabled={!hasFilters || saving} onClick={clearFilters}>Clear All</button></div>
@@ -129,13 +129,14 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
       </>}</div></td>
      </tr>{linkTarget?.user_id===a.user_id && <tr className="lca-confirm-row"><td colSpan={5}><MemberLinkPanel key={a.user_id+ a.updated_at} account={linkTarget} onBusy={setSaving} onCancel={()=>setLinkTarget(null)} onDone={()=>{setLinkTarget(null);setNotice(a.member_id ? 'Member unlinked. Member data and attendance are preserved.' : 'Member linked successfully.');setRefresh(v=>v+1);onLinkChanged()}}/></td></tr>}{pending?.account.user_id===a.user_id && <tr className="lca-confirm-row"><td colSpan={5}><div className="lca-confirm" role="group" aria-label="Confirm Access Change"><div><strong>{labels[pending.action]} for {a.email || a.display_name}?</strong><p>{confirmation()}</p></div><div className="lca-actions"><button disabled={saving} onClick={()=>setPending(null)}>Cancel</button><button className="lca-confirm-button" disabled={saving} onClick={()=>void apply()}>{saving?'Saving…':'Confirm '+labels[pending.action]}</button></div></div></td></tr>}</Fragment>)}
     </tbody></table></div>}
+
+   </>}
     <footer className="lca-pagination lcah-pagination">
-     <div className="lcah-page-summary"><span>{data.total ? ((currentPage-1)*data.page_size+1)+'–'+Math.min(currentPage*data.page_size,data.total)+' of '+data.total+' Accounts' : '0 Accounts'}</span>
+     <div className="lcah-page-summary"><span>{(data?.total ?? 0) ? ((currentPage-1)*(data?.page_size ?? pageSize)+1)+'–'+Math.min(currentPage*(data?.page_size ?? pageSize),(data?.total ?? 0))+' of '+(data?.total ?? 0)+' Accounts' : '0 Accounts'}</span>
       <label className="lcah-page-size"><span>Per Page</span><span className="lcah-size-field"><select aria-label="Accounts per Page" value={pageSize} disabled={busy} onChange={e=>{setPageSize(Number(e.target.value));setPage(1);setPending(null);setLinkTarget(null);setNotice('')}}><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option></select><ChevronDown size={14} aria-hidden="true"/></span></label>
      </div>
-     {pages>1 && <nav aria-label="Account Pages"><button aria-label="First Page" disabled={busy || currentPage===1} onClick={()=>go(1)}><ChevronsLeft size={17}/></button><button aria-label="Previous Page" disabled={busy || currentPage===1} onClick={()=>go(currentPage-1)}><ChevronLeft size={17}/></button><span>{currentPage} / {pages}</span><button aria-label="Next Page" disabled={busy || currentPage>=pages} onClick={()=>go(currentPage+1)}><ChevronRight size={17}/></button><button aria-label="Last Page" disabled={busy || currentPage>=pages} onClick={()=>go(pages)}><ChevronsRight size={17}/></button></nav>}
+     <nav aria-label="Account Pages"><button aria-label="First Page" disabled={busy || !data || !!error || currentPage===1} onClick={()=>go(1)}><ChevronsLeft size={17}/></button><button aria-label="Previous Page" disabled={busy || !data || !!error || currentPage===1} onClick={()=>go(currentPage-1)}><ChevronLeft size={17}/></button><span>{currentPage} / {pages}</span><button aria-label="Next Page" disabled={busy || !data || !!error || currentPage>=pages} onClick={()=>go(currentPage+1)}><ChevronRight size={17}/></button><button aria-label="Last Page" disabled={busy || !data || !!error || currentPage>=pages} onClick={()=>go(pages)}><ChevronsRight size={17}/></button></nav>
     </footer>
-   </>}
   </section>
  </div>
 }

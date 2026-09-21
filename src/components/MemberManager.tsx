@@ -1,3 +1,5 @@
+import ExportPanel from './ExportPanel'
+import { MotionPresence } from '../lib/motion'
 // Change ID: LC-P08N-v1
 // UI refinement: LC-P08A-UI-v2
 // Change ID: LC-P08A-v1
@@ -1403,7 +1405,7 @@ export default function MemberManager() {
         <span className="members-hero-spark members-hero-spark-two" aria-hidden="true">✦</span>
       </section>
 
-      {(showImport || showMinistryManager || showBranchManager) && (
+      <MotionPresence show={Boolean((showImport || showMinistryManager || showBranchManager))} motionKey={showImport ? "import" : showMinistryManager ? "ministries" : "churches"}>{(showImport || showMinistryManager || showBranchManager) && (
         <section className="directory-tools-workspace" ref={directoryToolsRef} aria-label="Directory Tools">
           <div className="directory-tools-workspace-label">
             <span>Directory Tools</span>
@@ -1445,7 +1447,7 @@ export default function MemberManager() {
             <input
               value={newManagedMinistryName}
               onChange={(event) => setNewManagedMinistryName(event.target.value)}
-              placeholder="Add a Ministry, e.g. Worship Team"
+              placeholder="Add a new Ministry, e.g. Dance"
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   event.preventDefault()
@@ -1586,7 +1588,7 @@ export default function MemberManager() {
             <input
               value={newManagedBranchName}
               onChange={(event) => setNewManagedBranchName(event.target.value)}
-              placeholder="Add a New Church, e.g. LifeCity - Main"
+              placeholder="Add a new Church, e.g. LifeCity - Main"
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   event.preventDefault()
@@ -1652,9 +1654,9 @@ export default function MemberManager() {
         </section>
       )}
         </section>
-      )}
+      )}</MotionPresence>
 
-      {showForm && (
+      <MotionPresence show={Boolean(showForm)}>{showForm && (
         <section
           className={`form-card member-editor-card ${editingMember ? 'is-editing' : 'is-creating'}`}
           ref={memberFormRef}
@@ -1786,7 +1788,7 @@ export default function MemberManager() {
                 onChange={(event) =>
                   setForm({ ...form, adminNote: event.target.value })
                 }
-                placeholder="Add a Helpful Reminder About This Member"
+                placeholder="Add a helpful reminder about this member."
                 rows={3}
                 maxLength={1000}
               />
@@ -1831,7 +1833,7 @@ export default function MemberManager() {
                 <input
                   value={newBranchName}
                   onChange={(event) => setNewBranchName(event.target.value)}
-                  placeholder="Add a New Church, e.g. LifeCity - Main"
+                  placeholder="Add a new Church, e.g. LifeCity - Main"
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
                       event.preventDefault()
@@ -1886,7 +1888,7 @@ export default function MemberManager() {
                 <input
                   value={newMinistryName}
                   onChange={(event) => setNewMinistryName(event.target.value)}
-                  placeholder="Add a New Ministry, e.g. Worship Team"
+                  placeholder="Add a new Ministry, e.g. Dance"
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
                       event.preventDefault()
@@ -1942,7 +1944,7 @@ export default function MemberManager() {
             </div>
           </form>
         </section>
-      )}
+      )}</MotionPresence>
 
       <section className="directory-card" ref={directoryListRef}>
         <div className="directory-toolbar member-toolbar">
@@ -2013,20 +2015,17 @@ export default function MemberManager() {
           </div>
         </div>
 
-        <details className="lcmx-export">
-          <summary><Download size={17}/><span>Export Members</span><small>Current filters · All pages</small></summary>
-          <div className="lcmx-body">
-            <p>Export every matching member in the current sort order, with starred members first. Bulk selections do not limit the export.</p>
-            <div className="lcmx-options">
-              <button type="button" disabled={csvBusy||directoryBusy||!!directoryError||saving||bulkSaving} onClick={()=>void exportDirectory(false)}><Download size={18}/><span><strong>Quick CSV</strong><small>Contact details, status, Starred, churches, and ministries.</small></span></button>
-              <button type="button" disabled={csvBusy||directoryBusy||!!directoryError||saving||bulkSaving} onClick={()=>void exportDirectory(true)}><Download size={18}/><span><strong>Detailed CSV</strong><small>Quick CSV fields plus IDs, registration time, and private admin notes.</small></span></button>
-            </div>
-            <p className="lcmx-hint">Exports use the latest saved directory data. Up to 20,000 matching members per file; narrow your filters for larger directories. In Excel, import Mobile as Text to retain leading zeros.</p>
-            {csvBusy&&<p role="status">Preparing your member export…</p>}
-            {csvMessage&&<p className="lcmx-success" role="status">{csvMessage}</p>}
-            {csvError&&<p className="lcmx-error" role="alert">{csvError}</p>}
-          </div>
-        </details>
+        <ExportPanel label="Export Members" title="Your Directory, Ready to Share"
+          subtitle="All matching members · All pages · Current filters and sort order"
+          quick="Contact details, status, starred members, churches, and ministries."
+          detailed="Everything in Quick CSV, plus member IDs, registration time, and private admin notes."
+          hint="Uses the latest saved directory data, with starred members first. Bulk selections do not limit the export. Up to 20,000 members per file. In Excel, import Mobile as Text to retain leading zeros."
+          disabled={csvBusy||directoryBusy||!!directoryError||saving||bulkSaving}
+          onQuick={()=>void exportDirectory(false)} onDetailed={()=>void exportDirectory(true)}>
+          {csvBusy&&<p className="lcse-message" role="status">Preparing your member export…</p>}
+          {csvMessage&&<p className="lcse-message" role="status">{csvMessage}</p>}
+          {csvError&&<p className="lcse-message lcse-error" role="alert">{csvError}</p>}
+        </ExportPanel>
 
         {bulkMode && (
           <div className="bulk-action-bar">
