@@ -686,13 +686,14 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
         <ScreenBoundary key={page} label={page === 'events' ? 'Services' : page === 'profile' ? 'My Member Space' : page === 'records' ? 'Attendance Records' : page === 'scanner' ? 'Scanner' : page.charAt(0).toUpperCase()+page.slice(1)}>
         {page === 'dashboard' && (
           <Dashboard
+            audience={account.role === 'owner' ? 'owner' : 'admin'}
             activeScannerEventId={scannerEventId}
             onOpenScanner={() => changePage('scanner')}
             onViewRecords={() => changePage('records')}
           />
         )}
 
-        {page === 'profile' && (account.member_id ? <MemberPortal key={account.user_id} embedded onRefreshAccess={onRefreshAccess}/> : <MemberLinkRequests key={account.user_id} linked={false} onChanged={onRefreshAccess}/>)}
+        {page === 'profile' && (account.member_id ? <MemberPortal audience={account.role === 'owner' ? 'owner' : 'admin'} key={account.user_id} embedded onRefreshAccess={onRefreshAccess}/> : <MemberLinkRequests key={account.user_id} linked={false} onChanged={onRefreshAccess}/>)}
         {page === 'settings' && account.role === 'owner' && <SettingsWorkspace currentUserId={account.user_id} onLinkChanged={onRefreshAccess}/>}
         {page === 'members' && <MemberManager />}
 

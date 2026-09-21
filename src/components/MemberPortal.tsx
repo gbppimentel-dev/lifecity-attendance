@@ -1,3 +1,4 @@
+import type { ReleaseAudience } from '../lib/releaseNotes'
 import CommunityArt from './CommunityArt'
 import WhatsNew from './WhatsNew'
 import MyFeedback from './MyFeedback'
@@ -97,7 +98,7 @@ function renderMemberId(profile:Profile,qrImage:HTMLImageElement):HTMLCanvasElem
  return canvas
 }
 
-export default function MemberPortal({embedded=false,onRefreshAccess,onSignOut,signingOut=false,authError=''}:{embedded?:boolean;onRefreshAccess:()=>void;onSignOut?:()=>void;signingOut?:boolean;authError?:string}) {
+export default function MemberPortal({audience='user',embedded=false,onRefreshAccess,onSignOut,signingOut=false,authError=''}:{audience?:ReleaseAudience;embedded?:boolean;onRefreshAccess:()=>void;onSignOut?:()=>void;signingOut?:boolean;authError?:string}) {
  const [data,setData]=useState<Portal|null>(null)
  const [loading,setLoading]=useState(true)
  const [error,setError]=useState('')
@@ -221,7 +222,7 @@ export default function MemberPortal({embedded=false,onRefreshAccess,onSignOut,s
     </section>
    </>}
   </div>
-  <WhatsNew/>
+  <WhatsNew audience={audience}/>
   {qrOpen && profile?.qr_token && createPortal(<div className="lmp-overlay" onClick={e=>{if(e.target===e.currentTarget)setQrOpen(false)}}><div className="lmp-dialog" role="dialog" aria-modal="true" aria-labelledby="lmp-qr-title" ref={modalRef}><button className="lmp-close lmp-button" aria-label="Close Attendance QR" onClick={()=>setQrOpen(false)}><X size={18}/></button><p className="eyebrow">Your Personal Check-In</p><h2 id="lmp-qr-title">Scan. Smile. You’re Here.</h2><p>{profile.first_name} {profile.last_name}</p><div className="lmp-code" ref={qrRef}><QRCodeSVG value={'att:'+profile.qr_token} size={240} level="M" marginSize={4} bgColor="#ffffff" fgColor="#123b32"/></div><p className="lmp-member-number">{profile.member_number}</p><div className="lmp-download-actions"><button className="lmp-button lmp-primary" disabled={downloading} onClick={()=>void downloadQr('id')}><Download size={17}/>{downloading?'Preparing…':'Download Member ID'}</button><button className="lmp-button" disabled={downloading} onClick={()=>void downloadQr('qr')}><Download size={16}/>Download QR Only</button></div>{downloadError && <p className="lmp-error" role="alert">{uiMessage(downloadError)}</p>}{notice && <p role="status">{notice}</p>}<small>Private member QR · Keep it safe</small></div></div>,document.body)}
  </Container>
 }

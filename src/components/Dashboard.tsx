@@ -16,6 +16,7 @@ type AttendanceEvent = {
 }
 
 type DashboardProps = {
+  audience: 'admin' | 'owner'
   activeScannerEventId: string
   onOpenScanner: () => void
   onViewRecords: () => void
@@ -90,7 +91,7 @@ type DashboardSnapshot = {
   recent_check_ins: CheckIn[]
 }
 
-export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewRecords }: DashboardProps) {
+export default function Dashboard({ audience, activeScannerEventId, onOpenScanner, onViewRecords }: DashboardProps) {
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null)
   const [dashboardPeriod, setDashboardPeriod] = useState<DashboardPeriod>('all')
   const [finishedKey, setFinishedKey] = useState('')
@@ -439,7 +440,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
         </article>
       </section>
 
-      <WhatsNew/>
+      <WhatsNew audience={audience}/>
     </>
   )
 }
