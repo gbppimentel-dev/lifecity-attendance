@@ -287,6 +287,14 @@ export default function AttendanceScanner({ event }: Props) {
       }
       if(disposed)return
       scannerRef.current=scanner
+      // Mirror only the desktop preview. Canvas decoding still reads the original
+      // video pixels, and mobile front/rear camera presentation stays unchanged.
+      const preview=reader.querySelector('video')
+      const mobileNavigator=navigator as Navigator & {userAgentData?:{mobile?:boolean}}
+      const isMobile=mobileNavigator.userAgentData?.mobile===true
+        || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+        || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1)
+      if(preview && !isMobile)preview.style.setProperty('transform','scaleX(-1)')
       setCameraState('ready');setCameraError('')
       // Optional metadata must never turn a successful start into an access error.
       try{

@@ -1,3 +1,4 @@
+import WhatsNew from './WhatsNew'
 // Change ID: LC-P08C-v1
 // Change ID: LC-UI-LABELS-v3
 import { useEffect, useRef, useState } from 'react'
@@ -438,12 +439,7 @@ export default function Dashboard({ activeScannerEventId, onOpenScanner, onViewR
         </article>
       </section>
 
-
-      <footer className="lc-dashboard-footer">
-        <p className="lc-dashboard-credit">© {new Date().getFullYear()} LifeCity Attendance · LifeCity Church of Christ</p>
-        <p className="lc-dashboard-verse">“So whether you eat or drink or whatever you do, do it all for the glory of God.” — 1 Corinthians 10:31</p>
-        <button type="button" className="lc-dashboard-tech" disabled title="Available when the app is complete">Tech Stack</button>
-      </footer>
+      <WhatsNew/>
     </>
   )
 }

@@ -16,20 +16,20 @@ html[data-lc-motion="on"] .lc-mobile-workspace > .content {animation:lc-page-arr
 @keyframes lc-page-leave {to{opacity:0}}
 html[data-lc-motion="off"]::view-transition-old(root),
 html[data-lc-motion="off"]::view-transition-new(root) {animation:none !important;}
-.lc-click-ripple {position:fixed;z-index:2147483647;pointer-events:none;width:28px;height:28px;border:2px solid var(--lc-primary,var(--lc-border, #147d73));border-radius:50%;background:color-mix(in srgb, var(--lc-graphicPrimary, #91cfbf) 12.55%, transparent);}
-body .lc-motion-settings {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;margin:0 0 24px;padding:24px;border:1px solid var(--lc-border, #d4e6de);border-radius:20px;background:linear-gradient(115deg,var(--lc-surfaceAlt, #f1faf6),var(--lc-glowSecondary, #f8f5ff));color:var(--lc-heading, #315b53);}
+.lc-click-ripple {position:fixed;z-index:2147483647;pointer-events:none;width:28px;height:28px;border:2px solid var(--lc-primary,var(--lc-shade-border-paint-147d73, #147d73));border-radius:50%;background:color-mix(in srgb, var(--lc-shade-graphicPrimary-paint-91cfbf, #91cfbf) 12.55%, transparent);}
+body .lc-motion-settings {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;margin:0 0 24px;padding:24px;border:1px solid var(--lc-shade-border-paint-d4e6de, #d4e6de);border-radius:20px;background:linear-gradient(115deg,var(--lc-shade-surfaceAlt-paint-f1faf6, #f1faf6),var(--lc-shade-glowSecondary-paint-f8f5ff, #f8f5ff));color:var(--lc-shade-heading-ink-315b53, #315b53);}
 body .lc-motion-settings > div {flex:1 1 320px;}
 body .lc-motion-settings .eyebrow {margin:0 0 8px;}
 body .lc-motion-settings h2 {margin:0 0 8px;font-size:21px;}
 body .lc-motion-settings p {margin:0 0 8px;font-size:14px;line-height:1.6;}
-body .lc-motion-settings small {font-size:12px;line-height:1.6;color:var(--lc-text, #6b8179);}
+body .lc-motion-settings small {font-size:12px;line-height:1.6;color:var(--lc-shade-text-ink-6b8179, #6b8179);}
 body .lc-motion-settings .lc-motion-toggle {display:flex;align-items:center;gap:10px;min-height:44px;font-size:14px;font-weight:600;cursor:pointer;}
-body .lc-motion-toggle input {width:20px;height:20px;accent-color:var(--lc-primary,var(--lc-primary, #147d73));}
+body .lc-motion-toggle input {width:20px;height:20px;accent-color:var(--lc-shade-primary-paint-147d73, #147d73);}
 body .lc-motion-settings .lc-motion-note {flex-basis:100%;margin:0;font-size:13px;}
 html[data-lc-motion="on"] .lc-service-export-v2 > summary {transition:background .2s ease,box-shadow .2s ease;}
 html[data-lc-motion="on"] .lc-service-export-v2 > summary::after {transition:rotate .2s ease;}
 @media(hover:hover) and (pointer:fine) {
-  html[data-lc-motion="on"] .lc-service-export-v2 > summary:hover {background:color-mix(in srgb, var(--lc-surfaceAlt, #e6f5f1) 50.20%, transparent);box-shadow:inset 0 0 0 1px var(--lc-shadow, #badbd1);}
+  html[data-lc-motion="on"] .lc-service-export-v2 > summary:hover {background:color-mix(in srgb, var(--lc-shade-surfaceAlt-paint-e6f5f1, #e6f5f1) 50.20%, transparent);box-shadow:inset 0 0 0 1px var(--lc-shade-shadow-paint-badbd1, #badbd1);}
   html[data-lc-motion="on"] .lc-service-export-v2 > summary:hover::after {rotate:90deg;}
 }
 

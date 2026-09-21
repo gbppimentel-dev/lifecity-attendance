@@ -1,9 +1,12 @@
+import CommunityArt from './CommunityArt'
+import WhatsNew from './WhatsNew'
+import MyFeedback from './MyFeedback'
 // Change ID: LC-UI-COPY-v2
 import { uiMessage } from '../lib/uiText'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { QRCodeSVG } from 'qrcode.react'
-import { Users, CalendarDays, MapPin, Download, RefreshCw, LogOut, QrCode, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Users, Heart, CalendarDays, MapPin, Download, RefreshCw, LogOut, QrCode, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import MemberAttendanceHistory from './MemberAttendanceHistory'
 import { MemberProfileEditor } from './ProfileChanges'
 import { supabase } from '../lib/supabase'
@@ -198,11 +201,11 @@ export default function MemberPortal({embedded=false,onRefreshAccess,onSignOut,s
   {!embedded && <header className="lmp-topbar"><div className="brand"><div className="brand-icon small"><Users size={20}/></div><span>LifeCity Attendance</span></div><button className="lmp-button lmp-signout" disabled={signingOut} onClick={onSignOut}><LogOut size={16}/>{signingOut?'Signing Out…':'Sign Out'}</button></header>}
   <div className="lmp-content">
    {authError && <p className="lmp-error" role="alert">{uiMessage(authError)}</p>}
-   <section className="lmp-hero"><div><p className="eyebrow">Your LifeCity Space</p><h1>{profile?'Hi, '+profile.first_name+'.':'Welcome to Your Member Space.'}</h1><p>Your profile, your attendance QR, and what’s coming up at church.</p></div><button className="lmp-button" disabled={loading} onClick={()=>{setRevision(v=>v+1);onRefreshAccess()}}><RefreshCw size={16}/>Refresh Access</button></section>
+   <section className="lmp-hero"><div><p className="eyebrow">Your LifeCity Space</p><h1>{profile?'Hi, '+profile.first_name+'.':'Welcome to Your Member Space.'}</h1><p>A little space for your profile, your QR, and your next gathering.</p><div className="lmp-welcome-tags"><span><Heart size={14}/>Belong</span><span><Users size={14}/>Connect</span><span><CalendarDays size={14}/>Gather</span></div></div><div className="lmp-hero-side"><CommunityArt compact/><button className="lmp-button lc-community-icon lc-refresh-icon" aria-label="Refresh Access" title="Refresh Access" aria-busy={loading} disabled={loading} onClick={()=>{setRevision(v=>v+1);onRefreshAccess()}}><RefreshCw size={17}/></button></div></section>
    {loading ? <div className="lmp-loading" role="status">Opening Your Member Profile…<div className="lmp-skeleton"/><div className="lmp-skeleton"/></div> : error ? <div className="lmp-error" role="alert">{uiMessage(error)}</div> : profile && data && <>
     <div className="lmp-grid">
      <section className="lmp-card"><div className="lmp-profile-heading"><p className="eyebrow">Your Directory Profile</p><div className="lmp-name-line"><h2>{profile.first_name} {profile.last_name}</h2><span className={'lmp-pill '+profile.status}>{profile.status === 'active' ? 'Active' : 'Inactive'}</span></div></div>
-      <dl className="lmp-profile"><div><dt>Member Number</dt><dd>{profile.member_number}</dd></div><div><dt>Email</dt><dd>{profile.email||'Not Provided'}</dd></div><div><dt>Mobile</dt><dd>{profile.mobile||'Not Provided'}</dd></div><div><dt>Churches</dt><dd className="lmp-pills">{profile.churches.length?profile.churches.map(n=><span className="lmp-pill" key={n}>{n}</span>):'Not Assigned'}</dd></div><div><dt>Ministries</dt><dd className="lmp-pills">{profile.ministries.length?profile.ministries.map(n=><span className="lmp-pill ministry" key={n}>{n}</span>):<span className="lmp-pill">None</span>}</dd></div></dl>
+      <dl className="lmp-profile"><div><dt>Member Number</dt><dd>{profile.member_number}</dd></div><div><dt>Email</dt><dd>{profile.email||'Not Provided'}</dd></div><div><dt>Mobile</dt><dd>{profile.mobile||'Not Provided'}</dd></div><div><dt>Churches</dt><dd className="lmp-pills lmp-equal-pills">{profile.churches.length?profile.churches.map(n=><span className="lmp-pill" key={n}>{n}</span>):'Not Assigned'}</dd></div><div><dt>Ministries</dt><dd className="lmp-pills lmp-equal-pills">{profile.ministries.length?profile.ministries.map(n=><span className="lmp-pill ministry" key={n}>{n}</span>):<span className="lmp-pill">None</span>}</dd></div></dl>
       <MemberProfileEditor onProfileChanged={()=>{setRevision(v=>v+1);onRefreshAccess()}}/>
      </section>
      <section className="lmp-card lmp-qr-card"><span className="lmp-qr-mark"><QrCode size={34}/></span><p className="eyebrow">Ready When You Arrive</p><h2>Your Attendance QR</h2><p>Show your personal code to the check-in team when you attend a service.</p>
@@ -210,6 +213,7 @@ export default function MemberPortal({embedded=false,onRefreshAccess,onSignOut,s
       <small>View your code or download your Member ID. Keep both private.</small>
      </section>
     </div>
+    <MyFeedback key={profile.id}/>
     <MemberAttendanceHistory key={profile.id} memberId={profile.id}/>
     <section className="lmp-services" ref={servicesRef}><div className="lmp-section-head"><div><p className="eyebrow">Gather with Us</p><h2>Coming Up at LifeCity</h2><p>Current and upcoming services · times in Manila</p></div><span className="lmp-pill">{data.service_total} Services</span></div>
      {data.services.length===0 ? <div className="lmp-card lmp-empty"><CalendarDays size={28}/><h3>No services scheduled yet</h3><p>Check back here for the next gathering.</p></div> : <div className="lmp-service-grid lmp-balanced-services" data-count={data.services.length}>{data.services.map(event=><article className="lmp-service-card" key={event.id}><div className="lmp-pills"><span className={'lmp-pill '+event.state}>{event.state==='in-progress'?'In Progress':'Upcoming'}</span>{event.is_sunday_service && <span className="lmp-pill ministry">Sunday Service</span>}</div><h3>{event.name}</h3><p><CalendarDays size={16}/><span>{serviceDate(event.starts_at)}</span></p><p><MapPin size={16}/><span>{event.location||'Ask the church team for the venue'}</span></p></article>)}</div>}
@@ -217,6 +221,7 @@ export default function MemberPortal({embedded=false,onRefreshAccess,onSignOut,s
     </section>
    </>}
   </div>
+  <WhatsNew/>
   {qrOpen && profile?.qr_token && createPortal(<div className="lmp-overlay" onClick={e=>{if(e.target===e.currentTarget)setQrOpen(false)}}><div className="lmp-dialog" role="dialog" aria-modal="true" aria-labelledby="lmp-qr-title" ref={modalRef}><button className="lmp-close lmp-button" aria-label="Close Attendance QR" onClick={()=>setQrOpen(false)}><X size={18}/></button><p className="eyebrow">Your Personal Check-In</p><h2 id="lmp-qr-title">Scan. Smile. You’re Here.</h2><p>{profile.first_name} {profile.last_name}</p><div className="lmp-code" ref={qrRef}><QRCodeSVG value={'att:'+profile.qr_token} size={240} level="M" marginSize={4} bgColor="#ffffff" fgColor="#123b32"/></div><p className="lmp-member-number">{profile.member_number}</p><div className="lmp-download-actions"><button className="lmp-button lmp-primary" disabled={downloading} onClick={()=>void downloadQr('id')}><Download size={17}/>{downloading?'Preparing…':'Download Member ID'}</button><button className="lmp-button" disabled={downloading} onClick={()=>void downloadQr('qr')}><Download size={16}/>Download QR Only</button></div>{downloadError && <p className="lmp-error" role="alert">{uiMessage(downloadError)}</p>}{notice && <p role="status">{notice}</p>}<small>Private member QR · Keep it safe</small></div></div>,document.body)}
  </Container>
 }

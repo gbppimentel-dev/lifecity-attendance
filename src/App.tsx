@@ -1,3 +1,5 @@
+import AppFooter from './components/AppFooter'
+import FeedbackWidget from './components/FeedbackWidget'
 // Change ID: LC-P08F-v1
 // Change ID: LC-P08B-v1
 // Change ID: LC-P07B-v1
@@ -168,31 +170,13 @@ function AccountShell({ children, compact = false }: { children: ReactNode; comp
       </aside>}
       <div className="lc-auth-body">{children}</div>
     </section>
-    <footer className="lc-auth-footer lc-landing-footer">
-  <p className="lc-footer-credit">
-    © {new Date().getFullYear()} LifeCity Attendance
-    <span aria-hidden="true"> • </span>
-    LifeCity Church of Christ
-  </p>
-
-  <p className="lc-footer-verse">
-    “So whether you eat or drink or whatever you do, do it all for
-    the glory of God.” — 1 Corinthians 10:31
-  </p>
-
-  <button
-    type="button"
-    className="lc-footer-tech"
-    disabled
-    title="Available when the app is complete"
-  >
-    Tech Stack
-  </button>
-</footer>
+    <AppFooter landing/>
   </main>
 }
 
-export default function App() {
+export default function App(){return <><AppContent/><FeedbackWidget/></>}
+
+function AppContent() {
   useSharedAppearance()
   const [session, setSession] = useState<Session | null>(null)
   const [booting, setBooting] = useState(true)
@@ -276,7 +260,7 @@ export default function App() {
   if (booting || (session && !current)) return (
     <AccountShell compact><div className="lc-auth-check" role="status" aria-live="polite"><div className="lc-auth-check-mark"><ShieldCheck size={32}/></div><p className="eyebrow">Getting Things Ready</p><h1>Making Room for You.</h1><p>Checking your account and opening your LifeCity space.</p><div className="lc-auth-progress" aria-hidden="true"><span/></div><span className="lc-auth-caption">Just a Moment…</span></div></AccountShell>
   )
-  if (!session && showGuest) return <ScreenBoundary label="Guest Preview"><GuestPreview onBack={()=>setShowGuest(false)} onSignIn={()=>void googleSignIn()} signingIn={working} error={oauthError || authError}/></ScreenBoundary>
+  if (!session && showGuest) return <><ScreenBoundary label="Guest Preview"><GuestPreview onBack={()=>setShowGuest(false)} onSignIn={()=>void googleSignIn()} signingIn={working} error={oauthError || authError}/></ScreenBoundary><AppFooter/></>
   if (!session) return (
     <AccountShell>
       <div className="lc-google-welcome" data-change-id="LC-UI-COPY-v2">
@@ -302,7 +286,7 @@ export default function App() {
     return <AdminWorkspace key={session.user.id} account={account} onRefreshAccess={() => setRetry(v=>v+1)}/>
   }
   if (account?.status === 'active' && account.member_id) {
-    return <ScreenBoundary key={session.user.id} label="My Member Space"><MemberPortal onRefreshAccess={()=>setRetry(v=>v+1)} onSignOut={()=>void signOut()} signingOut={working} authError={uiMessage(authError)}/></ScreenBoundary>
+    return <><ScreenBoundary key={session.user.id} label="My Member Space"><MemberPortal onRefreshAccess={()=>setRetry(v=>v+1)} onSignOut={()=>void signOut()} signingOut={working} authError={uiMessage(authError)}/></ScreenBoundary><AppFooter/></>
   }
   const paused = account?.status === 'suspended'
   return (
@@ -1072,13 +1056,13 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                       <div className="service-checkin-cell">
                         {canScan ? (
                           <button
-                            className="service-checkin-button"
+                            className="service-checkin-button lc-camera-only"
                             onClick={() => openScannerForService(item)}
                             title="Open Scanner for This Service"
                             aria-label={`Open Scanner for ${item.name}`}
                           >
                             <Camera size={16} />
-                            <span>Open Scanner</span>
+                            
                           </button>
                         ) : (
                           <span className="service-checkin-unavailable">
@@ -1253,6 +1237,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
         )}
         </ScreenBoundary>
       </section>
+      <AppFooter/>
     </main>
   )
 }

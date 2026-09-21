@@ -8,7 +8,7 @@ body .lc-auth-page.lc-auth-layout-v2 > .lc-landing-footer {
   gap: 5px;
   margin: 0;
   padding: 12px 16px 0;
-  color: var(--lc-muted, #858392);
+  color: var(--lc-shade-muted-ink-858392, #858392);
   text-align: center;
 }
 body .lc-auth-page.lc-auth-layout-v2 .lc-footer-credit {
@@ -24,7 +24,7 @@ body .lc-auth-page.lc-auth-layout-v2 .lc-footer-credit span {
 body .lc-auth-page.lc-auth-layout-v2 .lc-footer-verse {
   max-width: 850px;
   margin: 0;
-  color: var(--lc-muted, #9693a3);
+  color: var(--lc-shade-muted-ink-9693a3, #9693a3);
   font-size: 11px;
   font-weight: 400;
   font-style: italic;
@@ -37,7 +37,7 @@ body .lc-auth-page.lc-auth-layout-v2 .lc-footer-tech {
   padding: 4px 12px;
   border: 0;
   background: transparent;
-  color: var(--lc-muted, #858392);
+  color: var(--lc-shade-muted-ink-858392, #858392);
   font: inherit;
   font-size: 10px;
   font-weight: 400;
@@ -106,46 +106,46 @@ body .lc-auth-layout-v2 .lc-playful-art {
 }
 .lc-playful-orbit {
   position: absolute; width: 210px; height: 210px; left: 50%; top: 20px;
-  transform: translateX(-50%); border: 1px solid var(--lc-border, #bddcd2); border-radius: 50%;
+  transform: translateX(-50%); border: 1px solid var(--lc-shade-border-paint-bddcd2, #bddcd2); border-radius: 50%;
 }
 .lc-playful-orbit::after {
-  content: ''; position: absolute; inset: 17px; border: 1px dashed var(--lc-border, #c9bce1);
+  content: ''; position: absolute; inset: 17px; border: 1px dashed var(--lc-shade-border-paint-c9bce1, #c9bce1);
   border-radius: 50%; animation: lc-collage-orbit 38s linear infinite;
 }
 .lc-float-card { position: absolute; animation: lc-card-drift 6s ease-in-out infinite; }
 .lc-playful-card {
-  display: grid; gap: 7px; padding: 16px; border: 1px solid var(--lc-border, #d1e5de);
-  border-radius: 19px; background: var(--lc-surface, #ffffff); color: var(--lc-text, #398477);
-  box-shadow: 5px 7px 0 color-mix(in srgb, var(--lc-shadow, #376f64) 6.27%, transparent); transform: rotate(var(--card-angle, 0deg));
+  display: grid; gap: 7px; padding: 16px; border: 1px solid var(--lc-shade-border-paint-d1e5de, #d1e5de);
+  border-radius: 19px; background: var(--lc-shade-surface-paint-ffffff, #ffffff); color: var(--lc-shade-text-ink-398477, #398477);
+  box-shadow: 5px 7px 0 color-mix(in srgb, var(--lc-shade-shadow-paint-376f64, #376f64) 6.27%, transparent); transform: rotate(var(--card-angle, 0deg));
   transition: transform 260ms ease, box-shadow 260ms ease;
 }
 .lc-playful-card strong { font-size: 13px; line-height: 1.4; }
-.lc-playful-card small { color: var(--lc-muted, #79958a); font-size: 11px; line-height: 1.5; }
-.lc-playful-icon { display: grid; place-items: center; width: 43px; height: 43px; border-radius: 13px; background: var(--lc-surfaceAlt, #e9f6ef); }
+.lc-playful-card small { color: var(--lc-shade-muted-ink-79958a, #79958a); font-size: 11px; line-height: 1.5; }
+.lc-playful-icon { display: grid; place-items: center; width: 43px; height: 43px; border-radius: 13px; background: var(--lc-shade-surfaceAlt-paint-e9f6ef, #e9f6ef); }
 .lc-float-community { left: 11%; top: 59px; width: 66%; z-index: 2; --card-angle: -4deg; }
 .lc-float-community .lc-playful-card { padding: 19px; }
 .lc-float-community strong { font-size: 15px; }
 .lc-playful-dots { display: flex; gap: 4px; position: absolute; top: 23px; right: 19px; }
-.lc-playful-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--lc-graphicPrimary, #acd7c9); }
-.lc-playful-dots i:nth-child(2) { background: var(--lc-glowSecondary, #cbbde6); }
-.lc-playful-dots i:nth-child(3) { background: var(--lc-graphicHighlight, #ebcc85); }
+.lc-playful-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--lc-shade-graphicPrimary-paint-acd7c9, #acd7c9); }
+.lc-playful-dots i:nth-child(2) { background: var(--lc-shade-glowSecondary-paint-cbbde6, #cbbde6); }
+.lc-playful-dots i:nth-child(3) { background: var(--lc-shade-graphicHighlight-paint-ebcc85, #ebcc85); }
 .lc-float-faith { right: 1%; top: 0; z-index: 3; --card-angle: 5deg; animation-delay: -2s; }
-.lc-float-faith .lc-playful-card { background: var(--lc-glowSecondary, #f1ecfb); border-color: var(--lc-border, #dfd4ef); color: var(--lc-secondary, #8770ae); padding: 13px 16px; }
-.lc-float-faith small { color: var(--lc-secondary, #8b7f9b); }
+.lc-float-faith .lc-playful-card { background: var(--lc-shade-glowSecondary-paint-f1ecfb, #f1ecfb); border-color: var(--lc-shade-border-paint-dfd4ef, #dfd4ef); color: var(--lc-shade-secondary-ink-8770ae, #8770ae); padding: 13px 16px; }
+.lc-float-faith small { color: var(--lc-shade-secondary-ink-8b7f9b, #8b7f9b); }
 .lc-float-checkin { left: 0; bottom: 0; z-index: 4; --card-angle: -3deg; animation-delay: -4s; }
-.lc-float-checkin .lc-playful-card { display: flex; align-items: center; gap: 10px; background: var(--lc-surfaceAlt, #e8f6f1); padding: 13px; }
+.lc-float-checkin .lc-playful-card { display: flex; align-items: center; gap: 10px; background: var(--lc-shade-surfaceAlt-paint-e8f6f1, #e8f6f1); padding: 13px; }
 .lc-float-checkin span { display: grid; gap: 3px; }
 .lc-float-sunday { right: 0; bottom: 53px; z-index: 5; --card-angle: 4deg; animation-delay: -1s; }
-.lc-float-sunday .lc-playful-card { display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--lc-glowHighlight, #fff4d9); border-color: var(--lc-border, #eedbab); color: var(--lc-highlight, #ad8131); }
+.lc-float-sunday .lc-playful-card { display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--lc-shade-glowHighlight-paint-fff4d9, #fff4d9); border-color: var(--lc-shade-border-paint-eedbab, #eedbab); color: var(--lc-shade-highlight-ink-ad8131, #ad8131); }
 .lc-float-sunday strong { font-size: 11px; font-weight: 600; }
-.lc-playful-spark { position: absolute; top: 20px; left: 9%; color: var(--lc-highlight, #cbac63); animation: lc-spark-breathe 4s ease-in-out infinite; }
-.lc-playful-dot { position: absolute; bottom: 16px; right: 16%; width: 8px; height: 8px; border-radius: 50%; background: var(--lc-graphicSecondary, #b5a1d5); animation: lc-spark-breathe 5s ease-in-out infinite; }
+.lc-playful-spark { position: absolute; top: 20px; left: 9%; color: var(--lc-shade-highlight-ink-cbac63, #cbac63); animation: lc-spark-breathe 4s ease-in-out infinite; }
+.lc-playful-dot { position: absolute; bottom: 16px; right: 16%; width: 8px; height: 8px; border-radius: 50%; background: var(--lc-shade-graphicSecondary-paint-b5a1d5, #b5a1d5); animation: lc-spark-breathe 5s ease-in-out infinite; }
 @keyframes lc-card-drift { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
 @keyframes lc-collage-orbit { to { rotate: 360deg; } }
 @keyframes lc-spark-breathe { 0%, 100% { opacity: .55; scale: .9; } 50% { opacity: 1; scale: 1.1; } }
 @media (hover: hover) and (pointer: fine) {
   .lc-float-card:hover { animation-play-state: paused; z-index: 6; }
-  .lc-float-card:hover .lc-playful-card { transform: translateY(-5px) rotate(0deg); box-shadow: 0 12px 23px color-mix(in srgb, var(--lc-shadow, #376f64) 12.55%, transparent); }
+  .lc-float-card:hover .lc-playful-card { transform: translateY(-5px) rotate(0deg); box-shadow: 0 12px 23px color-mix(in srgb, var(--lc-shade-shadow-paint-376f64, #376f64) 12.55%, transparent); }
 }
 @media (min-width: 901px) and (max-height: 760px) {
   body .lc-auth-layout-v2 .lc-playful-art { height: 222px; margin-top: 12px; }
