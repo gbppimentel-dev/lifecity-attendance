@@ -465,3 +465,11 @@ Built for **LifeCity Church of Christ** and maintained in the public repository 
 No project license file was present in the audited repository. Confirm reuse and redistribution terms with the maintainer before treating the application as permissively licensed. Dependency licenses remain the responsibility of their respective packages.
 
 > “So whether you eat or drink or whatever you do, do it all for the glory of God.” — 1 Corinthians 10:31
+
+### Mobile Startup and Flashlight Checks
+
+Mobile dashboard, scanner, and Tech Stack styles are loaded centrally in `src/main.tsx` after the shared styles. Keep that order when adding new pages so lazy component imports do not determine the initial layout. The HTML viewport already uses `width=device-width`; browser desktop-site overrides are outside the app’s control.
+
+The scanner rechecks flashlight capability after camera startup and applies torch settings to the current stream, preserving its other constraints. It checks the reported state and shows a message if the request is ignored or cannot be confirmed. The Camera menu allows selection of another rear lens. Physical flashlight support still depends on the selected camera and browser.
+
+Run the focused, hardware-independent checks with `node scripts/test-camera-torch.mjs`. A real phone test is still needed for lamp activation, camera switching, and first-load layout.

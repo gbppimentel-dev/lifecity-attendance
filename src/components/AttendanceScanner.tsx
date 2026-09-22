@@ -4,8 +4,8 @@
 // Change ID: LC-P08E-v1
 // Change ID: LC-P08D-v1
 // Change ID: LC-UI-COPY-v2
-import '../mobile-scanner.css'
 import { uiMessage } from '../lib/uiText'
+import { readTorch, setCameraTorch } from '../lib/cameraTorch'
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { ChevronDown, CheckCircle2, Expand, Flashlight, FlashlightOff, Minimize, ScanLine, Search, SwitchCamera, TriangleAlert, X } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
@@ -80,6 +80,8 @@ export default function AttendanceScanner({ event }: Props) {
   const [cameraState,setCameraState]=useState<'starting'|'ready'|'error'>('starting')
   const [cameraRetry,setCameraRetry]=useState(0)
   const [torchBusy,setTorchBusy]=useState(false)
+  const [torchMessage,setTorchMessage]=useState('')
+  const cameraGeneration=useRef(0)
   const activeTrack=useRef<MediaStreamTrack|null>(null)
   const activeDevice=useRef('')
   const activeFacing=useRef<'user'|'environment'>('environment')
@@ -245,9 +247,11 @@ export default function AttendanceScanner({ event }: Props) {
   useEffect(() => {
     if(!event)return
     let disposed=false
+    const generation=++cameraGeneration.current
+    const capabilityTimers:number[]=[]
     let scanner:Html5Qrcode|null=null
     let track:MediaStreamTrack|null=null
-    setCameraState('starting');setCameraError('');setTorchSupported(false);setTorchOn(false)
+    setCameraState('starting');setCameraError('');setTorchSupported(false);setTorchOn(false);setTorchMessage('')
     setTorchBusy(false);torchLock.current=false
     async function startCamera(){
       await scannerShutdown
@@ -308,10 +312,19 @@ export default function AttendanceScanner({ event }: Props) {
         activeDevice.current=settings.deviceId??cameraId
         activeFacing.current=settings.facingMode==='user'?'user':settings.facingMode==='environment'?'environment':facingMode
       }catch{activeDevice.current=cameraId;activeFacing.current=facingMode}
-      try{
-        const caps=(track?.getCapabilities?.()??scanner.getRunningTrackCapabilities()) as MediaTrackCapabilities & {torch?:boolean|boolean[]}
-        setTorchSupported(caps.torch===true || (Array.isArray(caps.torch)&&caps.torch.includes(true)))
-      }catch{setTorchSupported(false)}
+      function refreshTorchSupport(){
+        if(disposed || cameraGeneration.current!==generation || !scanner)return
+        const currentVideo=reader?.querySelector('video')
+        const stream=currentVideo?.srcObject as MediaStream|null
+        track=stream?.getVideoTracks?.()[0]??track
+        activeTrack.current=track
+        const status=readTorch(scanner,track)
+        setTorchSupported(status.supported)
+        if(typeof status.on==='boolean')setTorchOn(status.on)
+      }
+      refreshTorchSupport()
+      // Allow delayed camera capability reports after permission / video startup.
+      for(const delay of [250,1000,2000])capabilityTimers.push(window.setTimeout(refreshTorchSupport,delay))
       // Enumerate after permission, without requesting a second camera stream.
       try{
         void navigator.mediaDevices.enumerateDevices().then(devices=>{
@@ -322,6 +335,8 @@ export default function AttendanceScanner({ event }: Props) {
     const startup=startCamera()
     return()=>{
       disposed=true
+      cameraGeneration.current++
+      capabilityTimers.forEach(window.clearTimeout)
       scannerShutdown=scannerShutdown.then(async()=>{
         await startup
         if(!scanner)return
@@ -385,19 +400,34 @@ export default function AttendanceScanner({ event }: Props) {
   async function toggleTorch() {
     const scanner=scannerRef.current
     const track=activeTrack.current
-    if(!scanner || !torchSupported || cameraState!=='ready' || torchLock.current)return
-    torchLock.current=true;setTorchBusy(true);setCameraError('')
-    const next=!torchOn
+    const generation=cameraGeneration.current
+    if(!scanner || cameraState!=='ready' || torchLock.current)return
+    const isCurrent=()=>mounted.current && scannerRef.current===scanner && cameraGeneration.current===generation
+    torchLock.current=true;setTorchBusy(true);setTorchMessage('')
+    const current=readTorch(scanner,track)
+    setTorchSupported(current.supported)
+    const next=!(current.on??torchOn)
     try{
-      const settings:MediaTrackConstraintSet & {torch:boolean}={torch:next}
-      if(track)await track.applyConstraints({advanced:[settings]})
-      else await scanner.applyVideoConstraints({advanced:[settings]})
-      if(scannerRef.current===scanner && mounted.current)setTorchOn(next)
-    }catch{
-      if(scannerRef.current===scanner && mounted.current)setCameraError('This camera could not change its flashlight. Scanning is still available.')
+      const applied=await setCameraTorch(scanner,track,next,isCurrent)
+      if(applied&&isCurrent()){
+        setTorchOn(applied.on)
+        if(!applied.verified)setTorchMessage('Flashlight request sent. This browser does not report the lamp state; tap again to turn it off if needed.')
+      }
+    }catch(error){
+      if(isCurrent()){
+        const actual=readTorch(scanner,track).on
+        if(typeof actual==='boolean')setTorchOn(actual)
+        setTorchMessage(error instanceof Error?error.message:'Could not change the flashlight. Try another rear camera.')
+      }
     }finally{
-      if(scannerRef.current===scanner && mounted.current){torchLock.current=false;setTorchBusy(false)}
+      if(isCurrent()){torchLock.current=false;setTorchBusy(false)}
     }
+  }
+
+  function chooseCamera(id:string) {
+    if(cameraState==='starting'||torchLock.current)return
+    setCameraState('starting');setCameraError('');setTorchMessage('');setTorchOn(false)
+    setCameraId(id);setCameraRetry(value=>value+1)
   }
 
   async function toggleKioskMode() {
@@ -474,9 +504,9 @@ export default function AttendanceScanner({ event }: Props) {
               type="button"
               className={`scanner-camera-switch lc-camera-icon${torchOn ? ' is-active' : ''}`}
               onClick={() => void toggleTorch()}
-              disabled={!torchSupported || cameraState!=='ready' || torchBusy}
-              aria-label={torchSupported?'Toggle Flashlight':'Flashlight Unavailable on This Camera'}
-              title={!torchSupported?'Flashlight is not supported by this camera or browser':torchOn?'Turn Off Flashlight':'Turn On Flashlight'}
+              disabled={cameraState!=='ready' || torchBusy}
+              aria-label={torchSupported?(torchOn?'Turn Off Flashlight':'Turn On Flashlight'):'Check Flashlight Availability'}
+              title={!torchSupported?'Check flashlight availability for this camera':torchOn?'Turn Off Flashlight':'Turn On Flashlight'}
               aria-pressed={torchOn}
             >
               {torchOn ? <FlashlightOff size={16} /> : <Flashlight size={16} />}
@@ -495,6 +525,7 @@ export default function AttendanceScanner({ event }: Props) {
               <SwitchCamera size={16} />
             </button>
           )}
+          {cameras.length>1 && <details className="lcs-camera-choices"><summary>Camera <ChevronDown size={14}/></summary><div>{cameras.map((camera,index)=><button type="button" key={camera.id} disabled={cameraState==='starting'||torchBusy} aria-pressed={activeDevice.current===camera.id} onClick={event=>{event.currentTarget.closest('details')?.removeAttribute('open');chooseCamera(camera.id)}}>{camera.label||`Camera ${index+1}`}</button>)}</div></details>}
           {cameraState==='error' && <button type="button" className="scanner-camera-switch" onClick={()=>{setCameraState('starting');setCameraRetry(value=>value+1)}}>Retry Camera</button>}
           <span className={cameraState==='ready'?'scanner-ready-status':'manual-member-search-help'} role="status">
             {cameraState==='ready' && <i/>}{cameraState==='ready'?'Ready':cameraState==='starting'?'Starting Camera…':'Camera Unavailable'}
@@ -524,6 +555,7 @@ export default function AttendanceScanner({ event }: Props) {
         </div>
       )}
 
+      {torchMessage && <p className="lcs-torch-message" role="status">{torchMessage}</p>}
       {cameraError && (
         <div className="scan-result error">
           <TriangleAlert size={28} />

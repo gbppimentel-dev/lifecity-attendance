@@ -1,5 +1,4 @@
 import WhatsNew from './WhatsNew'
-import '../mobile-dashboard.css'
 // Change ID: LC-P08C-v1
 // Change ID: LC-UI-LABELS-v3
 import { useEffect, useRef, useState } from 'react'

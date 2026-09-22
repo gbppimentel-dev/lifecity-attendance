@@ -8,6 +8,10 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Camera & Startup Fixes',title:'More Reliable Camera Controls',highlights:[
+  note('Flashlight control rechecks camera support after startup, verifies reported lamp settings, and offers camera selection for phones with multiple lenses.',staff),
+  note('Mobile presentation styles now load with the app’s initial styles instead of depending on page loading order.')
+ ]},
  {version:'Pre-Launch · Mobile Scanner',title:'A Smaller Check-In Station',highlights:[
   note('The mobile scanner now uses a compact service card, camera controls, and camera frame with check-in feedback directly below.',staff),
   note('Open manual member search only when needed, and choose services from a mobile bottom sheet.',staff)

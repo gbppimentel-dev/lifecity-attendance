@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import TechStackPage from './TechStackPage'
-import '../tech-stack.css'
 
 export default function AppFooter({landing=false}:{landing?:boolean}) {
  const [showTech,setShowTech]=useState(false)
