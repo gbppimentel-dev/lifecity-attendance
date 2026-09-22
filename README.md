@@ -60,12 +60,12 @@ Members get a personal space for their profile, QR, attendance history, and feed
 - Display successful, duplicate, and unsuccessful check-in feedback.
 - Search for a member and check in manually when a QR code cannot be scanned.
 - Retry camera startup and switch available cameras.
-- Offer torch control when the camera/browser supports it.
+- Switch cameras using the camera-switch icon.
 - Use a full-screen kiosk layout with a large camera area and a dedicated feedback panel.
 - Keep member details out of the QR payload: the app uses an opaque token.
 - Refresh relevant attendance totals through subscriptions and other component refresh behavior.
 
-Camera, fullscreen, torch, audio, and device-selection support depend on the browser and hardware. Kiosk presentation is not an operating-system lockdown feature.
+Camera, fullscreen, audio, and camera-switching support depend on the browser and hardware. Kiosk presentation is not an operating-system lockdown feature.
 
 ### Dashboard and Attendance Records
 
@@ -427,7 +427,7 @@ Use test data and a separate backend when a check would change live member or at
 | Empty or rejected data operations | Account state, linkage, RLS policies, function grants |
 | Google returns to the wrong site | App origin and Auth redirect configuration |
 | Camera unavailable | HTTPS/localhost, site permissions, camera availability, another app using the camera |
-| Torch or switch unavailable | Actual device capabilities and available video inputs |
+| Camera switch unavailable | Actual device capabilities and available video inputs |
 | Duplicate attendance | Whether the member is already checked in to that service |
 | Unexpected historical details | Snapshot provenance; distinguish backfilled data from captured-at-check-in data |
 | Motion absent | Device preference, reduced-motion setting, intentionally immediate form behavior |
@@ -466,10 +466,8 @@ No project license file was present in the audited repository. Confirm reuse and
 
 > “So whether you eat or drink or whatever you do, do it all for the glory of God.” — 1 Corinthians 10:31
 
-### Mobile Startup and Flashlight Checks
+### Mobile Startup and Camera Controls
 
-Mobile dashboard, scanner, and Tech Stack styles are loaded centrally in `src/main.tsx` after the shared styles. Keep that order when adding new pages so lazy component imports do not determine the initial layout. The HTML viewport already uses `width=device-width`; browser desktop-site overrides are outside the app’s control.
+Mobile styles load with the initial app styles. `public/viewport-recovery.js` runs before the React entry and checks for a narrow touch device unexpectedly using a desktop-width viewport on startup, page restoration, and app resume. It re-evaluates viewport metadata without reloading or disabling zoom. Actual Google OAuth return behavior must still be verified on the target browser or app wrapper.
 
-The scanner rechecks flashlight capability after camera startup and applies torch settings to the current stream, preserving its other constraints. It checks the reported state and shows a message if the request is ignored or cannot be confirmed. The Camera menu allows selection of another rear lens. Physical flashlight support still depends on the selected camera and browser.
-
-Run the focused, hardware-independent checks with `node scripts/test-camera-torch.mjs`. A real phone test is still needed for lamp activation, camera switching, and first-load layout.
+The scanner uses the switch-camera icon. Flashlight functionality and the camera dropdown have been removed. Camera permission, lens switching, and native fullscreen still depend on the browser and device.

@@ -58,11 +58,3 @@ html body .lc-service-sheet .lc-service-option{padding:12px;min-height:60px;bord
 }
 
 /* Device options use the same controls in normal and kiosk modes. */
-.lcs-camera-choices{position:relative;z-index:4;font-size:11px}
-.lcs-camera-choices>summary{display:flex;align-items:center;gap:7px;list-style:none;min-height:44px;padding:9px 12px;border:1px solid var(--lc-border,#d6e7df);border-radius:11px;background:var(--lc-surface,#fff);color:var(--lc-safe-text,#456d63);cursor:pointer}
-.lcs-camera-choices>summary::-webkit-details-marker{display:none}
-.lcs-camera-choices>div{position:absolute;right:0;top:calc(100% + 5px);width:min(260px,calc(100vw - 40px));max-height:220px;overflow:auto;padding:5px;background:var(--lc-surface,#fff);border:1px solid var(--lc-border,#d6e7df);border-radius:12px;box-shadow:0 6px 18px #173e3714}
-html body .lcs-camera-choices button{display:block;width:100%;min-height:44px;padding:9px 10px;font:inherit;font-size:11px;text-align:left;border:0;border-radius:8px;background:transparent;color:var(--lc-safe-text,#456d63);white-space:normal;overflow-wrap:anywhere}
-html body .lcs-camera-choices button[aria-pressed=true]{background:var(--lc-glowPrimary,#e5f5ef)}
-.lcs-torch-message{font-size:12px;line-height:1.6;margin:0;padding:10px 12px;border:1px solid var(--lc-border,#d6e7df);border-radius:10px;background:var(--lc-surface,#fff);color:var(--lc-safe-text,#456d63)}
-.lcs-camera-choices summary:focus-visible,.lcs-camera-choices button:focus-visible{outline:2px solid var(--lc-focus,#7964ad);outline-offset:2px}

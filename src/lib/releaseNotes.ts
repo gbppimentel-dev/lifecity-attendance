@@ -8,6 +8,10 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Phone Sign-In & Camera Controls',title:'Simpler Camera Controls',highlights:[
+  note('Removed flashlight controls and the camera dropdown. Use the switch-camera icon to change cameras.',staff),
+  note('Added a phone viewport recovery check when returning from Google sign-in or resuming the app.')
+ ]},
  {version:'Pre-Launch · Camera & Startup Fixes',title:'More Reliable Camera Controls',highlights:[
   note('Flashlight control rechecks camera support after startup, verifies reported lamp settings, and offers camera selection for phones with multiple lenses.',staff),
   note('Mobile presentation styles now load with the app’s initial styles instead of depending on page loading order.')
