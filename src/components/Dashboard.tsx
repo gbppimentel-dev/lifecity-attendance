@@ -1,8 +1,9 @@
 import WhatsNew from './WhatsNew'
+import '../mobile-dashboard.css'
 // Change ID: LC-P08C-v1
 // Change ID: LC-UI-LABELS-v3
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, CalendarDays, Camera, CheckCircle2, Clock3, RefreshCw, Users } from 'lucide-react'
+import { ArrowRight, ChevronDown, Check, Sparkles, CalendarDays, Camera, CheckCircle2, Clock3, RefreshCw, Users } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
 type AttendanceEvent = {
@@ -91,7 +92,23 @@ type DashboardSnapshot = {
   recent_check_ins: CheckIn[]
 }
 
+function MobilePeriodPicker({value,onChange}:{value:DashboardPeriod;onChange:(value:DashboardPeriod)=>void}) {
+  const ref=useRef<HTMLDetailsElement>(null)
+  const options=[{value:'all',label:'All Time'},{value:'month',label:'This Month'},{value:'year',label:'This Year'}] as const
+  useEffect(()=>{
+    const close=(event:PointerEvent)=>{if(event.target instanceof Node&&!ref.current?.contains(event.target)&&ref.current)ref.current.open=false}
+    document.addEventListener('pointerdown',close)
+    return()=>document.removeEventListener('pointerdown',close)
+  },[])
+  return <details className="lcd-period-picker" ref={ref} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))e.currentTarget.open=false}} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();e.currentTarget.open=false;e.currentTarget.querySelector('summary')?.focus()}}}>
+    <summary aria-label={`Dashboard period: ${options.find(option=>option.value===value)?.label}`}>{options.find(option=>option.value===value)?.label}<ChevronDown size={14}/></summary>
+    <div className="lcd-period-options" role="group" aria-label="Dashboard Period">{options.map(option=><button type="button" key={option.value} aria-pressed={value===option.value} onClick={()=>{if(ref.current){ref.current.open=false;ref.current.querySelector('summary')?.focus()}onChange(option.value)}}>{option.label}{value===option.value&&<Check size={14}/>}</button>)}</div>
+  </details>
+}
+
 export default function Dashboard({ audience, activeScannerEventId, onOpenScanner, onViewRecords }: DashboardProps) {
+  const [mobileView,setMobileView]=useState<'next'|'latest'|'activity'>('next')
+  const [showAllActivity,setShowAllActivity]=useState(false)
   const [snapshot, setSnapshot] = useState<DashboardSnapshot | null>(null)
   const [dashboardPeriod, setDashboardPeriod] = useState<DashboardPeriod>('all')
   const [finishedKey, setFinishedKey] = useState('')
@@ -227,6 +244,25 @@ export default function Dashboard({ audience, activeScannerEventId, onOpenScanne
           opacity: 1; cursor: default; transform: none; box-shadow: none;
         }
       `}</style>
+      <section className="lcd-mobile" aria-label="Mobile Dashboard">
+        <header className="lcd-head"><span className="lcd-header-art" aria-hidden="true"><span/><Sparkles size={21}/></span><div><p>LifeCity Attendance</p><h1>Dashboard</h1></div><button className="lcd-icon-button" onClick={()=>void loadDashboard()} disabled={refreshing} aria-label={refreshing?'Refreshing Dashboard':'Refresh Dashboard'}><RefreshCw size={18} className={refreshing?'lc-auth-spin':''}/></button></header>
+        <div className="lcd-toolbar"><div className="lcd-period-control"><span>Period</span><MobilePeriodPicker value={dashboardPeriod} onChange={setDashboardPeriod}/></div><span>{periodCheckInCount} Check-Ins</span></div>
+        <div className="lcd-actions"><button onClick={onOpenScanner}><Camera size={17}/>Scanner</button><button onClick={onViewRecords}><ArrowRight size={17}/>Records</button></div>
+        {showActiveCheckIn&&activeScannerEvent&&<section className="lcd-live" aria-label="Current Check-In"><div><span className="lcd-kicker">Checking In Now</span><h2>{activeScannerEvent.name}</h2><p>{formatEventDate(activeScannerEvent.starts_at)}{activeScannerEvent.location?` · ${activeScannerEvent.location}`:''}</p></div><strong>{activeScannerCount}<small>Check-Ins</small></strong></section>}
+        <section className="lcd-metrics" aria-label="Attendance Overview">
+          <article><span><Users size={15}/>Members</span><strong>{totalMemberCount}</strong><small>{activeMemberCount} Active</small></article>
+          <article><span><CalendarDays size={15}/>Events</span><strong>{periodEventCount}</strong><small>{dashboardPeriod==='all'?'All Time':dashboardPeriod==='month'?'This Month':'This Year'}</small></article>
+          <article><span><CheckCircle2 size={15}/>Latest Event</span><strong>{latestEventCount}</strong><small>Check-Ins</small></article>
+          <article><span><Clock3 size={15}/>Latest Sunday</span><strong>{latestSundayService?`${attendanceRate}%`:'—'}</strong><small>{latestSundayService?`${latestSundayCount} / ${activeMemberCount} Active`:'No Sunday Yet'}</small></article>
+        </section>
+        <section className="lcd-focus"><div className="lcd-switch" role="group" aria-label="Dashboard Details">{(['next','latest','activity'] as const).map(view=><button key={view} aria-pressed={mobileView===view} aria-controls="lcd-detail" onClick={()=>setMobileView(view)}>{view==='next'?'Up Next':view==='latest'?'Latest Event':'Activity'}</button>)}</div>
+          <div id="lcd-detail" className="lcd-detail">
+          {mobileView==='activity'?<><div className="lcd-activity-heading"><h2>Recent Check-Ins</h2><button onClick={onViewRecords}>All Records <ArrowRight size={13}/></button></div>{recentCheckIns.length===0?<p>No check-ins yet.</p>:<><div className="lcd-activity">{recentCheckIns.slice(0,showAllActivity?undefined:3).map(checkIn=><button key={checkIn.id} onClick={onViewRecords}><span><strong>{checkIn.members?`${checkIn.members.first_name} ${checkIn.members.last_name}`:'Unknown Member'}</strong><small>{checkIn.events?.name??'Unknown Event'}</small></span><time dateTime={checkIn.checked_in_at}>{formatCheckInTime(checkIn.checked_in_at)}</time></button>)}</div>{recentCheckIns.length>3&&<button className="lcd-more" aria-expanded={showAllActivity} onClick={()=>setShowAllActivity(v=>!v)}>{showAllActivity?'Show Less':`Show All ${recentCheckIns.length}`}</button>}</>}</>:(()=>{const event=mobileView==='next'?upcomingEvent:latestEvent;return event?<><span className="lcd-kicker">{mobileView==='next'?'Next Gathering':event.is_sunday_service?'Most Recent Sunday Service':'Most Recent Event'}</span><h2>{event.name}</h2><p className="lcd-event-date"><CalendarDays size={14}/>{formatEventDate(event.starts_at)}</p>{event.location&&<p>{event.location}</p>}{mobileView==='latest'&&<p className="lcd-event-total"><strong>{latestEventCount}</strong> Check-Ins{event.is_sunday_service?` · ${latestEventCount} of ${activeMemberCount} Active Members`:''}</p>}{mobileView==='latest'&&event.is_sunday_service&&<div className="lcd-progress" role="progressbar" aria-label="Latest Event Attendance" aria-valuenow={Math.min(latestEventRate,100)} aria-valuemin={0} aria-valuemax={100} aria-valuetext={`${latestEventRate}% attendance`}><span style={{width:`${Math.min(latestEventRate,100)}%`}}/></div>}{event.admin_note&&<details className="lcd-note" key={event.id}><summary>Service Note</summary><p>{event.admin_note}</p></details>}</>:<p>{mobileView==='next'?'Nothing scheduled yet. Create a gathering in Services.':'No event recorded yet.'}</p>})()}
+          </div>
+        </section>
+        <details className="lcd-news"><summary>What’s New <span>Updates &amp; History</span></summary><WhatsNew audience={audience}/></details>
+      </section>
+      <div className="lcd-desktop">
       <section className="dashboard-editorial-hero">
         <div className="dashboard-hero-copy">
           <p className="eyebrow">Overview</p>
@@ -441,6 +477,7 @@ export default function Dashboard({ audience, activeScannerEventId, onOpenScanne
       </section>
 
       <WhatsNew audience={audience}/>
+      </div>
     </>
   )
 }

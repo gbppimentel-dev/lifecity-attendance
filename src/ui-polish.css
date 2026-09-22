@@ -131,3 +131,62 @@ body .lc-accounts .lcah-pagination nav {display:flex;align-items:center;gap:6px;
  body .lc-accounts :is(.lc-page-icon,.lc-refresh-icon) {width:44px;min-width:44px;height:44px;min-height:44px;}
  body .member-editor-card .ministry-options {grid-template-columns:repeat(2,minmax(0,1fr));}
 }
+
+/* Mobile dashboard metrics: compact rows, with values in normal layout. */
+@media (max-width:900px) {
+  html body .dashboard-stats {
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    scroll-margin-bottom:calc(100px + env(safe-area-inset-bottom));
+  }
+  html body .dashboard-stats .dashboard-stat-card.dashboard-metric-card {
+    display:grid;
+    grid-template-columns:30px minmax(0,1fr) auto;
+    grid-template-rows:auto auto;
+    align-items:center;
+    gap:5px 10px;
+    min-height:0;
+    height:auto;
+    padding:14px;
+    border-radius:15px;
+    box-shadow:none;
+  }
+  html body .dashboard-stats .dashboard-metric-card::after {content:none}
+  html body .dashboard-stats .dashboard-metric-copy {display:contents}
+  html body .dashboard-stats .dashboard-metric-copy > p.lc-v3-metric-title {
+    grid-column:2;grid-row:1;
+    min-height:0;
+    padding:0;margin:0;
+    font-size:12px;line-height:1.4;
+  }
+  html body .dashboard-stats .dashboard-metric-copy > small {
+    grid-column:2 / 4;grid-row:2;
+    margin:0;padding:0;
+    font-size:11px;line-height:1.5;
+    white-space:normal;overflow:visible;overflow-wrap:anywhere;
+  }
+  html body .dashboard-stats .dashboard-metric-card > strong {
+    position:static;
+    grid-column:3;grid-row:1;
+    align-self:center;
+    margin:0;padding:0;
+    max-width:7ch;
+    font-size:28px;line-height:1.15;letter-spacing:-.04em;
+    text-align:right;font-variant-numeric:tabular-nums;
+    overflow-wrap:anywhere;
+  }
+  html body .dashboard-stats .dashboard-stat-icon {
+    position:static;
+    grid-column:1;grid-row:1;
+    width:30px;height:30px;
+    border-radius:9px;
+    margin:0;
+  }
+  html body .dashboard-stats .dashboard-stat-icon svg {width:17px;height:17px}
+  html body .lc-mobile-workspace > .content {
+    padding-bottom:calc(100px + env(safe-area-inset-bottom));
+  }
+}
+@media(max-width:600px) {
+  html body .dashboard-stats {grid-template-columns:minmax(0,1fr)}
+}

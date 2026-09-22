@@ -4,9 +4,10 @@
 // Change ID: LC-P08E-v1
 // Change ID: LC-P08D-v1
 // Change ID: LC-UI-COPY-v2
+import '../mobile-scanner.css'
 import { uiMessage } from '../lib/uiText'
 import { type FormEvent, useEffect, useRef, useState } from 'react'
-import { CheckCircle2, Expand, Flashlight, FlashlightOff, Minimize, ScanLine, Search, SwitchCamera, TriangleAlert, X } from 'lucide-react'
+import { ChevronDown, CheckCircle2, Expand, Flashlight, FlashlightOff, Minimize, ScanLine, Search, SwitchCamera, TriangleAlert, X } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../lib/supabase'
 
@@ -54,6 +55,7 @@ type RecentCheckIn = {
 let scannerShutdown = Promise.resolve()
 
 export default function AttendanceScanner({ event }: Props) {
+  const [manualOpen,setManualOpen]=useState(false)
   const [processing, setProcessing] = useState(false)
   const attemptSequence = useRef(0)
   const releaseTimer = useRef<number | null>(null)
@@ -550,13 +552,14 @@ export default function AttendanceScanner({ event }: Props) {
       {isKioskMode && <p className="lc-kiosk-tip">Need help? Exit kiosk to search for a member.</p>}
       </aside>
       </div>
-      <section className="manual-checkin-card" hidden={isKioskMode}>
+      <section className={`manual-checkin-card${manualOpen?' lcs-manual-open':''}`} hidden={isKioskMode}>
+        <button type="button" className="lcs-manual-toggle" aria-expanded={manualOpen} aria-controls="lcs-manual-form" onClick={()=>setManualOpen(value=>!value)}><Search size={16}/><span>Find a Member Manually</span><ChevronDown size={16}/></button>
         <div className="manual-checkin-heading">
           <p>Manual Check-In</p>
           <span>Use member search only when a QR code cannot be scanned.</span>
         </div>
 
-        <form className="manual-member-search" onSubmit={submitMemberSearch}>
+        <form id="lcs-manual-form" className="manual-member-search" onSubmit={submitMemberSearch}>
           <div className="manual-member-search-input">
             <Search size={18} />
             <input

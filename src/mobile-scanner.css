@@ -1,0 +1,58 @@
+/* Camera behavior stays shared; only the phone presentation changes. */
+.lcs-manual-toggle{display:none}
+@media(max-width:900px){
+html body .lc-mobile-workspace:has(.scanner-layout,.lc-scanner-idle){display:flex;flex-direction:column;box-sizing:border-box;min-height:100dvh;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+html body .lc-mobile-workspace:has(.scanner-layout,.lc-scanner-idle)>.content{flex:1 0 auto;width:100%;padding-bottom:12px}
+html body .lc-mobile-workspace:has(.scanner-layout,.lc-scanner-idle)>.lc-app-footer{margin-top:auto;padding:16px 24px 10px}
+html body .scanner-editorial-hero{display:block;min-height:0;margin:0 0 12px;padding:14px 16px;border-radius:15px;background:linear-gradient(115deg,var(--lc-glowPrimary,#e5f5ef),var(--lc-surface,#fff),var(--lc-glowSecondary,#f1edfa));overflow:hidden}
+html body .scanner-editorial-hero .scanner-hero-copy{max-width:none;padding:0}
+html body .scanner-editorial-hero h1{font-size:24px;line-height:1.2;margin:3px 0 0}
+html body .scanner-editorial-hero .eyebrow{font-size:9px;margin:0}
+html body .scanner-editorial-hero :is(.scanner-hero-copy>p:not(.eyebrow),.scanner-hero-caption,.scanner-status-card,.scanner-hero-orbit,.scanner-hero-spark){display:none}
+html body .scanner-event-picker{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:12px;margin:0 0 12px;border-radius:14px;min-height:0}
+html body .scanner-picker-copy .card-kicker{font-size:9px;margin:0 0 4px}
+html body .scanner-picker-copy h2{font-size:15px;line-height:1.4;margin:0;white-space:normal;overflow-wrap:anywhere}
+html body .scanner-picker-copy>p:not(.card-kicker){font-size:11px;line-height:1.5;margin:5px 0 0}
+html body .scanner-picker-control{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0;width:100%}
+html body .scanner-picker-control .lc-service-trigger{width:auto;min-height:44px;max-width:100%;font-size:11px;padding:8px 10px;gap:6px;border-radius:10px}
+html body .scanner-picker-control .lc-service-trigger svg{width:15px;height:15px;flex:none}
+html body .scanner-checkin-count{font-size:10px;line-height:1.5;margin:0;text-align:right}
+html body .scanner-layout:not(.is-kiosk-mode){display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:0;margin:0;min-width:0}
+html body .scanner-layout:not(.is-kiosk-mode) .scanner-camera-heading{display:flex;flex-direction:column;align-items:stretch;gap:7px;padding:0;margin:0}
+html body .scanner-layout:not(.is-kiosk-mode) .scanner-camera-heading>div:first-child{display:none}
+html body .scanner-layout:not(.is-kiosk-mode) .scanner-camera-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;justify-content:flex-start}
+html body .scanner-layout:not(.is-kiosk-mode) .scanner-camera-switch{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:8px 11px;font-size:11px;border-radius:11px;transform:none}
+html body .scanner-layout:not(.is-kiosk-mode) .lc-camera-icon{width:44px;padding:0}
+html body .scanner-layout:not(.is-kiosk-mode) .scanner-camera-actions>span{margin-left:auto;font-size:10px;line-height:1.4}
+html body .scanner-layout:not(.is-kiosk-mode) .lc-scanner-workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;min-height:0;margin:0}
+/* Size the entire reader, not just its video: scan overlays keep their alignment. */
+html body .scanner-layout:not(.is-kiosk-mode) .scanner-camera-stage{width:min(100%,42dvh,340px);max-width:100%;justify-self:center;min-height:0;height:auto;margin:0;padding:0;border-radius:16px;overflow:hidden;box-shadow:none}
+html body .scanner-layout:not(.is-kiosk-mode) .scanner-reader{width:100%;min-height:0;margin:0}
+html body .scanner-layout:not(.is-kiosk-mode) .lc-scanner-feedback{display:flex;flex-direction:column;gap:8px;padding:0;margin:0;min-height:0;width:100%;border:0;background:transparent}
+html body .scanner-layout:not(.is-kiosk-mode) .lc-scanner-feedback:empty{display:none}
+html body .scanner-layout:not(.is-kiosk-mode) .scan-result{order:-1;display:flex;gap:9px;align-items:center;width:100%;margin:0;padding:11px 12px;border-radius:12px;font-size:12px;min-height:0}
+html body .scanner-layout:not(.is-kiosk-mode) .scan-result>svg{width:22px;height:22px;flex:none}
+html body .scanner-layout:not(.is-kiosk-mode) .scan-result :is(p,strong,span){font-size:12px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+html body .scanner-layout:not(.is-kiosk-mode) .scanner-recent-checkins{position:static;width:100%;max-width:none;margin:0;padding:8px 10px;border-radius:10px;display:flex;flex-wrap:wrap;gap:7px;justify-content:space-between;font-size:10px}
+html body .scanner-layout:not(.is-kiosk-mode) .scanner-recent-checkins>div{display:flex;flex-wrap:wrap;gap:6px}
+html body .scanner-layout:not(.is-kiosk-mode) .scanner-recent-checkins p{margin:0;font-size:11px}
+html body .scanner-layout:not(.is-kiosk-mode) .manual-checkin-card{padding:0;margin:0;border-radius:12px;overflow:hidden;width:100%;max-width:none}
+html body .scanner-layout:not(.is-kiosk-mode) .manual-checkin-heading{display:none}
+html body .scanner-layout .lcs-manual-toggle{display:flex;align-items:center;gap:8px;width:100%;min-height:46px;border:0;background:var(--lc-surface,#fff);color:var(--lc-safe-text,#456d63);padding:12px;font:inherit;font-size:12px;cursor:pointer}
+.lcs-manual-toggle>span{flex:1;text-align:left}.lcs-manual-toggle[aria-expanded=true]>svg:last-child{rotate:180deg}
+html body .scanner-layout:not(.is-kiosk-mode) .manual-checkin-card:not(.lcs-manual-open) .manual-member-search{display:none}
+html body .scanner-layout:not(.is-kiosk-mode) .manual-member-search{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:0 12px 12px;margin:0}
+html body .scanner-layout:not(.is-kiosk-mode) .manual-member-search-input{min-width:0;min-height:44px;padding:0 9px;border-radius:10px}
+html body .scanner-layout:not(.is-kiosk-mode) .manual-member-search-input input{width:100%;min-width:0;font-size:16px;padding:9px 0}
+html body .scanner-layout:not(.is-kiosk-mode) .manual-checkin-button{min-height:44px;padding:8px 10px;font-size:11px;border-radius:10px}
+html body .scanner-layout:not(.is-kiosk-mode) .manual-member-search>:nth-child(n+3){grid-column:1/-1}
+html body .scanner-layout:not(.is-kiosk-mode) .manual-member-search-help{font-size:10px;line-height:1.5;margin:0}
+html body .scanner-layout:not(.is-kiosk-mode) .manual-member-results button{min-height:48px;padding:10px;font-size:12px;overflow-wrap:anywhere}
+html body .lc-scanner-idle{min-height:0;padding:22px 16px;margin:0;border-radius:14px}
+html body .lc-scanner-idle h2{font-size:17px;margin:10px 0 5px}html body .lc-scanner-idle p{font-size:12px;line-height:1.5}
+html body .lc-scanner-idle-art{width:60px;height:60px}
+html body dialog.lc-service-sheet{width:100%;max-width:100%;max-height:85dvh;inset:auto 0 0;margin:0;border-radius:20px 20px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));box-sizing:border-box;overflow:auto}
+html body .lc-service-sheet>header h2{font-size:19px}.lc-service-sheet .lc-service-options{gap:8px}
+html body .lc-service-sheet .lc-service-option{padding:12px;min-height:60px;border-radius:12px}html body .lc-service-sheet .lc-service-option strong{font-size:13px}html body .lc-service-sheet .lc-service-option small{font-size:11px}
+.lcs-manual-toggle:focus-visible{outline:2px solid var(--lc-focus,#7964ad);outline-offset:-3px}
+}

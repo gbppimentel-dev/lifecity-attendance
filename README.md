@@ -357,7 +357,7 @@ The shared theme contains 37 color controls grouped into brand, backgrounds, sur
 
 Motion preference is stored locally for the browser/device. Decorative animations respect the app setting and reduced-motion preference where implemented. Forms use immediate state changes in places where animated closing previously caused visual artifacts.
 
-Keep new components tied to existing theme variables and the `data-lc-motion` convention. Do not introduce an unrelated hard-coded palette or animation dependency for a small feature. The Tech Stack page uses a compact logo index and a shared detail panel with explanations and usage diagrams, restrained hover colors, and no entrance animation. Logo sources and usage notes are recorded in [Technology Logos](docs/technology-logos.md).
+Keep new components tied to existing theme variables and the `data-lc-motion` convention. Do not introduce an unrelated hard-coded palette or animation dependency for a small feature. The Tech Stack page uses a compact logo index and a shared detail panel with explanations and usage diagrams. On phones, nine tiles appear per page and each tool opens in a native modal detail sheet, restrained hover colors, and no entrance animation. Logo sources and usage notes are recorded in [Technology Logos](docs/technology-logos.md).
 
 ## Project Structure
 

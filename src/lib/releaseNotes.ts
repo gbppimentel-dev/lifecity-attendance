@@ -8,6 +8,25 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Mobile Scanner',title:'A Smaller Check-In Station',highlights:[
+  note('The mobile scanner now uses a compact service card, camera controls, and camera frame with check-in feedback directly below.',staff),
+  note('Open manual member search only when needed, and choose services from a mobile bottom sheet.',staff)
+ ]},
+ {version:'Pre-Launch · Mobile Tech Stack',title:'The Tech Stack, Pocket-Sized',highlights:[
+  note('Browse nine technology tiles at a time on phones, with simple page controls.'),
+  note('Tap any tool for its full explanation and usage diagram in a compact detail sheet. Desktop keeps its side-by-side layout.')
+ ]},
+ {version:'Pre-Launch · Mobile Dashboard Polish',title:'Small Details, Smoother Navigation',highlights:[
+  note('The mobile dashboard has a softly animated header and a custom period picker that matches the app.',staff),
+  note('The mobile dashboard footer now sits at the bottom of short pages without duplicate navigation spacing.',staff)
+ ]},
+ {version:'Pre-Launch · Mobile Dashboard Redesign',title:'Your Dashboard, Built for Phones',highlights:[
+  note('Use quick Scanner and Records actions, compact totals, and one switchable panel for upcoming events, the latest event, and recent activity.',staff),
+  note('Expand service notes, additional check-ins, and What’s New only when needed. Desktop dashboard layouts stay the same.',staff)
+ ]},
+ {version:'Pre-Launch · Mobile Dashboard',title:'A More Compact Overview',highlights:[
+  note('Mobile dashboard totals now sit beside their labels in compact rows, with readable event details and bottom navigation clearance.',staff)
+ ]},
  {version:'Pre-Launch · Landing Spacing Polish',title:'A Little More Breathing Room',highlights:[
   note('Added a little more space between the desktop welcome card, logo, and footer.',['guest'])
  ]},

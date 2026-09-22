@@ -70,3 +70,36 @@ html[data-lc-motion=off] body .lc-app-footer button.lc-footer-tech::after{transi
 
 html body .lc-tech-page .lc-tech-return{display:none}
 @media(max-width:760px){html body .lc-tech-page .lc-tech-return{display:flex;align-items:center;gap:7px;border:0;background:transparent;color:#d8ebac;padding:0 0 18px;font-size:11px;cursor:pointer}}
+
+/* Mobile: paged logo library with a native modal detail sheet. */
+html body dialog.lc-tech-sheet{position:fixed;inset:auto 0 0;width:min(100%,600px);max-width:100%;height:auto;max-height:88dvh;margin:0 auto;padding:0 20px calc(20px + env(safe-area-inset-bottom));border:1px solid #42675a;border-bottom:0;border-radius:22px 22px 0 0;background:#153f38;color:#fff;overflow:auto;overscroll-behavior:contain;box-sizing:border-box}
+.lc-tech-sheet::backdrop{background:#102c2866;backdrop-filter:blur(3px)}
+.lc-tech-sheet-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;background:#153f38;padding:10px 0;z-index:2;border-bottom:1px solid #ffffff24;margin-bottom:16px;color:#d8ebac;font-size:11px}
+html body .lc-tech-sheet-bar button{display:grid;place-items:center;min-width:44px;min-height:44px;border:1px solid #ffffff30;border-radius:12px;background:#ffffff0a;color:#fff;cursor:pointer}
+.lc-tech-sheet h2{font-size:24px;line-height:1.2;color:#fff;margin:0 0 6px;letter-spacing:-.02em}
+.lc-tech-sheet .lc-tech-inspector-top{margin-bottom:12px}.lc-tech-sheet .lc-tech-large-logo{height:50px;min-width:50px;padding:9px}.lc-tech-sheet .lc-tech-large-logo img{width:30px;height:30px}
+.lc-tech-sheet .lc-tech-inspector-purpose{margin-bottom:14px}
+html body dialog.lc-tech-page:has(.lc-tech-sheet[open]){overflow:hidden}
+@media(max-width:760px){
+.lc-tech-inner{min-height:100%;display:flex;flex-direction:column;padding:0 14px 14px}
+.lc-tech-top{min-height:52px;gap:8px;font-size:10px;flex-shrink:0}
+.lc-tech-top>span{max-width:none}.lc-tech-top-divider{margin:0 4px}
+.lc-tech-heading{padding:18px 0 14px;gap:12px;flex-shrink:0}
+.lc-tech-heading h1{font-size:32px;margin:5px 0 7px}.lc-tech-heading p{font-size:11px}.lc-tech-eyebrow{font-size:8px}
+.lc-tech-emblem{height:64px;width:72px}.lc-tech-emblem svg{width:36px;height:36px}
+.lc-tech-workspace{display:block}.lc-tech-index-heading{font-size:10px;padding-bottom:9px}
+.lc-tech-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-top:10px}
+html body .lc-tech-page .lc-tech-entry{display:flex;flex-direction:column;justify-content:flex-start;align-items:center;gap:7px;min-height:108px!important;padding:11px 5px 9px;border:1px solid var(--ts-line);border-radius:12px;background:#fff;text-align:center}
+html body .lc-tech-page .lc-tech-entry:hover{background:#edf1e6}
+html body .lc-tech-page .lc-tech-entry[aria-pressed=true]{background:#edf1e6;border-color:#9cb57d}
+.lc-tech-entry-copy{display:block;flex:none}.lc-tech-entry strong{display:block;font-size:10px;line-height:1.4;overflow-wrap:normal;word-break:normal}
+.lc-tech-entry-copy small,.lc-tech-entry>svg{display:none}
+.lc-tech-mark{width:36px;height:36px;border:0;background:transparent}.lc-tech-mark img{width:29px;height:29px}.lc-tech-mark:has(img+img) img{width:18px;height:26px}
+html body .lc-tech-page .lc-tech-inspector{display:none}
+.lc-tech-pagination{display:flex;justify-content:center;align-items:center;gap:18px;padding:12px 0 2px;font-size:11px;color:var(--ts-muted)}
+html body .lc-tech-page .lc-tech-pagination button{display:grid;place-items:center;width:44px;min-height:44px;padding:0;border:1px solid var(--ts-line);border-radius:11px;background:#fff;color:var(--ts-ink);cursor:pointer}
+html body .lc-tech-page .lc-tech-pagination button:disabled{opacity:.35;cursor:default}
+.lc-tech-end{margin-top:auto;padding-top:14px;border:0;gap:3px;font-size:9px}.lc-tech-end small{font-size:9px}
+}
+@media(max-width:760px) and (prefers-reduced-motion:no-preference){html[data-lc-motion=on] .lc-tech-sheet[open]{animation:lc-tech-sheet-in .2s ease-out}}
+@keyframes lc-tech-sheet-in{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}
