@@ -8,6 +8,34 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Landing Spacing Polish',title:'A Little More Breathing Room',highlights:[
+  note('Added a little more space between the desktop welcome card, logo, and footer.',['guest'])
+ ]},
+ {version:'Pre-Launch · Welcome Illustration',title:'Room for Every Card',highlights:[
+  note('The welcome illustration now gives its floating cards separate spaces so the main card’s text stays readable.',['guest'])
+ ]},
+ {version:'Pre-Launch · Welcome Spacing',title:'More Room to Welcome You',highlights:[
+  note('The desktop welcome panel now fills the available height between the brand and footer, with more breathing room for its content.',['guest'])
+ ]},
+ {version:'Pre-Launch · Welcome Layout',title:'A More Compact Welcome',highlights:[
+  note('The welcome page uses height-aware spacing to keep sign-in, help text, and the footer together on standard desktop screens.',['guest'])
+ ]},
+ {version:'Pre-Launch · Tech Stack Redesign',title:'A New View of the Tech Stack',highlights:[
+  note('Explore a compact technology index with a dedicated panel for each tool’s explanation and usage diagram.'),
+  note('A fresh ivory and dark teal layout replaces the expanding card grid, with larger logos and subtle motion.')
+ ]},
+ {version:'Pre-Launch · Interactive Tech Stack',title:'See How Each Tool Helps',highlights:[
+  note('Explore colorful, compact technology cards with expandable explanations and simple usage diagrams.'),
+  note('The Tech Stack page now shows all tools directly, without search or category filters.')
+ ]},
+ {version:'Pre-Launch · Compact Tech Stack',title:'Tech Stack at a Glance',highlights:[
+  note('Browse technology logos and short descriptions in compact groups organized by purpose.'),
+  note('The footer Tech Stack link now uses a subtle underline animation with consistent text sizing.')
+ ]},
+ {version:'Pre-Launch · Tech Stack Refinement',title:'A Clearer Look Behind the App',highlights:[
+  note('The Tech Stack page now has a more focused layout with recognizable technology logos.'),
+  note('Refined the footer Tech Stack hover and removed the page’s decorative entrance and floating effects.')
+ ]},
  {version:'Pre-Launch · Web Wrap-Up',title:'Meet the Tools Behind LifeCity',highlights:[
   note('Explore the new Tech Stack page from the footer, with searchable categories and optional animated graphics.'),
   note('The public repository now includes a detailed README and a source-based technology and backend inventory.')

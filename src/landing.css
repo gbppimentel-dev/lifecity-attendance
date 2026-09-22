@@ -179,3 +179,159 @@ body .lcsp-directory .service-directory-controls > .filter-select > select {
     background-image: none;
   }
 }
+
+/* Welcome landing: fit the content to ordinary desktop viewport heights.
+   Keep natural overflow available for zoom, errors, and unusually short screens. */
+@media (min-width: 901px) {
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) {
+    min-height:100dvh;
+    padding:clamp(10px,2dvh,20px) 28px;
+    grid-template-rows:auto 1fr auto;
+    gap:clamp(8px,1.5dvh,16px);
+    align-items:center;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) > .lc-auth-brand {
+    grid-row:1;margin:0;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) > .lc-auth-frame {
+    grid-row:2;align-self:center;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) > .lc-landing-footer {
+    grid-row:3;padding:0;gap:3px;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) :is(.lc-auth-story,.lc-auth-body) {
+    padding:clamp(16px,3dvh,30px) 28px;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-intro {
+    margin-bottom:14px;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-google-welcome-note {
+    margin-top:14px;padding:13px;gap:10px;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-help {
+    margin-top:12px;line-height:1.6;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-playful-art {
+    height:clamp(155px,calc(100dvh - 510px),235px);margin-top:12px;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-playful-orbit {
+    width:160px;height:160px;top:0;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-float-community {top:25px}
+}
+@media (min-width:901px) and (max-height:700px) {
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) :is(.lc-auth-story,.lc-auth-body) {padding:16px 24px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) :is(.lc-auth-story h1,.lc-auth-body h2) {font-size:29px;margin-bottom:10px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .eyebrow {margin-bottom:8px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-intro {font-size:13px;line-height:1.5;margin-bottom:10px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-google-only-button {min-height:44px;padding:10px 14px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-google-welcome-note {margin-top:10px;padding:10px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-google-welcome-note p {font-size:12px;line-height:1.5;margin-top:4px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-google-welcome-note strong {font-size:12px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-help {font-size:11px;margin-top:9px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-playful-art {height:155px;max-width:340px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-float-card .lc-playful-card {padding:9px;gap:4px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-playful-icon {width:30px;height:30px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-float-community strong {font-size:12px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-float-sunday {bottom:35px}
+}
+@media (max-width:900px) {
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) {box-sizing:border-box;min-height:100dvh;padding:12px 16px;gap:12px;justify-content:center}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story {padding:15px 20px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story h1 {font-size:25px;margin-bottom:0}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-body {padding:18px 20px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-body h2 {font-size:25px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-intro {margin-bottom:12px;font-size:13px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-google-welcome-note {margin-top:12px;padding:10px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-google-welcome-note p {font-size:12px;line-height:1.5}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-help {margin-top:10px;font-size:11px;line-height:1.5}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) > .lc-landing-footer {padding:0;gap:3px}
+}
+
+/* Let the welcome panel use the space between the brand and footer. */
+@media (min-width:901px) {
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) > .lc-auth-frame {
+    align-self:stretch;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-body {
+    align-self:stretch;
+    display:flex;
+    align-items:center;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story {
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-playful-art {
+    flex-shrink:0;
+    margin-top:clamp(16px,3dvh,30px);
+    margin-bottom:clamp(0px,1dvh,12px);
+  }
+}
+@media (min-width:901px) and (min-height:701px) {
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) :is(.lc-auth-story,.lc-auth-body) {
+    padding-top:clamp(24px,4dvh,46px);
+    padding-bottom:clamp(24px,4dvh,46px);
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-intro {margin-bottom:22px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-google-welcome-note {margin-top:22px;padding:16px}
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-help {margin-top:18px}
+}
+
+/* Give each floating card a safe text area, including its motion envelope. */
+@media (min-width:901px) {
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-playful-art {
+    display:grid;
+    grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
+    grid-template-rows:auto auto auto;
+    align-items:center;
+    gap:12px 16px;
+    height:auto;
+    max-width:390px;
+    padding:8px 6px;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-float-card {
+    position:relative;
+    inset:auto;
+    width:auto;
+    min-width:0;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-float-community {
+    grid-column:1;grid-row:1 / 3;--card-angle:-2deg;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-float-faith {
+    grid-column:2;grid-row:1;--card-angle:3deg;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-float-sunday {
+    grid-column:2;grid-row:2;--card-angle:2deg;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-float-checkin {
+    grid-column:1 / -1;grid-row:3;justify-self:center;--card-angle:-2deg;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-float-community .lc-playful-card {
+    padding:15px 12px;gap:7px;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-float-community strong {
+    font-size:13px;line-height:1.45;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-playful-card small {
+    line-height:1.5;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-playful-orbit {
+    top:10px;z-index:-1;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-playful-spark {
+    top:0;left:-8px;
+  }
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-playful-dot {
+    right:4%;bottom:6px;
+  }
+}
+
+/* Small breathing room between the welcome panel, brand, and footer. */
+@media (min-width:901px) {
+  html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) {
+    row-gap:clamp(18px,2.5dvh,24px);
+  }
+}

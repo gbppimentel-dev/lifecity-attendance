@@ -107,7 +107,7 @@ Signing in does not automatically connect a Google account to a member record. U
 - Choose to hide identity by default in the Owner inbox.
 - Track tickets as **New**, **In Progress**, **Completed**, or **Considered**.
 - See role-specific What’s New entries and Version History.
-- Open the searchable Tech Stack page from the footer.
+- Open the Tech Stack page from the footer and select a technology to learn how the app uses it.
 
 “Completed” means an improvement has been implemented. “Considered” keeps an idea available for possible future work. Internally, existing backend values `resolved` and `closed` remain mapped to those visible labels for compatibility.
 
@@ -170,7 +170,7 @@ The frontend is a TypeScript React single-page application bundled by Vite. `App
 
 Supabase provides authentication, database queries, RPC access, and Realtime subscriptions. Components use hooks to load data, debounce searches, coordinate mutations, and refresh results. There is no separate custom Node/Express backend in this repository.
 
-The interface uses custom CSS, theme variables, SVG illustrations, Lucide icons, native browser dialogs, and the Web Animations API. The new Tech Stack view is a lazy-loaded, full-screen dialog: closing it restores the preceding screen instead of discarding its state.
+The interface uses custom CSS, theme variables, SVG illustrations, Lucide icons, native browser dialogs, and the Web Animations API. The new Tech Stack view is a full-screen native dialog with bundled technology logos: closing it restores the preceding screen instead of discarding its state.
 
 ## Technology Stack
 
@@ -357,7 +357,7 @@ The shared theme contains 37 color controls grouped into brand, backgrounds, sur
 
 Motion preference is stored locally for the browser/device. Decorative animations respect the app setting and reduced-motion preference where implemented. Forms use immediate state changes in places where animated closing previously caused visual artifacts.
 
-Keep new components tied to existing theme variables and the `data-lc-motion` convention. Do not introduce an unrelated hard-coded palette or animation dependency for a small feature. The Tech Stack page follows these conventions.
+Keep new components tied to existing theme variables and the `data-lc-motion` convention. Do not introduce an unrelated hard-coded palette or animation dependency for a small feature. The Tech Stack page uses a compact logo index and a shared detail panel with explanations and usage diagrams, restrained hover colors, and no entrance animation. Logo sources and usage notes are recorded in [Technology Logos](docs/technology-logos.md).
 
 ## Project Structure
 
@@ -374,7 +374,7 @@ Keep new components tied to existing theme variables and the `data-lc-motion` co
 | `src/components/AccountsSettings.tsx` / `SettingsWorkspace.tsx` | Owner account/settings workspace |
 | `src/components/FeedbackWidget.tsx` / `FeedbackInbox.tsx` / `MyFeedback.tsx` | Feedback submission, Owner review, sender tracking |
 | `src/components/AppFooter.tsx` / `TechStackPage.tsx` | Shared footer and full-screen technology explorer |
-| `src/lib/techStack.ts` | Searchable technology inventory |
+| `src/lib/techStack.ts` | Technology inventory and expandable explanations |
 | `src/lib/releaseNotes.ts` | Audience-tagged release highlights and history |
 | `src/lib/supabase.ts` | Browser Supabase client and environment checks |
 | `src/lib/theme.ts` / `themeShades.ts` / `appearance.ts` | Theme values, derived shades, shared appearance loading |
@@ -415,7 +415,7 @@ The manifest and icons provide a standalone web identity. There is no service wo
 8. Submit a link/profile request and review its outcome with the appropriate role.
 9. Submit feedback, update its status, and verify the sender's unread indicator.
 10. Change appearance and motion settings; inspect text, hover, focus, and reduced-motion states.
-11. Open Tech Stack from each workspace footer, search/filter it, and close it with Back and Escape.
+11. Open Tech Stack from each workspace footer, select technologies using mouse and keyboard, and close it with Back and Escape.
 12. Confirm that What’s New does not show staff-only features to guests.
 
 Use test data and a separate backend when a check would change live member or attendance records.
