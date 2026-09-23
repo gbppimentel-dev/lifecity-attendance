@@ -8,6 +8,16 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Mobile Workspaces',title:'More Room for What Matters',highlights:[
+  note('Members and Records use tighter mobile rows, compact filters, and option sheets with search for longer lists.',staff),
+  note('My Member Space puts attendance QR access first, with expandable profile details, feedback tickets, and attendance history.',signedIn),
+  note('Mobile Settings uses compact account actions, smaller appearance controls, and an expandable live preview.',['owner']),
+  note('The app suggestion form has a compact mobile sheet with smaller category buttons and all existing submission options.',signedIn)
+ ]},
+ {version:'Pre-Launch · Mobile Services',title:'Service Management, Made Compact',highlights:[
+  note('Mobile Services now uses compact rows with scanner shortcuts and expandable notes and management actions.',staff),
+  note('Mobile filters and page-size controls use custom pickers. Create and edit forms keep all fields in a tighter layout.',staff)
+ ]},
  {version:'Pre-Launch · Phone Sign-In & Camera Controls',title:'Simpler Camera Controls',highlights:[
   note('Removed flashlight controls and the camera dropdown. Use the switch-camera icon to change cameras.',staff),
   note('Added a phone viewport recovery check when returning from Google sign-in or resuming the app.')

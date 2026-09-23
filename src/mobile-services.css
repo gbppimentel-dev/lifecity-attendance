@@ -1,0 +1,68 @@
+.lcsm-filters,.lcsm-row-toggle,.lcsm-page-size{display:none}
+@media(max-width:900px){
+html body .lc-mobile-workspace:has(.lcsp-directory){display:flex;flex-direction:column;box-sizing:border-box;min-height:100dvh;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+html body .lc-mobile-workspace:has(.lcsp-directory)>.content{flex:1 0 auto;padding-bottom:12px;width:100%}
+html body .lc-mobile-workspace:has(.lcsp-directory)>.lc-app-footer{margin-top:auto;padding:16px 24px 10px}
+html body .services-editorial-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:0;padding:14px;margin:0 0 12px;border-radius:15px;background:linear-gradient(115deg,var(--lc-glowPrimary,#e5f5ef),var(--lc-surface,#fff),var(--lc-glowSecondary,#f1edfa))}
+html body .services-editorial-hero h1{font-size:25px;line-height:1.2;margin:3px 0}.services-editorial-hero .eyebrow{font-size:9px}
+html body .services-editorial-hero :is(.services-hero-copy>p:not(.eyebrow),.services-hero-caption,.services-create-action-kicker,.services-create-action-note,.services-hero-orbit,.services-hero-spark){display:none}
+html body .services-create-action{display:flex;align-items:center;gap:8px;min-height:44px;min-width:0;width:auto;padding:10px 12px;border-radius:11px;transform:none;box-shadow:none}
+html body .services-create-action strong{font-size:12px;margin:0}.services-create-action-icon{position:static!important;width:20px!important;height:20px!important}
+html body .lcsp-directory{overflow:visible;padding:12px;margin:0;border-radius:15px}
+html body .lcsp-directory .directory-toolbar{display:grid;gap:10px;padding:0;margin:0 0 10px}
+html body .lcsp-directory .directory-toolbar h2{font-size:15px;margin:0}.lcsp-directory .directory-toolbar p{font-size:10px;margin:4px 0 0}
+html body .lcsp-search-tools{display:grid;grid-template-columns:minmax(0,1fr);gap:7px;width:100%}
+html body .lcsp-directory .lcsp-search{min-height:44px;border-radius:10px;margin:0;padding:0 10px}
+html body .lcsp-directory .lcsp-search input{font-size:16px;min-width:0;min-height:44px}
+html body .lcsp-filter-toggle{min-height:44px;padding:8px 10px;font-size:11px;border-radius:9px}
+html body .lcsp-directory .service-directory-controls{display:none;overflow:visible;padding:0;margin:0}
+html body .lcsp-directory .service-directory-controls.is-open{display:block}
+html body .lcsp-directory .service-directory-controls>label{display:none}
+html body .lcsm-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;border:1px solid var(--lc-border,#d6e7df);border-radius:11px;background:var(--lc-surfaceAlt,#f4f9f6)}
+.lcsm-select{min-width:0;font-size:11px}.lcsm-select>span{display:block;margin-bottom:4px;color:var(--lc-safe-muted,#60796f)}
+.lcsm-select details{position:relative}.lcsm-select details[open]{z-index:30}
+.lcsm-select summary{display:flex;align-items:center;justify-content:space-between;gap:6px;list-style:none;min-height:44px;padding:8px 10px;border:1px solid var(--lc-border,#d6e7df);border-radius:9px;background:var(--lc-surface,#fff);color:var(--lc-safe-text,#456d63);cursor:pointer}
+.lcsm-select summary::-webkit-details-marker{display:none}
+.lcsm-select details>div{position:absolute;top:calc(100% + 4px);left:0;right:0;min-width:130px;max-height:240px;overflow:auto;overscroll-behavior:contain;padding:4px;background:var(--lc-surface,#fff);border:1px solid var(--lc-border,#d6e7df);border-radius:10px;box-shadow:0 8px 20px #173e3715}
+html body .lcsm-select button{display:flex;justify-content:space-between;align-items:center;gap:5px;width:100%;min-height:44px;padding:8px;border:0;border-radius:7px;background:transparent;color:var(--lc-safe-text,#456d63);font:inherit;font-size:11px;text-align:left;cursor:pointer;transform:none}
+html body .lcsm-select button[aria-pressed=true]{background:var(--lc-glowPrimary,#e5f5ef);color:var(--lc-primary,#147d73)}
+html body .lcsm-reset{grid-column:1/-1;min-height:44px;background:transparent;border:0;color:var(--lc-primary,#147d73);font-size:11px}
+html body .lcsp-directory .services-recovered-list{display:grid;gap:9px;margin-top:10px}
+html body .lcsp-directory .service-list-heading{display:none}
+html body .lcsp-directory .service-list-item{border:1px solid var(--lc-border,#d6e7df);border-radius:12px;overflow:hidden;margin:0;padding:0;transform:none;box-shadow:none}
+html body .lcsp-directory .event-row{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:8px;min-height:0;padding:12px;margin:0;border:0;border-radius:0}
+html body .lcsp-directory .event-date{display:none}
+html body .lcsp-directory .member-name{grid-column:1;grid-row:1;min-width:0;padding:0;display:flex;flex-direction:column;gap:5px}
+html body .lcsp-directory .service-title{font-size:14px;line-height:1.4;white-space:normal;overflow-wrap:anywhere;margin:0}
+html body .lcsp-directory .member-name>span:not(.service-state):not(.current-scanner-indicator){font-size:11px;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+html body .lcsp-directory :is(.service-state,.archived-pill,.current-scanner-indicator){font-size:9px;padding:3px 7px;align-self:flex-start}
+html body .lcsp-directory .service-attendance-summary{font-size:10px;line-height:1.5;margin:0}
+html body .lcsp-directory .service-checkin-cell{grid-column:2;grid-row:1;align-self:center;padding:0;width:44px}
+html body .lcsp-directory .service-checkin-button{width:44px;height:44px;min-height:44px;padding:0;border-radius:11px}
+html body .lcsp-directory .service-checkin-unavailable{display:none}
+html body .lcsp-directory .service-list-item:not(.lcsm-expanded) :is(.service-row-actions,.service-sunday-checkbox,.service-note-preview){display:none}
+html body .lcsp-directory .lcsm-row-toggle{display:flex;align-items:center;justify-content:center;gap:7px;grid-column:1/-1;width:100%;min-height:44px;padding:8px;border:0;border-top:1px solid var(--lc-border,#d6e7df);border-radius:0;background:transparent;color:var(--lc-safe-text,#456d63);font:inherit;font-size:11px;cursor:pointer}
+.lcsm-expanded .lcsm-row-toggle svg{rotate:180deg}
+html body .lcsp-directory .lcsm-expanded .service-note-preview{font-size:11px;line-height:1.6;white-space:pre-wrap;max-height:none;overflow:visible}
+html body .lcsp-directory .service-row-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px;margin:0;padding:0}
+html body .lcsp-directory .service-action-button{width:44px;height:44px;min-height:44px;border-radius:10px;padding:0}
+html body .lcsp-directory .service-sunday-checkbox{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-start;gap:9px;min-height:44px;padding:0}
+html body .lcsp-directory .service-sunday-checkbox::after{content:'Sunday Service';font-size:11px}
+html body .lcsp-directory .service-inline-confirmation{padding:12px;font-size:12px;display:grid;gap:12px}
+html body .lcsp-directory .service-inline-confirmation-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}html body .lcsp-directory .service-inline-confirmation button{min-height:44px;font-size:11px;padding:8px}
+html body .lcsp-directory .lcsp-footer{padding:12px 0 0;margin-top:12px;gap:10px}
+html body .lcsp-directory .lcsp-footer-summary{display:flex;align-items:center;justify-content:space-between;gap:10px}
+html body .lcsp-directory .lcsp-footer-summary>p{font-size:10px}
+html body .lcsp-directory .lcsp-page-size{display:none}html body .lcsm-page-size{display:block;min-width:80px}
+.lcsm-page-size .lcsm-select details>div{left:auto;bottom:calc(100% + 4px);top:auto}
+html body .lcsp-directory .lcsp-page-buttons{display:flex;justify-content:center;flex-wrap:wrap;gap:5px}html body .lcsp-directory .lcsp-page-buttons button{width:40px;min-height:44px;padding:0}
+html body .lcsp-directory .lc-export-panel{margin:10px 0;border-radius:11px}html body .lcsp-directory .lc-export-panel>summary{min-height:44px;padding:10px 12px;font-size:12px}
+html body .lcsp-directory .lcse-body{padding:12px}html body .lcsp-directory .lcse-heading h3{font-size:18px}
+html body .service-form-card{padding:14px;margin:0 0 12px;border-radius:14px}html body .service-form-heading{margin-bottom:12px}html body .service-form-heading h2{font-size:19px}
+html body .service-form-card .event-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+html body .service-form-card .event-form label{font-size:11px;min-width:0}html body .service-form-card .wide-field{grid-column:1/-1}
+html body .service-form-card :is(input:not([type=checkbox]),textarea){min-width:0;width:100%;font-size:16px;min-height:44px;padding:9px;border-radius:9px}
+html body .service-form-card .event-type-toggle{padding:10px;gap:9px}html body .service-form-card .event-type-toggle strong{font-size:12px}html body .service-form-card .event-type-toggle small{font-size:10px;line-height:1.5}
+html body .service-form-card .form-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}html body .service-form-card .form-actions button{font-size:12px;min-height:44px;padding:9px}
+.lcsm-select summary:focus-visible,.lcsm-select button:focus-visible,.lcsm-row-toggle:focus-visible{outline:2px solid var(--lc-focus,#7964ad);outline-offset:-2px}
+}

@@ -1,3 +1,5 @@
+import MobileServiceSelect from './components/MobileServiceSelect'
+import './mobile-services.css'
 import AppFooter from './components/AppFooter'
 import FeedbackWidget from './components/FeedbackWidget'
 // Change ID: LC-P08F-v1
@@ -332,6 +334,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
   const [serviceYear, setServiceYear] = useState('')
   const [serviceSort, setServiceSort] = useState<'recent' | 'oldest'>('recent')
   const [archiveFilter, setArchiveFilter] = useState<'all' | 'active' | 'archived'>('active')
+  const [mobileServiceExpanded,setMobileServiceExpanded]=useState<string|null>(null)
   const [serviceFiltersOpen, setServiceFiltersOpen] = useState(false)
   const [serviceSearch, setServiceSearch] = useState('')
   const [serviceQuery, setServiceQuery] = useState('')
@@ -889,6 +892,13 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                   <label className="lcsp-search"><Search size={18} aria-hidden="true"/><input type="search" enterKeyHint="search" value={serviceSearch} onFocus={() => { if (window.matchMedia('(max-width: 900px)').matches) { setServiceFiltersOpen(false); window.setTimeout(() => servicesListRef.current?.scrollIntoView({block:'start',behavior:'smooth'}), 300) } }} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); event.currentTarget.blur() } }} onChange={event=>setServiceSearch(event.target.value)} placeholder="Search Services or Locations" aria-label="Search Services or Locations"/></label>
                 <button type="button" className="lcsp-filter-toggle" aria-expanded={serviceFiltersOpen} aria-controls="service-directory-filters" onClick={() => setServiceFiltersOpen(value => !value)}>Filters · {archiveFilter === 'active' ? 'Active' : archiveFilter === 'archived' ? 'Archived' : 'All'}{serviceMonth || serviceYear ? ' · Date filtered' : ''}<ChevronDown size={16}/></button>
                 <div id="service-directory-filters" className={"service-directory-controls" + (serviceFiltersOpen ? " is-open" : "")}>
+                  <div className="lcsm-filters">
+                    <MobileServiceSelect label="Status" value={archiveFilter} options={[{value:'all',label:'All'},{value:'active',label:'Active'},{value:'archived',label:'Archived'}]} onChange={value=>setArchiveFilter(value as 'all'|'active'|'archived')}/>
+                    <MobileServiceSelect label="Month" value={serviceMonth} options={[{value:'',label:'All Months'},...months.map((label,index)=>({value:String(index+1),label}))]} onChange={setServiceMonth}/>
+                    <MobileServiceSelect label="Year" value={serviceYear} options={[{value:'',label:'All Years'},...serviceYears.map(value=>({value,label:value}))]} onChange={setServiceYear}/>
+                    <MobileServiceSelect label="Sort" value={serviceSort} options={[{value:'recent',label:'Recent First'},{value:'oldest',label:'Oldest First'}]} onChange={value=>setServiceSort(value as 'recent'|'oldest')}/>
+                    <button type="button" className="lcsm-reset" onClick={()=>{setArchiveFilter('active');setServiceMonth('');setServiceYear('');setServiceSort('recent');setServiceSearch('')}}>Reset Filters</button>
+                  </div>
                   <label className="filter-select">
                     Status
                     <select value={archiveFilter} onChange={(event) => setArchiveFilter(event.target.value as 'all' | 'active' | 'archived')}>
@@ -959,7 +969,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                     const isActionTarget = serviceActionTarget?.item.id === item.id
 
                     return (
-                    <div className="service-list-item" key={item.id}>
+                    <div className={`service-list-item${mobileServiceExpanded===item.id?' lcsm-expanded':''}`} key={item.id}>
                     <article className="event-row">
                       <div className="event-date">
                         <strong>
@@ -1072,6 +1082,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
                         )}
                       </div>
 
+                    <button type="button" className="lcsm-row-toggle" aria-expanded={mobileServiceExpanded===item.id} aria-label={`${mobileServiceExpanded===item.id?'Hide':'Show'} details and actions for ${item.name}`} onClick={()=>setMobileServiceExpanded(current=>current===item.id?null:item.id)}>{mobileServiceExpanded===item.id?'Less':'Details & Actions'}<ChevronDown size={14}/></button>
                     </article>
                     {isActionTarget && (
                       <div className={`service-inline-confirmation ${serviceActionTarget.kind}`}>
@@ -1111,7 +1122,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
               <div className="lcsp-footer" aria-label="Service List Pagination">
                 <div className="lcsp-footer-summary">
                   <p aria-live="polite">{servicesBusy ? 'Loading services…' : servicesError ? 'Services unavailable' : `Showing ${serviceStats.total===0?0:(serviceStats.page-1)*servicePageSize+1}–${Math.min(serviceStats.page*servicePageSize,serviceStats.total)} of ${serviceStats.total} Services`}</p>
-                  <div className="lcsp-page-size"><label htmlFor="services-page-size">Per Page</label><span><select id="services-page-size" aria-label="Services per Page" value={servicePageSize} onChange={event=>setServicePageSize(Number(event.target.value))}><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option></select><ChevronDown size={14} aria-hidden="true"/></span></div>
+                  <div className="lcsm-page-size"><MobileServiceSelect label="Per Page" value={String(servicePageSize)} options={[25,50,100].map(value=>({value:String(value),label:String(value)}))} onChange={value=>setServicePageSize(Number(value))}/></div><div className="lcsp-page-size"><label htmlFor="services-page-size">Per Page</label><span><select id="services-page-size" aria-label="Services per Page" value={servicePageSize} onChange={event=>setServicePageSize(Number(event.target.value))}><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option></select><ChevronDown size={14} aria-hidden="true"/></span></div>
                 </div>
                 {!servicesBusy && !servicesError && servicePageCount>1 && <div className="lcsp-page-buttons">
                   <button type="button" aria-label="First Page" disabled={serviceStats.page===1} onClick={()=>changeServicePage(1)}><ChevronsLeft size={17}/></button>

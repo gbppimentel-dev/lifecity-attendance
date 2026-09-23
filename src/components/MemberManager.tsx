@@ -1,3 +1,5 @@
+import {MobileFold} from './CompactMobile'
+import {ResponsiveSelect} from './CompactMobile'
 import ExportPanel from './ExportPanel'
 import { MotionPresence } from '../lib/motion'
 // Change ID: LC-P08N-v1
@@ -1965,9 +1967,9 @@ export default function MemberManager() {
               />
             </label>
 
-            <label className={`filter-select ${filterSpotlight === 'ministry' ? 'filter-select-spotlight' : ''}`}>
+<MobileFold title="Filter Members">            <label className={`filter-select ${filterSpotlight === 'ministry' ? 'filter-select-spotlight' : ''}`}>
               <Users size={17} />
-              <select
+              <ResponsiveSelect
                 value={ministryFilter}
                 onChange={(event) => setMinistryFilter(event.target.value)}
               >
@@ -1978,22 +1980,22 @@ export default function MemberManager() {
                     {ministry.name}
                   </option>
                 ))}
-              </select>
+              </ResponsiveSelect>
             </label>
 
             <label className={`filter-select ${filterSpotlight === 'branch' ? 'filter-select-spotlight' : ''}`}>
               <Settings2 size={17} />
-              <select value={branchFilter} onChange={(event) => setBranchFilter(event.target.value)}>
+              <ResponsiveSelect value={branchFilter} onChange={(event) => setBranchFilter(event.target.value)}>
               <option value="all">All Churches</option>
                 {branchesForFilter.map((branch) => (
                   <option key={branch.id} value={branch.id}>{branch.name}</option>
                 ))}
-              </select>
+              </ResponsiveSelect>
             </label>
 
             <label className="filter-select">
               <Star size={17} />
-              <select
+              <ResponsiveSelect
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value)}
               >
@@ -2001,10 +2003,10 @@ export default function MemberManager() {
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
                 <option value="vip">Starred</option>
-              </select>
+              </ResponsiveSelect>
             </label>
 
-            <button
+</MobileFold>            <button
               className={`bulk-mode-button ${bulkMode ? 'is-active' : ''}`}
               type="button"
               onClick={() => (bulkMode ? closeBulkMode() : setBulkMode(true))}
@@ -2271,9 +2273,9 @@ export default function MemberManager() {
             <div className="lcmp-page-size">
               <label htmlFor="members-page-size">Per Page</label>
               <span className="lcmp-size-field">
-                <select id="members-page-size" aria-label="Members per Page" value={membersPerPage} onChange={(event) => setMembersPerPage(Number(event.target.value))}>
+                <ResponsiveSelect id="members-page-size" aria-label="Members per Page" value={membersPerPage} onChange={(event) => setMembersPerPage(Number(event.target.value))}>
                   <option value={25}>25</option><option value={50}>50</option><option value={100}>100</option>
-                </select>
+                </ResponsiveSelect>
                 <ChevronDown size={14} aria-hidden="true" />
               </span>
             </div>

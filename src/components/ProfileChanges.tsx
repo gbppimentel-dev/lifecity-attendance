@@ -1,3 +1,4 @@
+import {ResponsiveSelect} from './CompactMobile'
 // Change ID: LC-P08I-v1
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
@@ -149,7 +150,7 @@ export function OwnerProfileRequests(){
     }
   `}</style>
   <header className="lpe-heading"><div><p className="eyebrow">Member Details · Owner Review</p><h2>Profile Change Requests</h2><p>Approve verified changes to an existing member profile.</p></div><button className="lpe-button lc-refresh-icon" aria-label="Refresh profile change requests" title="Refresh profile change requests" aria-busy={loading} disabled={saving||loading} onClick={()=>setRevision(v=>v+1)}><RefreshCw size={17} aria-hidden="true"/></button></header>
-  <div className="lpe-toolbar"><label>Request Status<select disabled={saving} value={status} onChange={e=>{setStatus(e.target.value);setPage(1)}}>{['pending','approved','declined','cancelled','all'].map(v=><option key={v} value={v}>{v==='pending'?'Pending Review':v==='all'?'All Requests':v[0].toUpperCase()+v.slice(1)}</option>)}</select></label><span>{loading||searching?'Loading…':(data?.total||0)+' Requests'}</span></div>
+  <div className="lpe-toolbar"><label>Request Status<ResponsiveSelect disabled={saving} value={status} onChange={e=>{setStatus(e.target.value);setPage(1)}}>{['pending','approved','declined','cancelled','all'].map(v=><option key={v} value={v}>{v==='pending'?'Pending Review':v==='all'?'All Requests':v[0].toUpperCase()+v.slice(1)}</option>)}</ResponsiveSelect></label><span>{loading||searching?'Loading…':(data?.total||0)+' Requests'}</span></div>
   <div className="lcq-search-row"><label className="lcq-search"><Search size={17} aria-hidden="true"/><input type="search" aria-label="Search Profile Change Requests" placeholder="Name, Email, or Member ID" disabled={saving} value={requestSearch} onChange={e=>{setRequestSearch(e.target.value);setPage(1)}}/></label>{requestSearch && <button type="button" className="lpe-button" disabled={saving} onClick={()=>{setRequestSearch('');setRequestQuery('');setPage(1)}}>Clear Search</button>}</div>
   {error&&<p className="lpe-error" role="alert">{uiMessage(error)}</p>}{notice&&<p className="lpe-notice" role="status">{notice}</p>}
   {loading||searching?<p className="lpe-help" role="status">Loading Profile Requests…</p>:data&&<>

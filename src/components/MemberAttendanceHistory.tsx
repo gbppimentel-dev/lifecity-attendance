@@ -1,3 +1,4 @@
+import {ResponsiveSelect} from './CompactMobile'
 // Change ID: LC-UI-COPY-v2
 import { uiMessage } from '../lib/uiText'
 import { useEffect, useRef, useState } from 'react'
@@ -61,8 +62,8 @@ export default function MemberAttendanceHistory({memberId}:{memberId:string}){
   <header className="lmh-heading"><div><p className="eyebrow">Your Check-In Journey</p><h2 id="lmh-title">My Attendance History</h2><p>Saved check-ins, including completed and archived services. All times in Manila.</p></div><button className="lmh-button" disabled={busy} onClick={()=>setRevision(v=>v+1)}><RefreshCw size={15}/>Refresh</button></header>
   <div className="lmh-filters">
    <label className="lmh-search-label"><span>Find a Service</span><div className="lmh-search"><Search size={16}/><input type="search" value={search} maxLength={150} placeholder="Search Service Name" onChange={e=>{setSearch(e.target.value);setPage(1)}}/></div></label>
-   <label><span>Check-In Dates</span><select value={range} onChange={e=>{setRange(e.target.value);setPage(1)}}><option value="all">All Time</option><option value="today">Today</option><option value="month">This Month</option><option value="custom">Custom Range</option></select></label>
-   <label><span>Order</span><select value={order} onChange={e=>{setOrder(e.target.value);setPage(1)}}><option value="newest">Newest First</option><option value="oldest">Oldest First</option></select></label>
+   <label><span>Check-In Dates</span><ResponsiveSelect value={range} onChange={e=>{setRange(e.target.value);setPage(1)}}><option value="all">All Time</option><option value="today">Today</option><option value="month">This Month</option><option value="custom">Custom Range</option></ResponsiveSelect></label>
+   <label><span>Order</span><ResponsiveSelect value={order} onChange={e=>{setOrder(e.target.value);setPage(1)}}><option value="newest">Newest First</option><option value="oldest">Oldest First</option></ResponsiveSelect></label>
    {range==='custom'&&<div className="lmh-dates"><label>From<input type="date" value={start} max={end||undefined} onChange={e=>{setStart(e.target.value);setPage(1)}}/></label><label>To<input type="date" value={end} min={start||undefined} onChange={e=>{setEnd(e.target.value);setPage(1)}}/></label></div>}
    <div className="lmh-filter-footer"><span>{range==='custom'?'Dates filter check-in time. Leave either end blank for an open range.':'Search and dates work together.'}</span><button className="lmh-button" disabled={!filtered} onClick={clear}>Clear All</button></div>
   </div>

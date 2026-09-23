@@ -1,3 +1,4 @@
+import {ResponsiveSelect} from './CompactMobile'
 import { MotionPresence } from '../lib/motion'
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
@@ -389,18 +390,18 @@ export default function AttendanceRecords(_props: Props) {
               </button>))}
           </div>)}
         <div className="records-primary-filters">
-          <label className="records-filter-field"><span>Event Status</span><select value={eventScope} onChange={e => { setEventScope(e.target.value as EventScope); setEventId(""); }}>{(Object.entries(scopeLabels) as [
+          <label className="records-filter-field"><span>Event Status</span><ResponsiveSelect value={eventScope} onChange={e => { setEventScope(e.target.value as EventScope); setEventId(""); }}>{(Object.entries(scopeLabels) as [
         EventScope,
         string
-    ][]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+    ][]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</ResponsiveSelect></label>
           <label className="records-filter-field">
             <span>Service</span>
-            <select value={eventId} disabled={catalogLoading} onChange={(event) => setEventId(event.target.value)}>
+            <ResponsiveSelect value={eventId} disabled={catalogLoading} onChange={(event) => setEventId(event.target.value)}>
               <option value="">{catalogLoading ? "Loading Services…" : `All · ${scopeLabels[eventScope]}`}</option>
               {services.map((event) => (<option key={event.id} value={event.id}>
                   {event.name} · {manilaDate(event.service_date)}{event.service_state === "archived" ? " (Archived)" : event.service_state === "in-progress" ? " (In Progress)" : ""}
                 </option>))}
-            </select>
+            </ResponsiveSelect>
           </label>
           <label className="records-filter-field records-member-search">
             <span>Member</span>
@@ -413,31 +414,31 @@ export default function AttendanceRecords(_props: Props) {
         {moreOpen && (<div className="records-more-filters">
             <label className="records-filter-field">
               <span>Church</span>
-              <select value={churchId} onChange={(event) => setChurchId(event.target.value)}>
+              <ResponsiveSelect value={churchId} onChange={(event) => setChurchId(event.target.value)}>
                 <option value="">All Churches</option>
                 {churches.map((item) => (<option key={item.id} value={item.id}>
                     {item.name}
                   </option>))}
-              </select>
+              </ResponsiveSelect>
             </label>
             <label className="records-filter-field">
               <span>Ministry</span>
-              <select value={ministryId} onChange={(event) => setMinistryId(event.target.value)}>
+              <ResponsiveSelect value={ministryId} onChange={(event) => setMinistryId(event.target.value)}>
                 <option value="">All Ministries</option>
                 {ministries.map((item) => (<option key={item.id} value={item.id}>
                     {item.name}
                   </option>))}
-              </select>
+              </ResponsiveSelect>
             </label>
             <label className="records-filter-field">
               <span>Date Range</span>
-              <select value={dateRange} onChange={(event) => setDateRange(event.target.value as DateRange)}>
+              <ResponsiveSelect value={dateRange} onChange={(event) => setDateRange(event.target.value as DateRange)}>
                 <option value="all">All Time</option>
                 <option value="today">Today</option>
                 <option value="week">Last 7 Days</option>
                 <option value="month">Last 30 Days</option>
                 <option value="custom">Custom Range</option>
-              </select>
+              </ResponsiveSelect>
             </label>
             {dateRange === "custom" && (<div className="records-custom-dates">
                 <label className="records-filter-field"><span>From</span><input type="date" value={customStart} onChange={(event) => setCustomStart(event.target.value)}/></label>
@@ -458,7 +459,7 @@ export default function AttendanceRecords(_props: Props) {
         <div><h3>Attendance Records</h3><p>Times in Manila · Member and service details use saved snapshots. Event Status reflects the current archive state.</p></div>
         <button type="button" className="rt-button" disabled={loading || exporting || removing} onClick={() => { setCatalogError(""); setAsOf(new Date().toISOString()); }}><RotateCcw size={15}/>Refresh</button>
       </div>
-      <div className="rh-mobile-sort"><label>Sort by<select value={sort} disabled={busy || exporting || removing} onChange={e=>changeSort(e.target.value as Sort)}>{[{value:"check_in",label:"Check-In Time"},{value:"member",label:"Member"},{value:"church",label:"Church"},{value:"ministry",label:"Ministry"},{value:"service",label:"Service"}].map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select></label><button className="rt-button" disabled={busy || exporting || removing} onClick={()=>setDescending(!descending)} aria-label={descending ? "Change to Ascending Order" : "Change to Descending Order"}><ArrowUpDown size={15}/>{descending ? "Descending" : "Ascending"}</button></div>
+      <div className="rh-mobile-sort"><label>Sort by<ResponsiveSelect value={sort} disabled={busy || exporting || removing} onChange={e=>changeSort(e.target.value as Sort)}>{[{value:"check_in",label:"Check-In Time"},{value:"member",label:"Member"},{value:"church",label:"Church"},{value:"ministry",label:"Ministry"},{value:"service",label:"Service"}].map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</ResponsiveSelect></label><button className="rt-button" disabled={busy || exporting || removing} onClick={()=>setDescending(!descending)} aria-label={descending ? "Change to Ascending Order" : "Change to Descending Order"}><ArrowUpDown size={15}/>{descending ? "Descending" : "Ascending"}</button></div>
       {error ? <p className="rt-notice rt-error" role="alert">{uiMessage(error)}</p> : busy ? <div className="rh-loading" role="status" aria-label="Loading Attendance Records"><span className="rh-sr-only">Loading Attendance Records…</span>{Array.from({length:6},(_,i) => <div className="rh-skeleton-row" key={i} aria-hidden="true">{Array.from({length:6},(_,j)=><span key={j} className="rh-skeleton"/>)}</div>)}</div> : !report.rows.length ? <div className="empty-state rh-empty"><FileSearch size={30}/><h3>No Matching Attendance</h3><p>Try adjusting filters or changing Event Status to include archived or in-progress services. Upcoming services are excluded.</p>{activeCount > 0 && <button className="rt-button" onClick={clearFilters}><RotateCcw size={15}/>Clear Filters</button>}</div> : <div className="rt-scroll" tabIndex={0} role="region" aria-label="Attendance table, scroll horizontally for more columns"><table className="rt-table" role="table" aria-label="Attendance Records"><thead role="rowgroup"><tr role="row">
         {([{ key: "member", label: "Member" }, { key: "church", label: "Church" }, { key: "ministry", label: "Ministries" }, { key: "service", label: "Service" }, { key: "check_in", label: "Check-In Time" }] as {
             key: Sort;
@@ -481,7 +482,7 @@ export default function AttendanceRecords(_props: Props) {
           </section>
         </td></tr>}
       </Fragment>)}</tbody></table></div>}
-      <div className="rt-pagination"><label>Rows per Page <select disabled={exporting || removing} value={size} onChange={e => setSize(Number(e.target.value))}>{[25, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}</select></label><span aria-live="polite">{busy ? "Updating…" : report.total ? `${page * size + 1}–${Math.min((page + 1) * size, report.total)} of ${report.total.toLocaleString()}` : "0 Records"}</span><nav aria-label="Attendance Pages">{[{ label: "First Page", index: 0, Icon: ChevronsLeft, disabled: page === 0 }, { label: "Previous Page", index: page - 1, Icon: ChevronLeft, disabled: page === 0 }].map(({ label, index, Icon, disabled }) => <button key={label} className="rt-icon" aria-label={label} disabled={exporting || busy || removing || !!error || disabled} onClick={() => goPage(index)}><Icon size={17}/></button>)}<span>Page {page + 1} of {pages}</span>{[{ label: "Next Page", index: page + 1, Icon: ChevronRight }, { label: "Last Page", index: pages - 1, Icon: ChevronsRight }].map(({ label, index, Icon }) => <button key={label} className="rt-icon" aria-label={label} disabled={exporting || busy || removing || !!error || page >= pages - 1} onClick={() => goPage(index)}><Icon size={17}/></button>)}</nav></div>
+      <div className="rt-pagination"><label>Rows per Page <ResponsiveSelect disabled={exporting || removing} value={size} onChange={e => setSize(Number(e.target.value))}>{[25, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}</ResponsiveSelect></label><span aria-live="polite">{busy ? "Updating…" : report.total ? `${page * size + 1}–${Math.min((page + 1) * size, report.total)} of ${report.total.toLocaleString()}` : "0 Records"}</span><nav aria-label="Attendance Pages">{[{ label: "First Page", index: 0, Icon: ChevronsLeft, disabled: page === 0 }, { label: "Previous Page", index: page - 1, Icon: ChevronLeft, disabled: page === 0 }].map(({ label, index, Icon, disabled }) => <button key={label} className="rt-icon" aria-label={label} disabled={exporting || busy || removing || !!error || disabled} onClick={() => goPage(index)}><Icon size={17}/></button>)}<span>Page {page + 1} of {pages}</span>{[{ label: "Next Page", index: page + 1, Icon: ChevronRight }, { label: "Last Page", index: pages - 1, Icon: ChevronsRight }].map(({ label, index, Icon }) => <button key={label} className="rt-icon" aria-label={label} disabled={exporting || busy || removing || !!error || page >= pages - 1} onClick={() => goPage(index)}><Icon size={17}/></button>)}</nav></div>
       {detail && <ReportDialog label="rt-detail-heading" onClose={() => setDetail(null)}><div className="rt-dialog-body"><button autoFocus className="rt-icon rt-close" aria-label="Close Details" onClick={() => setDetail(null)}><X size={19}/></button><p className="records-section-kicker">Attendance Details</p><h2 id="rt-detail-heading">{fullName(detail)}</h2><p>{detail.member_number} · {uiStatus(detail.member_status)} member</p><dl>{[["Service", detail.service_name], ["Service Start", stamp(detail.service_date)], ["Service State", uiStatus(detail.service_state)], ["Check-In", `${stamp(detail.checked_in_at)} (Manila)`], ["Attendance Status", uiStatus(detail.attendance_status)], ["Churches (Saved)", names(detail.churches) || "Unassigned"], ["Ministries (Saved)", names(detail.ministries) || "None"], ["Email", detail.email || "Not Provided"], ["Mobile", detail.mobile || "Not Provided"], ["Member Group", detail.member_group || "None"], ["Snapshot", detail.snapshot_source === "captured_at_check_in" ? "Captured at Check-In" : "Backfilled from Current Data"], ["Snapshot Saved", stamp(detail.snapshot_captured_at)], ["Attendance ID", detail.id]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div></ReportDialog>}
 
     </section>);

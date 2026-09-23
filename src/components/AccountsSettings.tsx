@@ -1,3 +1,4 @@
+import {ResponsiveSelect} from './CompactMobile'
 // Change ID: LC-P08H-v1
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
@@ -108,9 +109,9 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
      <div className="lca-filter-tools"><span aria-live="polite">{busy ? 'Updating…' : (data?.total ?? 0)+' Accounts Found'}</span><button type="button" className="secondary-button" disabled={!hasFilters || saving} onClick={clearFilters}>Clear All</button></div>
     </div>
     <div className="lca-filter-fields">
-     <label><span>Role</span><select value={filters.role} disabled={saving} onChange={e=>changeFilter('role',e.target.value)}><option value="all">All Roles</option><option value="owner">Owner</option><option value="admin">Admin</option><option value="user">User</option></select></label>
-     <label><span>Access</span><select value={filters.status} disabled={saving} onChange={e=>changeFilter('status',e.target.value)}><option value="all">Any Access Status</option><option value="active">Active</option><option value="suspended">Suspended</option></select></label>
-     <label><span>Member Link</span><select value={filters.link} disabled={saving} onChange={e=>changeFilter('link',e.target.value)}><option value="all">All Accounts</option><option value="linked">Linked Members</option><option value="unlinked">Not Linked Yet</option></select></label>
+     <label><span>Role</span><ResponsiveSelect value={filters.role} disabled={saving} onChange={e=>changeFilter('role',e.target.value)}><option value="all">All Roles</option><option value="owner">Owner</option><option value="admin">Admin</option><option value="user">User</option></ResponsiveSelect></label>
+     <label><span>Access</span><ResponsiveSelect value={filters.status} disabled={saving} onChange={e=>changeFilter('status',e.target.value)}><option value="all">Any Access Status</option><option value="active">Active</option><option value="suspended">Suspended</option></ResponsiveSelect></label>
+     <label><span>Member Link</span><ResponsiveSelect value={filters.link} disabled={saving} onChange={e=>changeFilter('link',e.target.value)}><option value="all">All Accounts</option><option value="linked">Linked Members</option><option value="unlinked">Not Linked Yet</option></ResponsiveSelect></label>
     </div>
    </div>
    {notice && <p className="lca-notice" role="status">{notice}</p>}
@@ -133,7 +134,7 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
    </>}
     <footer className="lca-pagination lcah-pagination">
      <div className="lcah-page-summary"><span>{(data?.total ?? 0) ? ((currentPage-1)*(data?.page_size ?? pageSize)+1)+'–'+Math.min(currentPage*(data?.page_size ?? pageSize),(data?.total ?? 0))+' of '+(data?.total ?? 0)+' Accounts' : '0 Accounts'}</span>
-      <label className="lcah-page-size"><span>Per Page</span><span className="lcah-size-field"><select aria-label="Accounts per Page" value={pageSize} disabled={busy} onChange={e=>{setPageSize(Number(e.target.value));setPage(1);setPending(null);setLinkTarget(null);setNotice('')}}><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option></select><ChevronDown size={14} aria-hidden="true"/></span></label>
+      <label className="lcah-page-size"><span>Per Page</span><span className="lcah-size-field"><ResponsiveSelect aria-label="Accounts per Page" value={pageSize} disabled={busy} onChange={e=>{setPageSize(Number(e.target.value));setPage(1);setPending(null);setLinkTarget(null);setNotice('')}}><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option></ResponsiveSelect><ChevronDown size={14} aria-hidden="true"/></span></label>
      </div>
      <nav aria-label="Account Pages"><button aria-label="First Page" disabled={busy || !data || !!error || currentPage===1} onClick={()=>go(1)}><ChevronsLeft size={17}/></button><button aria-label="Previous Page" disabled={busy || !data || !!error || currentPage===1} onClick={()=>go(currentPage-1)}><ChevronLeft size={17}/></button><span>{currentPage} / {pages}</span><button aria-label="Next Page" disabled={busy || !data || !!error || currentPage>=pages} onClick={()=>go(currentPage+1)}><ChevronRight size={17}/></button><button aria-label="Last Page" disabled={busy || !data || !!error || currentPage>=pages} onClick={()=>go(pages)}><ChevronsRight size={17}/></button></nav>
     </footer>
