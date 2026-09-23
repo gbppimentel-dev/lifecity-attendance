@@ -8,6 +8,10 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Guest Layout Polish',title:'A More Balanced Guest View',highlights:[
+  note('The mobile service refresh button is aligned to the right, opposite the service count.',['guest']),
+  note('Member ID, attendance, and profile benefits now use three equally sized tiles.',['guest'])
+ ]},
  {version:'Pre-Launch · Mobile Workspaces',title:'More Room for What Matters',highlights:[
   note('Members and Records use tighter mobile rows, compact filters, and option sheets with search for longer lists.',staff),
   note('My Member Space puts attendance QR access first, with expandable profile details, feedback tickets, and attendance history.',signedIn),

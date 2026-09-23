@@ -1,3 +1,4 @@
+import '../guest-layout.css'
 import CommunityArt from './CommunityArt'
 import WhatsNew from './WhatsNew'
 // Change ID: LC-P04B-v2-GOOGLE-LOGO

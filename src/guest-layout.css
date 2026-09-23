@@ -1,0 +1,16 @@
+/* Equal benefits at every width; mobile service tools occupy a complete row. */
+html body .lc-guest .lcg-benefits {
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:stretch;
+}
+html body .lc-guest .lcg-benefits>span {
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ min-width:0;min-height:64px;padding:10px 6px;box-sizing:border-box;
+ gap:6px;text-align:center;line-height:1.4;border-radius:11px;
+}
+html body .lc-guest .lcg-benefits>span>svg {flex-shrink:0;width:18px;height:18px}
+@media(max-width:900px){
+ html body .lc-guest .lcg-section-head {display:flex;flex-direction:column;align-items:stretch;gap:12px}
+ html body .lc-guest .lcg-section-head>.lcg-tools {width:100%;display:flex;flex-wrap:nowrap;justify-content:space-between;align-items:center;gap:12px}
+ html body .lc-guest .lcg-tools>.lc-refresh-icon {margin-left:auto;width:44px;height:44px;min-width:44px;padding:0;flex-shrink:0}
+ html body .lc-guest .lcg-benefits>span {font-size:11px}
+}
