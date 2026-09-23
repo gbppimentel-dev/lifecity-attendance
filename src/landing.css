@@ -352,3 +352,16 @@ body .lcsp-directory .service-directory-controls > .filter-select > select {
  .lc-mobile-signin-help summary{cursor:pointer;min-height:32px;align-content:center}.lc-mobile-signin-help p{font-size:12px;line-height:1.6;text-align:left}
  html body .lc-auth-layout-v2:not(.lc-auth-compact)>.lc-app-footer{margin-top:auto}
 }
+
+/* Restore the welcome personality without restoring the long mobile copy. */
+@media(max-width:900px){
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-frame{border:2px solid transparent;background:linear-gradient(120deg,#f1faf6,#f5f1fc) padding-box,linear-gradient(130deg,#9dcda9,#88bbb9,#b69cdd,#e8ca79) border-box}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story{display:block;position:relative;overflow:hidden;padding:22px 22px 18px;min-height:0;background:linear-gradient(120deg,var(--lc-glowPrimary,#e5f5ef),var(--lc-glowSecondary,#f1edfa));border-bottom:1px solid var(--lc-border,#d6e7df)}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story>.eyebrow{display:block;font-size:9px;letter-spacing:.14em;margin:0 0 10px}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story h1{position:relative;z-index:1;font-size:27px;line-height:1.2;margin:0;max-width:85%}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story h1 em{color:var(--lc-secondary,#7964ad)}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story>p:not(.eyebrow),html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story>.lc-playful-art{display:none}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story:after{content:'';position:absolute;width:110px;height:110px;right:-34px;bottom:-40px;border:1px dashed #a7cfc4;border-radius:50%;box-shadow:0 0 0 15px #c4b4e322,0 0 0 32px #e7c77715;pointer-events:none}
+ html body .lc-google-welcome h2{font-size:22px;margin-bottom:10px}
+ html body .lc-google-welcome .lc-mobile-welcome-intro{font-size:13px;margin-bottom:18px}
+}

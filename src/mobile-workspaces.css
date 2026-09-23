@@ -98,3 +98,11 @@ html body .lcf-feedback-list>article{padding:12px;border-radius:12px}html body .
 html body :is(.lch-pagination,.lcf-pagination,.lca-pagination){display:flex;flex-wrap:wrap;gap:8px;padding:12px 0;font-size:11px}html body :is(.lch-pagination,.lcf-pagination,.lca-pagination) button{min-height:44px}
 html body .lcb-identities{display:grid;grid-template-columns:1fr;gap:8px}html body .lcb-panel{padding:12px}html body .lcb-panel h3{font-size:17px}html body .lcb-helper{font-size:11px;line-height:1.6}html body .lcb-results button{min-height:44px;padding:10px;font-size:12px}
 }
+
+/* Shared mobile footer: quiet typography, with the link still easy to tap. */
+@media(max-width:900px){
+ html body .lc-app-footer.lc-app-footer{padding:12px 16px 10px;font-size:10px;line-height:1.5;text-align:center}
+ html body .lc-app-footer.lc-app-footer .lc-footer-credit{font-size:10px;font-weight:400;line-height:1.5;margin:0 0 5px}
+ html body .lc-app-footer.lc-app-footer .lc-footer-verse{font-size:9px;font-weight:400;line-height:1.6;margin:0 auto;max-width:310px}
+ html body .lc-app-footer.lc-app-footer .lc-footer-tech{display:inline-flex;align-items:center;justify-content:center;min-height:44px;font-size:10px;font-weight:400;margin:0;padding:4px 12px;transform:none}
+}

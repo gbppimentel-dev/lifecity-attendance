@@ -8,6 +8,11 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Mobile Visual Balance',title:'Color Where It Counts',highlights:[
+  note('The mobile welcome restores its colorful introduction while keeping sign-in copy short.',['guest']),
+  note('The mobile dashboard has a gradient header border and an integrated period filter bar.',staff),
+  note('Shared mobile footers use smaller, quieter text while keeping Tech Stack easy to tap.')
+ ]},
  {version:'Pre-Launch · Simpler Mobile Welcome',title:'Less Scrolling, Clearer Choices',highlights:[
   note('Mobile welcome focuses on sign-in and guest access, with first-time account help available on demand.',['guest']),
   note('Shorter benefit labels align consistently, and guest service cards show the full schedule and venue in a tighter layout.',['guest'])

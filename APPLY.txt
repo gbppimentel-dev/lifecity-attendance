@@ -1,1 +1,1 @@
-Extract into your project root and replace matching files. Includes the earlier guest layout fixes. Builds on the Services and Mobile Workspaces updates. No database changes. Run npm run build, then test phone sign-in, guest navigation, service pagination, and expandable welcome help.
+Apply after the Simple Mobile Welcome update. Extract into the project root and replace matching files. This update restores mobile welcome color, refines the dashboard header and period filter, and reduces shared mobile footer typography. No database changes.
