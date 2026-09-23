@@ -5,7 +5,7 @@ function updateKeyboard() {
  const editing = target instanceof HTMLElement && target.matches('input:not([type=checkbox]),textarea,[contenteditable=true]')
  const mobile = window.matchMedia('(max-width:900px)').matches
  document.documentElement.classList.toggle('lc-keyboard-editing', mobile && editing)
- if (mobile && editing && target.closest('.manual-member-search')) {
+ if (mobile && editing && target.closest('.manual-member-search,.service-form-card')) {
   clearTimeout(timer)
   timer=setTimeout(()=>{if(document.activeElement===target)target.scrollIntoView({block:'center',behavior:'auto'})},180)
  }

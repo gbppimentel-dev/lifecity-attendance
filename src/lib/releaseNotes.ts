@@ -8,6 +8,10 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Mobile Services Polish',title:'A Tighter Service Workspace',highlights:[
+  note('Services uses a thin gradient header, compact action rows, quieter search, and aligned page-size controls.',staff),
+  note('CSV choices use compact mobile layouts. Event forms have smaller helper text and keyboard-aware scrolling.',staff)
+ ]},
  {version:'Pre-Launch · Phone Scanner Refinements',title:'Easier Manual Check-In',highlights:[
   note('Manual check-in stays hidden until a member is selected, with softer search styling and keyboard-aware scrolling.',staff),
   note('Mobile kiosk controls align consistently across the camera toolbar.',staff),
