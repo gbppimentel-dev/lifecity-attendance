@@ -8,6 +8,12 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Mobile Motion',title:'Gentle Motion, Quieter Details',highlights:[
+  note('Mobile screens, cards, dialogs, and expandable controls have coordinated entrance effects that respect motion preferences.'),
+  note('The welcome header includes drifting decorative accents.',['guest']),
+  note('Scanner and dashboard gradient borders are thinner, and service selection sheets animate into view.',staff),
+  note('Feedback placeholders are shorter and smaller, with clearer identity privacy wording.',signedIn)
+ ]},
  {version:'Pre-Launch · Mobile Visual Balance',title:'Color Where It Counts',highlights:[
   note('The mobile welcome restores its colorful introduction while keeping sign-in copy short.',['guest']),
   note('The mobile dashboard has a gradient header border and an integrated period filter bar.',staff),

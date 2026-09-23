@@ -1,1 +1,1 @@
-Apply after the Simple Mobile Welcome update. Extract into the project root and replace matching files. This update restores mobile welcome color, refines the dashboard header and period filter, and reduces shared mobile footer typography. No database changes.
+Apply after Mobile Visual Balance. Extract into project root and replace matching files. No database changes. Mobile animations follow Interface Animations and device reduced-motion settings. Check sign-in, navigation, service selection, feedback, and dropdowns on your phone.

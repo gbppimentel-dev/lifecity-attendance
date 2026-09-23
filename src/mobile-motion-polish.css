@@ -1,0 +1,29 @@
+/* Mobile motion uses the app preference and the device's reduced-motion setting. */
+@media(max-width:900px){
+ html body .scanner-editorial-hero,html body .lcd-mobile .lcd-head{border:1px solid transparent;background:linear-gradient(115deg,var(--lc-glowPrimary,#e5f5ef),var(--lc-surface,#fff),var(--lc-glowSecondary,#f1edfa)) padding-box,linear-gradient(120deg,#a1c99d,#7fbdb9,#af99d6,#e4c47a) border-box}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-frame{border-width:1px}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story:before{content:'';position:absolute;right:22px;top:22px;width:9px;height:9px;border-radius:50%;background:#e4bd64;box-shadow:-16px 14px 0 -2px #ab93d2,12px 32px 0 -1px #84bfb0;pointer-events:none}
+ html body .lcf-dialog input::placeholder,html body .lcf-dialog textarea::placeholder{font-size:12px!important;line-height:1.6;font-weight:400;color:var(--lc-safe-muted,#60796f);opacity:.85}
+ html body .lcf-dialog form label>small,html body .lcf-dialog .lcf-anonymous small{font-size:10px!important;line-height:1.5;font-weight:400}
+}
+@media(max-width:900px) and (prefers-reduced-motion:no-preference){
+ html[data-lc-motion=on] body :is(button,a,summary,input,textarea){transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,color .18s ease}
+ html[data-lc-motion=on] body :is(button,summary):active{filter:brightness(.96)}
+ html[data-lc-motion=on] body :is(.lcd-mobile,.lc-guest,.lmp-content,.directory-card,.records-card,.lct-panel,.lca-panel,.lch-panel,.lcf-inbox,.scanner-editorial-hero){animation:lcm-reveal .26s ease-out}
+ html[data-lc-motion=on] body :is(.lcg-card,.member-management-row,.rh-record-card,.lmp-service-card,.lcd-metrics article,.lc-service-option){animation:lcm-card-in .28s ease-out both}
+ html[data-lc-motion=on] body :is(.lcg-card,.lcd-metrics article,.lc-service-option):nth-child(2){animation-delay:35ms}
+ html[data-lc-motion=on] body :is(.lcg-card,.lcd-metrics article,.lc-service-option):nth-child(3){animation-delay:65ms}
+ html[data-lc-motion=on] body dialog[open]{animation:lcm-sheet-in .26s cubic-bezier(.2,.8,.2,1)}
+ html[data-lc-motion=on] body dialog[open]::backdrop{animation:lcm-reveal .22s ease-out}
+ html[data-lc-motion=on] body details[open]>:not(summary),html[data-lc-motion=on] body .mcu-fold[data-open=true]>.mcu-fold-body{animation:lcm-reveal .2s ease-out}
+ html[data-lc-motion=on] body .lc-auth-story:before{animation:lcm-drift 5s ease-in-out infinite alternate}
+ html[data-lc-motion=on] body .lc-auth-story:after{animation:lcm-orbit 9s ease-in-out infinite alternate}
+ html[data-lc-motion=on] body .lc-auth-story h1,html[data-lc-motion=on] body .lc-google-welcome{animation:lcm-reveal .4s ease-out}
+ html[data-lc-motion=on] body .lc-google-arrow{animation:lcm-nudge 4s ease-in-out infinite}
+}
+@keyframes lcm-reveal{from{opacity:0}to{opacity:1}}
+@keyframes lcm-card-in{from{opacity:0;translate:0 5px}to{opacity:1;translate:0 0}}
+@keyframes lcm-sheet-in{from{opacity:0;translate:0 18px}to{opacity:1;translate:0 0}}
+@keyframes lcm-drift{to{translate:0 7px;rotate:12deg}}
+@keyframes lcm-orbit{to{translate:-6px -5px;rotate:18deg}}
+@keyframes lcm-nudge{0%,75%,100%{translate:0}85%{translate:3px}}
