@@ -27,3 +27,21 @@
 @keyframes lcm-drift{to{translate:0 7px;rotate:12deg}}
 @keyframes lcm-orbit{to{translate:-6px -5px;rotate:18deg}}
 @keyframes lcm-nudge{0%,75%,100%{translate:0}85%{translate:3px}}
+
+@media(max-width:900px){
+ html body .manual-member-search .lcs-no-selection{display:none!important}
+ html body .manual-member-search:has(.lcs-no-selection){grid-template-columns:minmax(0,1fr)!important}
+ html body .manual-member-search-input input::placeholder{font-size:12px;font-weight:400}
+ html body .manual-member-search-input input:focus-visible{outline:0;box-shadow:none}
+ html body .manual-member-search-input:focus-within{outline:2px solid var(--lc-primary,#147d73);outline-offset:2px;box-shadow:none}
+ html body .manual-member-results{max-height:38dvh;overflow:auto;overscroll-behavior:contain}
+ html.lc-keyboard-editing body .manual-checkin-card{scroll-margin-top:90px;margin-bottom:30dvh!important}
+ html body .scanner-layout.is-kiosk-mode .scanner-camera-actions{display:flex;width:100%;justify-content:flex-start;align-items:center;gap:8px;margin:0;padding:8px 10px;box-sizing:border-box;flex-wrap:wrap}
+ html body .scanner-layout.is-kiosk-mode .scanner-camera-actions>[role=status]{margin-left:auto;font-size:11px}
+ html body .scanner-layout.is-kiosk-mode .scanner-camera-actions button{min-height:44px;padding:9px 12px;font-size:12px}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story{background:radial-gradient(ellipse at 90% 20%,#e7cc8855,transparent 48%),linear-gradient(120deg,#cdece3,#e5ddf4);padding-bottom:32px}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story:after{width:150px;height:150px;right:-42px;bottom:-95px;border:2px dashed #96baad;box-shadow:0 0 0 20px #b69cd633,0 0 0 42px #f1d89133}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story:before{width:18px;height:18px;right:24px;top:26px;box-shadow:-22px 28px 0 -3px #a58acb,9px 59px 0 -2px #62b5a3}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact){justify-content:center}
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact)>.lc-app-footer{margin-top:12px}
+}

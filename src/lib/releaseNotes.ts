@@ -8,6 +8,12 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Phone Scanner Refinements',title:'Easier Manual Check-In',highlights:[
+  note('Manual check-in stays hidden until a member is selected, with softer search styling and keyboard-aware scrolling.',staff),
+  note('Mobile kiosk controls align consistently across the camera toolbar.',staff),
+  note('Phone viewport recovery now keeps the corrected width after sign-in instead of resetting it immediately.'),
+  note('The mobile welcome uses richer color and decorative rings, with less empty space.',['guest'])
+ ]},
  {version:'Pre-Launch · Mobile Motion',title:'Gentle Motion, Quieter Details',highlights:[
   note('Mobile screens, cards, dialogs, and expandable controls have coordinated entrance effects that respect motion preferences.'),
   note('The welcome header includes drifting decorative accents.',['guest']),

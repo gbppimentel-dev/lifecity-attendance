@@ -529,7 +529,7 @@ export default function AttendanceScanner({ event }: Props) {
             />
           </div>
 
-          <button className="secondary-button manual-checkin-button" disabled={!selectedMember || selectedMemberEventId!==event.id || processing}>
+          <button className={`secondary-button manual-checkin-button${!selectedMember ? ' lcs-no-selection' : ''}`} disabled={!selectedMember || selectedMemberEventId!==event.id || processing}>
             {processing ? 'Checking In…' : 'Check In'}
           </button>
 
