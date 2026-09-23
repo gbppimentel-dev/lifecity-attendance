@@ -8,6 +8,10 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Simpler Mobile Welcome',title:'Less Scrolling, Clearer Choices',highlights:[
+  note('Mobile welcome focuses on sign-in and guest access, with first-time account help available on demand.',['guest']),
+  note('Shorter benefit labels align consistently, and guest service cards show the full schedule and venue in a tighter layout.',['guest'])
+ ]},
  {version:'Pre-Launch · Guest Layout Polish',title:'A More Balanced Guest View',highlights:[
   note('The mobile service refresh button is aligned to the right, opposite the service count.',['guest']),
   note('Member ID, attendance, and profile benefits now use three equally sized tiles.',['guest'])

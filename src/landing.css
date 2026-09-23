@@ -335,3 +335,20 @@ body .lcsp-directory .service-directory-controls > .filter-select > select {
     row-gap:clamp(18px,2.5dvh,24px);
   }
 }
+
+.lc-mobile-welcome-intro,.lc-mobile-signin-help{display:none}
+@media(max-width:900px){
+ html body .lc-auth-page.lc-auth-layout-v2:not(.lc-auth-compact){min-height:100dvh;height:auto;display:flex;flex-direction:column;gap:20px;padding:24px 18px 16px;box-sizing:border-box}
+ html body .lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-story{display:none}
+ html body .lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-frame{display:block;flex:none;width:100%;min-height:0;height:auto;border-width:1px;border-radius:24px;overflow:hidden}
+ html body .lc-auth-layout-v2:not(.lc-auth-compact) .lc-auth-body{padding:24px 20px;min-height:0}
+ html body .lc-google-welcome{padding:0;gap:14px}
+ html body .lc-google-welcome>.eyebrow,html body .lc-google-welcome>.lc-auth-intro,html body .lc-google-welcome>.lc-google-welcome-note,html body .lc-google-welcome>.lc-auth-help{display:none}
+ html body .lc-google-welcome h2{font-size:28px;line-height:1.2;margin:0 0 12px}
+ html body .lc-google-welcome .lc-mobile-welcome-intro{display:block;font-size:14px;line-height:1.6;margin:0 0 22px;text-align:left}
+ html body .lc-google-welcome .lc-google-button{min-height:50px;padding:12px 14px;font-size:14px;border-radius:14px;margin:0;width:100%}
+ html body .lc-google-welcome .lcg-welcome-link{min-height:48px;margin:10px 0;font-size:13px}
+ html body .lc-google-welcome .lc-mobile-signin-help{display:block;border-top:1px solid var(--lc-border,#d6e7df);padding-top:12px;font-size:12px}
+ .lc-mobile-signin-help summary{cursor:pointer;min-height:32px;align-content:center}.lc-mobile-signin-help p{font-size:12px;line-height:1.6;text-align:left}
+ html body .lc-auth-layout-v2:not(.lc-auth-compact)>.lc-app-footer{margin-top:auto}
+}

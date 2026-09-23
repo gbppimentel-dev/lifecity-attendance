@@ -268,7 +268,7 @@ function AppContent() {
       <div className="lc-google-welcome" data-change-id="LC-UI-COPY-v2">
         <p className="eyebrow">Your LifeCity Space</p>
         <h2>Welcome to LifeCity!</h2>
-        <p className="lc-auth-intro">Connect with your LifeCity family. Sign in to view your member QR code and get ready for our next gathering.</p>
+        <p className="lc-auth-intro">Connect with your LifeCity family. Sign in to view your member QR code and get ready for our next gathering.</p><p className="lc-mobile-welcome-intro">Your member ID, attendance, and gatherings in one place.</p>
         <button type="button" className="lc-google-button lc-google-only-button" disabled={working} aria-busy={working} onClick={()=>void googleSignIn()}>
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M43.6 24.5c0-1.5-.1-2.9-.4-4.3H24v8.1h11a9.4 9.4 0 0 1-4.1 6.2v5.2h6.7c3.9-3.6 6-8.9 6-15.2Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.7-5.2c-1.8 1.2-4.1 1.9-6.8 1.9-5.3 0-9.8-3.6-11.4-8.4H5.7v5.4A20.4 20.4 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.6 27.4a12.2 12.2 0 0 1 0-7.8v-5.4H5.7a20.3 20.3 0 0 0 0 18.6l6.9-5.4Z"/><path fill="#EA4335" d="M24 11.2c3 0 5.6 1 7.6 3l5.7-5.7A19.3 19.3 0 0 0 24 3 20.4 20.4 0 0 0 5.7 14.2l6.9 5.4c1.6-4.8 6.1-8.4 11.4-8.4Z"/></svg>
           <span>{working ? 'Connecting to Google…' : 'Continue with Google'}</span>
@@ -276,7 +276,7 @@ function AppContent() {
         </button>
         {(oauthError || authError) && <p className="lc-auth-error" role="alert">{oauthError || authError}</p>}
         <button type="button" className="lcg-welcome-link" disabled={working} onClick={()=>setShowGuest(true)}>Explore as a Guest <ArrowRight size={16}/></button>
-        <div className="lc-google-welcome-note">
+        <details className="lc-mobile-signin-help"><summary>New here?</summary><p>Google creates your account on first sign-in. Then request to connect your existing member profile.</p></details><div className="lc-google-welcome-note">
           <span className="lc-google-note-icon" aria-hidden="true"><ShieldCheck size={22}/></span>
           <div><strong>Secure sign-in with Google.</strong><p>Use your Google account to get started. New to LifeCity Attendance? Your account is created when you first sign in—no extra password needed.</p></div>
         </div>
