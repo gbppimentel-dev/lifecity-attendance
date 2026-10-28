@@ -1,5 +1,6 @@
 // Change ID: LC-P08B-v1
 import { useEffect, useRef, useState } from 'react'
+import { useNoticeToast } from '../lib/useNoticeToast'
 import ExportPanel from './ExportPanel'
 import { supabase } from '../lib/supabase'
 import { csvCell } from '../lib/memberCsv'
@@ -21,6 +22,8 @@ export function serviceCsv(rows:ServiceRow[],detailed:boolean,asOf:string){
 }
 export default function ServiceExport({archive,month,year,sort,search='',disabled=false}:{archive:'all'|'active'|'archived';month:string;year:string;sort:'recent'|'oldest';search?:string;disabled?:boolean}){
  const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[error,setError]=useState('')
+ useNoticeToast(message,'info')
+ useNoticeToast(error,'error')
  const alive=useRef(true),lock=useRef(false)
  useEffect(()=>{alive.current=true;return()=>{alive.current=false}},[])
  async function download(detailed:boolean){

@@ -2,10 +2,14 @@
 import { Component, Suspense, type ReactNode } from 'react'
 import { RefreshCw } from 'lucide-react'
 
-type Props = { label: string; children: ReactNode }
+type Props = { label: string; children: ReactNode; resetKey?: string }
 
-export default class ScreenBoundary extends Component<Props, { failed: boolean }> {
-  state = { failed: false }
+export default class ScreenBoundary extends Component<Props, { failed: boolean; resetKey?: string }> {
+  state = { failed: false, resetKey: this.props.resetKey }
+
+  static getDerivedStateFromProps(props: Props, state: { resetKey?: string }) {
+    return props.resetKey === state.resetKey ? null : { failed: false, resetKey: props.resetKey }
+  }
 
   static getDerivedStateFromError() {
     return { failed: true }

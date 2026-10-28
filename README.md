@@ -10,7 +10,7 @@ Members get a personal space for their profile, QR, attendance history, and feed
 
 > **Project stage:** the web experience has completed its current polish phase. Mobile polishing is next. The repository package version remains `0.1.0`; the in-app changelog describes development milestones rather than claiming a released v1.0.
 >
-> **New installation note:** this repository contains the current frontend, but only the initial database SQL. The deployed application requires additional tables, functions, policies, and triggers that are not yet tracked here. Running `supabase/schema.sql` alone will **not** provision the full current app. See [Backend Setup](#backend-setup) before attempting a fresh installation.
+> **New installation note:** this repository contains the current frontend and limited database SQL, including targeted updates. The deployed application requires additional tables, functions, policies, and triggers that are not yet tracked here. Running `supabase/schema.sql` alone will **not** provision the full current app. See [Backend Setup](#backend-setup) before attempting a fresh installation.
 
 ## Contents
 
@@ -43,6 +43,9 @@ Members get a personal space for their profile, QR, attendance history, and feed
 - Download QR images and generated member IDs.
 - Import CSV data with mapping, validation, preview, and review before submission.
 - Export a quick directory or a detailed administrative CSV.
+- Use a solid teal Add Member action and distinct static Import, Ministry and Church tool icons. Import keeps Download Template and Close in the shared directory toolbar.
+- Add ministries/churches inline; swipe a category row or use its action control for Rename and Delete. Assigned categories remain blocked, with inline explanations and affected-member shortcuts.
+- Successful category deletion offers a 10-second Undo toast, paused on hover/focus. Undo restores the actual deleted row, including its original ID, name and returned columns, and never overwrites a conflicting record. Ministry deletion first requires the [one-time database update](#one-time-directory-delete-setup).
 
 ### Services and Gatherings
 
@@ -51,7 +54,10 @@ Members get a personal space for their profile, QR, attendance history, and feed
 - Archive or restore services through the available action flow.
 - Delete services only when the applicable data rules allow it.
 - Search, filter, sort, paginate, and export service data.
-- Open the scanner directly from a service's camera action.
+- Swipe or drag a service left, or use its small actions button, to reveal Scanner, Sunday marking, Edit, and Delete/Archive/Restore. The desktop Date/Service header includes a quiet instruction on its right.
+- Keep service details visible in the closed row; expand administrative notes on phones. Swiping only reveals controls, and destructive actions retain their confirmation flow.
+- Hold the final delete button for 1.3 seconds to confirm; releasing early cancels. Sunday marking, archive, restore and deletion show an Undo toast for 10 seconds, paused on hover/focus. Delete Undo restores the original service ID and saved columns; attendance protection still applies.
+- Notifications are held in the current browser session. Reloading or signing out clears them. A newer change to the same service field replaces its earlier Undo, and Undo refuses a conflicting current value.
 - Show eligible public services to guests and members.
 
 ### QR Check-In and Kiosk
@@ -70,6 +76,7 @@ Camera, fullscreen, audio, and camera-switching support depend on the browser an
 ### Dashboard and Attendance Records
 
 - View a dashboard snapshot, attendance totals, and recent check-in activity.
+- Choose the Dashboard period through a themed GlideSelect menu. The previous snapshot stays visible while the refresh control shows loading; CountUp retargets the four primary metrics from their current display when the response arrives. Mobile retains its compact update status.
 - Open historical records with service and member filters.
 - Narrow reports by church, ministry, Sunday-service selection, date range, and report scope.
 - Default Records to completed services; explicitly choose in-progress or archive-inclusive scopes when needed.
@@ -168,9 +175,13 @@ flowchart TD
 
 The frontend is a TypeScript React single-page application bundled by Vite. `App.tsx` resolves authentication/account state and selects the appropriate workspace. Staff navigation uses component state rather than a routing library. Larger screens are loaded lazily; `ScreenBoundary` supplies loading/error containment.
 
+Staff navigation warms a destination module on pointer or keyboard-focus intent. After the first screen paints, idle work warms Members, Records and Owner Settings sequentially; this background queue skips Data Saver and reported 2g connections. Scanner loads on navigation intent rather than in that queue. React transitions keep the current view visible while a cold destination module loads, with navigation feedback shown immediately.
+
 Supabase provides authentication, database queries, RPC access, and Realtime subscriptions. Components use hooks to load data, debounce searches, coordinate mutations, and refresh results. There is no separate custom Node/Express backend in this repository.
 
-The interface uses custom CSS, theme variables, SVG illustrations, Lucide icons, native browser dialogs, and the Web Animations API. The new Tech Stack view is a full-screen native dialog with bundled technology logos: closing it restores the preceding screen instead of discarding its state.
+An in-memory cache belongs to each signed-in staff workspace, with at most 12 snapshots expiring after 60 seconds. Dashboard and the Members default first-page query can initialize from a recent snapshot; every mount still fetches live data, and normal refresh/realtime behavior remains. Cache entries are not written to disk and disappear when that workspace unmounts, including on sign-out.
+
+The interface uses custom CSS, theme variables, SVG illustrations, Lucide icons and native browser dialogs. AnimatedContent supplies GSAP section fades; its reusable API also supports ScrollTrigger. Motion and browser animation APIs support local interactions. The Tech Stack view is a full-screen native dialog with bundled technology logos: closing it restores the preceding screen instead of discarding its state.
 
 ## Technology Stack
 
@@ -187,6 +198,9 @@ Versions below are declared ranges from `package.json`; `package-lock.json` is a
 | `qrcode.react` | `^4.2.0` | SVG QR generation |
 | `papaparse` | `^5.5.3` | CSV import parsing |
 | `lucide-react` | `^0.544.0` | Interface icons |
+| `@fontsource-variable/inter` | `^5.3.0` | Self-hosted variable Inter typography |
+| `motion` | `^14.7.1` | Drag tracking and spring transitions for Services swipe actions |
+| `gsap` | `^3.15.0` | AnimatedContent fades and optional ScrollTrigger entrances |
 | `@vitejs/plugin-react` | `^5.0.2` | React integration for Vite; build tooling even though listed under dependencies |
 | `typescript` | `~5.9.2` | Strict type checking |
 | `vite` | `^7.1.3` | Development server and production bundling |
@@ -207,15 +221,15 @@ Versions below are declared ranges from `package.json`; `package-lock.json` is a
 | Sound | Web Audio API scanner feedback |
 | Images and downloads | SVG, Canvas 2D, Blob, object URLs, file inputs, browser download links |
 | Time | JavaScript Date and Intl formatting, including `Asia/Manila` |
-| Interaction | Native dialogs, Web Animations API, ResizeObserver, DOM events |
+| Interaction | Native dialogs, GSAP/ScrollTrigger, Web Animations API, IntersectionObserver, ResizeObserver, DOM events |
 | Preferences and request IDs | Local Storage and Web Crypto UUID generation |
 | Web identity | Web App Manifest, favicon, Apple touch icon, standalone-display metadata |
 | Development | Node.js, npm, Git, GitHub |
 | Hosting | Vercel for the deployed web app; hosting configuration is external to this repository |
 
-The CSS requests Inter first and then system sans-serif fallbacks. This repository does not bundle an Inter font or load Google Fonts; the actual rendered font depends on availability.
+The app bundles variable Inter with the normal and italic Latin font files through Fontsource. Fonts load from the app itself with system fallbacks while loading; there is no external font request at runtime.
 
-The current project does **not** declare React Router, Tailwind, Bootstrap, Radix, Framer Motion, TanStack Query, Workbox, or Capacitor. They should not be added to the inventory merely because another app uses them. Vite's transitive build dependencies remain recorded in the lockfile rather than being presented as separately designed app features.
+The current project does **not** declare React Router, Tailwind, Bootstrap, Radix, TanStack Query, Workbox, or Capacitor. They should not be added to the inventory merely because another app uses them. Vite's transitive build dependencies remain recorded in the lockfile rather than being presented as separately designed app features.
 
 ## Local Development
 
@@ -257,8 +271,15 @@ Open the address printed by Vite, usually `http://localhost:5173`. Restart the d
 | `npm run dev` | Start Vite development server |
 | `npm run build` | Run `tsc -b`, then create the production bundle |
 | `npm run preview` | Serve the built bundle locally for inspection |
+| `npm run demo:generate` | Generate fictional presentation data |
+| `npm run demo:sql` | Build the demo reset SQL files |
+| `npm run test:demo` | Check generated demo data |
+| `npm run test:demo:sql` | Check the demo reset SQL |
+| `npm run test:services` | Check service action behavior |
+| `npm run test:directory` | Check ministry/church deletion, Undo and the ministry SQL guard |
+| `npm run test:motion` | Check navigation and motion helper behavior |
 
-No test or lint command is currently defined in `package.json`. A successful build checks types and bundling; it does not validate a live database, physical camera, browser rendering, or role enforcement.
+Focused Node tests cover the areas listed above; there is no lint or end-to-end browser test command. A successful build checks types and bundling; it does not validate a live database, physical camera, browser rendering, or role enforcement.
 
 ## Backend Setup
 
@@ -266,14 +287,15 @@ No test or lint command is currently defined in `package.json`. A successful bui
 
 - `supabase/schema.sql`: initial `members`, `events`, and `attendance` tables; UUIDs; indexes; RLS enabled.
 - `supabase/add_sunday_service_to_events.sql`: supporting Sunday-service change.
+- `supabase/install-directory-delete-undo.sql`: targeted empty-ministry deletion RPC for the current directory tools; requires the existing current schema and access helper.
 
 The initial schema enables RLS but does not establish the full current policy set. Its enum/table creation statements are not a migration runner and should not be rerun blindly against an existing database.
 
 ### What the Current Frontend Requires
 
-The source contains 41 distinct named RPC calls, including account resolution, directory paging, member imports, service catalogs, dashboard snapshots, historical attendance reports, appearance settings, link/profile reviews, activity history, and feedback.
+The source calls named RPCs for account resolution, directory paging, member imports, service catalogs, dashboard snapshots, historical attendance reports, appearance settings, link/profile reviews, activity history, feedback and guarded ministry deletion.
 
-See **[docs/backend-contract.md](docs/backend-contract.md)** for the complete list with caller paths. Additional tables such as churches (`branches`), ministries, and relationship tables are also used directly by the UI.
+See **[docs/backend-contract.md](docs/backend-contract.md)** for the existing RPC inventory and caller paths; the new directory-delete RPC is documented below. Additional tables such as churches (`branches`), ministries, and relationship tables are also used directly by the UI.
 
 Before publishing a reproducible backend installer:
 
@@ -284,6 +306,20 @@ Before publishing a reproducible backend installer:
 5. Document a verified first-Owner bootstrap process. Do not grant access by changing frontend role checks.
 
 This README intentionally does not invent SQL for missing backend contracts or claim that the production database has been audited.
+
+### One-Time Directory Delete Setup
+
+The new ministry Delete/Undo flow requires `public.lc_delete_empty_ministry(uuid)`. **The frontend does not install this function, and the included installer has not been applied to Supabase by this update.** For the existing LifeCity project:
+
+1. Open a new query in that project’s Supabase SQL editor.
+2. Copy the complete contents of [supabase/install-directory-delete-undo.sql](supabase/install-directory-delete-undo.sql) and run it once.
+3. Return to Members and retry deleting an empty ministry.
+
+This targeted installer adds one security-invoker RPC, grants authenticated execution and reloads the API schema. It uses the existing `lc_has_admin_access()` helper and caller RLS; it does not reset data or provision the full application schema.
+
+The current ministry relationship uses `ON DELETE CASCADE`, so the function locks the ministry row and checks assignments before deleting. An assignment made concurrently cannot be silently removed by that delete. Churches keep their existing `ON DELETE RESTRICT` protection. The frontend also checks assignments and blocks categories that are in use.
+
+If the RPC is missing, ministry deletion stops with an inline message naming the installer; it does not fall back to an unguarded table delete. Add, rename and church tools remain available under their existing permissions. Successful deletion retains the complete server-returned row for Undo. Restore uses insert rather than upsert and refuses ID/name collisions; it does not overwrite another record or reconstruct member assignments.
 
 ### Authentication Configuration
 
@@ -353,9 +389,19 @@ The member CSV helper quotes values, escapes quotes, emits a UTF-8 BOM, and neut
 
 ## Appearance and Motion
 
+Desktop workspaces above 900px use a centered 1,400px maximum width with responsive 28–64px minimum side margins. Header spacing balances the brand, navigation and account controls within that shared measure. Shared surfaces use quieter teal accents, shallow shadows and lighter typography; controls use consistent rounded borders and focus states. Sign-in forms and dialogs retain readable widths. Shared swipe toasts report actions while retaining inline validation guidance.
+
 The shared theme contains 37 color controls grouped into brand, backgrounds, surfaces, text, buttons, decoration, and feedback. A custom picker and interactive preview help the Owner inspect the palette before saving. Derived shades and readable color pairs are maintained in `theme.ts` and `themeShades.ts`.
 
-Motion preference is stored locally for the browser/device. Decorative animations respect the app setting and reduced-motion preference where implemented. Forms use immediate state changes in places where animated closing previously caused visual artifacts.
+Motion preference is stored locally for the browser/device and respects the device's reduced-motion request. Navigation feedback commits immediately. The shared AnimatedContent runtime uses a stationary 220ms GSAP fade, starting at 90% opacity, across meaningful sign-in, guest, member and administration sections. One IntersectionObserver waits for below-fold groups; shared preference listeners and incremental scans avoid repeated document-wide work as lists update. There is no queued entrance cascade. Panels use a brief stationary fade and close immediately. Selected groups containing live video, canvas, scanner readers or member QR content keep their geometry. Turning motion off settles content visibly instead of leaving it hidden.
+
+Hover/focus feedback retains short 160–220ms transitions. BorderGlow provides moving themed gradient frames and directional hover light on page headers. The Dashboard uses Magic Bento around the four metrics, service cards and recent check-ins, with spotlights, neighboring edge glow, particles and local click waves. Effects pause offscreen or when the tab is hidden; motion-off keeps the colors and static frames. Global mouse-click ripples remain disabled.
+
+Dashboard period and refresh controls retain teal and lavender accents. Current, recent and upcoming gatherings have compact calendar badges with month/year headers, binding rings, red pushpins, day and weekday, alongside separate schedule and venue rows. The refresh button reserves the longer label’s width and crossfades its text/icons, with an accessible busy state; it replaces the duplicate desktop Updating badge. Motion-off keeps the state change immediate. Service notes and attendance progress retain the real snapshot data. What’s New uses a shared green gradient across guest, member and staff views; all accents follow theme variables.
+
+GlideSelect replaces the visible browser dropdown in supported periods, filters, page-size controls and form selections on desktop and phones. Menus glide between options, flip to fit the viewport, support keyboard navigation and typeahead, and provide search for longer lists. The `ResponsiveSelect` adapter keeps existing option/optgroup markup and form behavior, including disabled choices, required validation, submission values and reset. Its native select is a hidden form carrier; the user interacts with the themed picker instead of a browser menu.
+
+RubberSegment supplies the moving selection indicator for staff navigation and Dashboard detail switches, with spring hover feedback in desktop navigation. CountUp animates the four primary Dashboard metrics from their current value to the latest snapshot value, without replaying unchanged totals on refresh. Animated digits are hidden from assistive technology, which receives the final value once. Both features respect the app and device motion settings.
 
 Keep new components tied to existing theme variables and the `data-lc-motion` convention. Do not introduce an unrelated hard-coded palette or animation dependency for a small feature. The Tech Stack page uses a compact logo index and a shared detail panel with explanations and usage diagrams. On phones, nine tiles appear per page and each tool opens in a native modal detail sheet, restrained hover colors, and no entrance animation. Logo sources and usage notes are recorded in [Technology Logos](docs/technology-logos.md).
 
@@ -379,7 +425,14 @@ Keep new components tied to existing theme variables and the `data-lc-motion` co
 | `src/lib/supabase.ts` | Browser Supabase client and environment checks |
 | `src/lib/theme.ts` / `themeShades.ts` / `appearance.ts` | Theme values, derived shades, shared appearance loading |
 | `src/lib/motion.tsx` | Motion preference/runtime and transition helpers |
+| `src/lib/preloadable.ts` / `workspaceCache.tsx` | Shared module warming and bounded in-memory workspace snapshots |
+| `src/fonts.css` / `src/workspace-*.css` | Self-hosted typography, shared surfaces, controls and restrained motion |
+| `src/components/MagicBento.tsx` / `BorderGlow.tsx` | React Bits adaptations for live Dashboard cards and themed gradient frames |
+| `src/components/GlideSelect.tsx` / `CompactMobile.tsx` | Custom selection menus and the existing-select form adapter |
+| `src/components/RubberSegment.tsx` / `CountUp.tsx` | Navigation selection motion and animated Dashboard totals |
+| `src/components/AnimatedContent.tsx` / `src/lib/motion.tsx` | GSAP fades, reusable ScrollTrigger support and shared viewport/motion handling |
 | `src/lib/memberCsv.ts` | Member CSV formatting |
+| `src/lib/directoryActions.ts` / `supabase/install-directory-delete-undo.sql` | Category deletion snapshots, collision-safe Undo and the separately installed ministry guard |
 | `src/*.css` | Core, landing, UI polish, motion, appearance, feedback, tech-page styling |
 | `public/` | App icons and web manifest |
 | `supabase/` | Tracked initial database SQL |
@@ -417,6 +470,12 @@ The manifest and icons provide a standalone web identity. There is no service wo
 10. Change appearance and motion settings; inspect text, hover, focus, and reduced-motion states.
 11. Open Tech Stack from each workspace footer, select technologies using mouse and keyboard, and close it with Back and Escape.
 12. Confirm that What’s New does not show staff-only features to guests.
+13. Use custom dropdowns with mouse and keyboard, search a longer option list, cancel a selection, and verify disabled options, required validation and form reset.
+14. Change Dashboard periods and refresh unchanged totals; confirm that counters retain their current value during loading and that motion-off shows final values directly.
+15. Check the desktop header at compact and wide viewport widths; confirm that brand, navigation and account controls remain aligned and usable.
+16. Scroll through sign-in, guest, member and staff sections, open and close a panel, and toggle animation/reduced-motion settings. Verify that content remains visible and camera/QR interactions stay usable.
+17. Navigate to a cold staff screen and return to Dashboard or Members. Confirm that the prior page stays visible during module loading, recent snapshots render promptly, and live fetches still refresh them. Sign out and verify that the next workspace does not reuse the previous account’s snapshots.
+18. On test backends, check the setup message before the directory RPC is installed. After applying the installer, add and rename a ministry/church, check assigned-category blocking, delete an empty category and use Undo. Verify original IDs/columns return and duplicate-name conflicts do not overwrite records.
 
 Use test data and a separate backend when a check would change live member or attendance records.
 
@@ -430,9 +489,15 @@ Use test data and a separate backend when a check would change live member or at
 | Camera switch unavailable | Actual device capabilities and available video inputs |
 | Duplicate attendance | Whether the member is already checked in to that service |
 | Unexpected historical details | Snapshot provenance; distinguish backfilled data from captured-at-check-in data |
-| Motion absent | Device preference, reduced-motion setting, intentionally immediate form behavior |
+| Motion absent | Device preference, reduced-motion request, an already-revealed section, or a camera/QR region intentionally kept steady |
 | Mobile loses leading zeroes in CSV | Spreadsheet import column type |
 | Deployment ignores a push | Git integration, production branch, build logs, environment configuration |
+
+## Presentation Dataset
+
+The local demo tools prepare 600 fictional members, 8 churches, 14 ministries, 82 services, and historical attendance for the November 1, 2026 presentation. The afternoon demo check-in runs from 12:30 to 3:30 PM Manila time. See [Demo Data Instructions](demo-data/README.md) for the prepared reset/import, presenter examples, regeneration commands, and validation.
+
+The reset is specific to the audited deployed schema, preserves one nominated active Owner login, and must be run separately in Supabase. It is destructive and is not a migration installer for a new backend. Generated data and SQL are ignored by Git.
 
 ## Maintaining the Project
 
@@ -451,7 +516,7 @@ A documentation change should distinguish installed packages, actually used APIs
 ## Current Limits and Next Phase
 
 - Full backend migration history is not included in `main` yet.
-- No automated test suite or lint command is configured in the package scripts.
+- Focused tests cover demo data/reset SQL, service and directory actions, and motion helpers; there is no end-to-end browser test or lint command.
 - The web app relies on network access; offline attendance synchronization is not implemented.
 - Browser support for camera controls, sound, and fullscreen varies.
 - The repository does not contain Capacitor, Android, or iOS project configuration.

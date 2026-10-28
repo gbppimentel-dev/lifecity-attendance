@@ -1,4 +1,6 @@
+import BorderGlow from './BorderGlow'
 import {MobileFold} from './CompactMobile'
+import { useNoticeToast } from '../lib/useNoticeToast'
 import type { ReleaseAudience } from '../lib/releaseNotes'
 import CommunityArt from './CommunityArt'
 import WhatsNew from './WhatsNew'
@@ -109,6 +111,7 @@ export default function MemberPortal({audience='user',embedded=false,onRefreshAc
  const [downloading,setDownloading]=useState(false)
  const [downloadError,setDownloadError]=useState('')
  const [notice,setNotice]=useState('')
+ useNoticeToast(notice)
  const qrRef=useRef<HTMLDivElement>(null)
  const servicesRef=useRef<HTMLElement>(null)
  const qrButtonRef=useRef<HTMLButtonElement>(null)
@@ -203,7 +206,7 @@ export default function MemberPortal({audience='user',embedded=false,onRefreshAc
   {!embedded && <header className="lmp-topbar"><div className="brand"><div className="brand-icon small"><Users size={20}/></div><span>LifeCity Attendance</span></div><button className="lmp-button lmp-signout" disabled={signingOut} onClick={onSignOut}><LogOut size={16}/>{signingOut?'Signing Out…':'Sign Out'}</button></header>}
   <div className="lmp-content">
    {authError && <p className="lmp-error" role="alert">{uiMessage(authError)}</p>}
-   <section className="lmp-hero"><div><p className="eyebrow">Your LifeCity Space</p><h1>{profile?'Hi, '+profile.first_name+'.':'Welcome to Your Member Space.'}</h1><p>A little space for your profile, your QR, and your next gathering.</p><div className="lmp-welcome-tags"><span><Heart size={14}/>Belong</span><span><Users size={14}/>Connect</span><span><CalendarDays size={14}/>Gather</span></div></div><div className="lmp-hero-side"><CommunityArt compact/><button className="lmp-button lc-community-icon lc-refresh-icon" aria-label="Refresh Access" title="Refresh Access" aria-busy={loading} disabled={loading} onClick={()=>{setRevision(v=>v+1);onRefreshAccess()}}><RefreshCw size={17}/></button></div></section>
+   <BorderGlow as="section" className="lmp-hero" borderRadius={18} animated><div><p className="eyebrow">Your LifeCity Space</p><h1>{profile?'Hi, '+profile.first_name+'.':'Welcome to Your Member Space.'}</h1><p>A little space for your profile, your QR, and your next gathering.</p><div className="lmp-welcome-tags"><span><Heart size={14}/>Belong</span><span><Users size={14}/>Connect</span><span><CalendarDays size={14}/>Gather</span></div></div><div className="lmp-hero-side"><CommunityArt compact/><button className="lmp-button lc-community-icon lc-refresh-icon" aria-label="Refresh Access" title="Refresh Access" aria-busy={loading} disabled={loading} onClick={()=>{setRevision(v=>v+1);onRefreshAccess()}}><RefreshCw size={17}/></button></div></BorderGlow>
    {loading ? <div className="lmp-loading" role="status">Opening Your Member Profile…<div className="lmp-skeleton"/><div className="lmp-skeleton"/></div> : error ? <div className="lmp-error" role="alert">{uiMessage(error)}</div> : profile && data && <>
     <div className="lmp-grid">
      <section className="lmp-card"><div className="lmp-profile-heading"><p className="eyebrow">Your Directory Profile</p><div className="lmp-name-line"><h2>{profile.first_name} {profile.last_name}</h2><span className={'lmp-pill '+profile.status}>{profile.status === 'active' ? 'Active' : 'Inactive'}</span></div></div>

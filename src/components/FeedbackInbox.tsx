@@ -1,3 +1,5 @@
+import FoldText from './FoldText'
+import { useNoticeToast } from '../lib/useNoticeToast'
 import {ResponsiveSelect} from './CompactMobile'
 import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Eye, EyeOff, MessageSquare, RefreshCw, Search } from 'lucide-react'
@@ -10,6 +12,7 @@ const statuses=[['new','New'],['reviewing','In Progress'],['resolved','Completed
 export default function FeedbackInbox(){
  const [status,setStatus]=useState('all'),[category,setCategory]=useState('all'),[search,setSearch]=useState(''),[query,setQuery]=useState(''),[page,setPage]=useState(1),[revision,setRevision]=useState(0)
  const [data,setData]=useState<Result|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState<string|null>(null)
+ useNoticeToast(notice,'info')
  const [identities,setIdentities]=useState<Record<string,Identity>>({}),[expanded,setExpanded]=useState<string|null>(null)
  const sequence=useRef(0),action=useRef(false),alive=useRef(true)
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;sequence.current++}},[])
@@ -36,7 +39,7 @@ export default function FeedbackInbox(){
   }catch(failure){if(alive.current&&sequence.current===request)setNotice(feedbackError(failure))}finally{action.current=false;if(alive.current)setBusy(null)}
  }
  const current=data?.page??1,pages=Math.max(1,Math.ceil((data?.total??0)/20))
- return <section className="lcf-inbox" aria-labelledby="lcf-inbox-title"><header className="lcf-heading"><div><p className="eyebrow">Owner Workspace · Private Inbox</p><h1 id="lcf-inbox-title">App Feedback Tickets</h1><p>Review, work on, and complete app feedback. Status changes notify the sender in their member space.</p></div><button type="button" className="lcf-icon lc-refresh-icon" title="Refresh Feedback" aria-label="Refresh Feedback" aria-busy={loading} disabled={blocked} onClick={()=>{setNotice('');setRevision(v=>v+1)}}><RefreshCw size={18}/></button></header>
+ return <section className="lcf-inbox" aria-labelledby="lcf-inbox-title"><header className="lcf-heading"><div><p className="eyebrow">Owner Workspace · Private Inbox</p><h1 id="lcf-inbox-title"><FoldText text="App Feedback Tickets"/></h1><p>Review, work on, and complete app feedback. Status changes notify the sender in their member space.</p></div><button type="button" className="lcf-icon lc-refresh-icon" title="Refresh Feedback" aria-label="Refresh Feedback" aria-busy={loading} disabled={blocked} onClick={()=>{setNotice('');setRevision(v=>v+1)}}><RefreshCw size={18}/></button></header>
  <div className="lcf-filters"><label>Status<ResponsiveSelect value={status} disabled={!!busy} onChange={e=>{setStatus(e.target.value);setPage(1)}}><option value="all">All Statuses</option>{statuses.map(([key,label])=><option key={key} value={key}>{label}</option>)}</ResponsiveSelect></label><label>Category<ResponsiveSelect value={category} disabled={!!busy} onChange={e=>{setCategory(e.target.value);setPage(1)}}><option value="all">All Categories</option>{feedbackCategories.map(c=><option key={c.value} value={c.value}>{c.label}</option>)}</ResponsiveSelect></label><label className="lcf-search-label">Search<div className="lcf-search"><Search size={17}/><input type="search" maxLength={200} value={search} disabled={!!busy} onChange={e=>setSearch(e.target.value)} placeholder="Subject or message…"/></div></label></div>
  {notice&&<p className="lcf-notice-text" role="status">{notice}</p>}
  {error?<p className="lcf-error" role="alert">{error}</p>:loading||filtering?<p className="lcf-empty" role="status">Loading Feedback…</p>:!data?.rows.length?<div className="lcf-empty"><MessageSquare size={28}/><p>No Feedback Matches This View.</p></div>:<div className="lcf-feedback-list">{data.rows.map(row=>{

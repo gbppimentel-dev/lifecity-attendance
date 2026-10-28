@@ -1,3 +1,6 @@
+import BorderGlow from './BorderGlow'
+import FoldText from './FoldText'
+import { useNoticeToast } from '../lib/useNoticeToast'
 import {ResponsiveSelect} from './CompactMobile'
 // Change ID: LC-P08H-v1
 // Change ID: LC-UI-COPY-v2
@@ -29,6 +32,7 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
  const [loading,setLoading] = useState(true)
  const [error,setError] = useState('')
  const [notice,setNotice] = useState('')
+ useNoticeToast(notice)
  const [pending,setPending] = useState<{account:Account;action:Action} | null>(null)
  const [saving,setSaving] = useState(false)
  const [linkTarget,setLinkTarget] = useState<Account | null>(null)
@@ -96,10 +100,10 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
   return 'This Restores App Access with the '+roleName(a.role)+' Role'+(a.role==='admin' ? ', including the admin workspace.' : '.')
  }
  return <div className="lc-accounts" data-change-id="LC-UI-COPY-v2">
-  <section className="lca-hero">
-   <div><p className="eyebrow">Settings · Owner Workspace</p><h1>Accounts & Access</h1><p>Manage who can use your admin workspace. Login accounts and church member records stay separate.</p></div>
+  <BorderGlow as="section" className="lca-hero" borderRadius={18} animated>
+   <div><p className="eyebrow">Settings · Owner Workspace</p><h1><FoldText text="Accounts & Access"/></h1><p>Manage who can use your admin workspace. Login accounts and church member records stay separate.</p></div>
    <div className="lca-owner"><ShieldCheck size={26}/><strong>Owner Controls</strong><span>Your Account is Protected</span></div>
-  </section>
+  </BorderGlow>
   <OwnerProfileRequests/>
   <MemberLinkRequests owner onChanged={()=>{setRefresh(v=>v+1);onLinkChanged()}}/>
   <section className="lca-panel" ref={listRef} aria-labelledby="lca-heading" aria-busy={busy}>

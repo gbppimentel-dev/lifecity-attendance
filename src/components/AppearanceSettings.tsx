@@ -1,3 +1,5 @@
+import FoldText from './FoldText'
+import { useNoticeToast } from '../lib/useNoticeToast'
 import {MobileFold} from './CompactMobile'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, CheckCircle2, Download, FileSearch, RotateCcw, Save, ScanLine, Sparkles, Users, X } from 'lucide-react'
@@ -13,6 +15,7 @@ export default function AppearanceSettings(){
  const [active,setActive]=useState<ThemeKey>('primary'),[group,setGroup]=useState<string>('Brand')
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[extended,setExtended]=useState(false)
  const [error,setError]=useState(''),[message,setMessage]=useState(''),[reset,setReset]=useState(false)
+ useNoticeToast(message)
  const alive=useRef(true),lock=useRef(false)
  useEffect(()=>{alive.current=true;void reload();return()=>{alive.current=false}},[])
  async function reload(){setLoading(true);setError('');setMessage('');setReset(false)
@@ -30,7 +33,7 @@ export default function AppearanceSettings(){
  const changed=!!saved&&JSON.stringify(draft)!==JSON.stringify(appearanceTokens(saved))
  const selected=themeFields.find(([key])=>key===active)!
  return <section className="lct-panel lc-appearance-studio">
- <header><p className="eyebrow">Settings · Owner Workspace</p><h1>Make It Feel Like LifeCity.</h1><p>Fine-tune every layer of your palette. Try it in the live preview, then save it for everyone.</p></header>
+ <header><p className="eyebrow">Settings · Owner Workspace</p><h1><FoldText text="Make It Feel Like LifeCity."/></h1><p>Fine-tune every layer of your palette. Try it in the live preview, then save it for everyone.</p></header>
  {error&&<p className="lct-error" role="alert">{error}</p>}{message&&<p className="lct-notice" role="status">{message}</p>}
  {loading?<p role="status">Loading your palette…</p>:saved&&<>
  {!extended&&<p className="lct-notice" role="status">Install LC-APPEARANCE-V2.sql, then reload to enable shared palette saving. You can explore the preview now.</p>}

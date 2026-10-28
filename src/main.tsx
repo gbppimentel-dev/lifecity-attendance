@@ -1,3 +1,4 @@
+import './fonts.css'
 import './mobile-keyboard'
 import './mobile-workspaces.css'
 import './styles.css'
@@ -14,7 +15,16 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import { MotionRuntime } from './lib/motion'
+import { ToastProvider } from './lib/toasts'
+import './desktop-workspace.css'
+import './workspace-surfaces.css'
+import './workspace-controls.css'
+import './workspace-motion.css'
+import './workspace-character.css'
+import './workspace-selections.css'
+import './workspace-dashboard-polish.css'
+import './workspace-directory-polish.css'
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode><MotionRuntime /><App /></StrictMode>,
+  <StrictMode><MotionRuntime /><ToastProvider><App /></ToastProvider></StrictMode>,
 )

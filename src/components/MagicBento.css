@@ -1,0 +1,89 @@
+/* React Bits MagicBento effects, themed for LifeCity's real dashboard cards. */
+.magic-bento {
+  --mb-surface: var(--lc-surface, #fff);
+  --mb-edge: var(--lc-border, #d6e7df);
+  --mb-ink: var(--lc-heading, #173e37);
+  --mb-muted: var(--lc-safe-muted, #60796f);
+  --mb-shadow: 0 6px 24px color-mix(in srgb, var(--lc-shadow, #315b53) 6%, transparent);
+  position: relative;
+  display: grid;
+  grid-auto-flow: row;
+  min-width: 0;
+  width: 100%;
+  color: var(--mb-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+.magic-bento[data-theme='dark'] { --mb-surface: #122b28; --mb-edge: #33554f; --mb-ink: #f0faf6; --mb-muted: #b6cdc5; }
+.magic-bento .magic-bento__cell { position: relative; min-width: 0; min-height: 0; --mb-delay: 0ms; }
+.magic-bento[data-intro] .magic-bento__cell[data-state='waiting'] { opacity: 0; transform: translate3d(0, 10px, 0) scale(.985); }
+.magic-bento[data-intro] .magic-bento__cell[data-state='in'] { opacity: 1; transform: none; transition: opacity 320ms ease var(--mb-delay), transform 520ms cubic-bezier(.2,.8,.2,1) var(--mb-delay); }
+.magic-bento .magic-bento__card {
+  --mb-glow-color: var(--mb-custom-glow, var(--lc-metric-accent, var(--lc-primary, #147d73)));
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: var(--mb-pad, 20px);
+  border: 1px solid var(--mb-edge);
+  border-radius: var(--mb-radius, 18px);
+  background: var(--mb-surface);
+  box-shadow: var(--mb-shadow);
+  color: var(--mb-ink);
+  text-decoration: none;
+  isolation: isolate;
+  transform: perspective(900px) translate3d(var(--mb-tx, 0px), var(--mb-ty, 0px), 0) rotateX(var(--mb-rx, 0deg)) rotateY(var(--mb-ry, 0deg)) scale(var(--mb-press, 1));
+}
+/* Pointer transforms belong to the Bento engine, not legacy postcard hover rules. */
+.magic-bento .magic-bento__cell > .magic-bento__card {
+  transform: perspective(900px) translate3d(var(--mb-tx, 0px), var(--mb-ty, 0px), 0) rotateX(var(--mb-rx, 0deg)) rotateY(var(--mb-ry, 0deg)) scale(var(--mb-press, 1));
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.magic-bento .magic-bento__card[data-clickable] { cursor: pointer; }
+.magic-bento .magic-bento__card:focus-visible { outline: 2px solid var(--mb-glow-color); outline-offset: 4px; }
+.magic-bento .magic-bento__card > :not(.magic-bento__image,.magic-bento__scrim,.magic-bento__light,.magic-bento__stars,.magic-bento__rim,.magic-bento__border,.magic-bento__wave) { z-index: 2; }
+.magic-bento .magic-bento__image { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; border-radius: inherit; object-fit: cover; pointer-events: none; }
+.magic-bento .magic-bento__scrim { position: absolute; inset: 0; z-index: 0; border-radius: inherit; background: linear-gradient(0deg, rgb(10 28 24 / 80%), transparent); pointer-events: none; }
+.magic-bento .magic-bento__light {
+  position: absolute; inset: 0; z-index: 1; border-radius: inherit;
+  background: radial-gradient(var(--mb-spot-size, 300px) circle at var(--mb-x, -999px) var(--mb-y, -999px), color-mix(in srgb, var(--mb-glow-color) 13%, transparent), transparent 75%);
+  opacity: var(--mb-hot, 0); pointer-events: none;
+}
+.magic-bento .magic-bento__stars { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; border-radius: inherit; pointer-events: none; }
+.magic-bento .magic-bento__rim { position: absolute; inset: 0; z-index: 3; border-radius: inherit; box-shadow: inset 0 1px 0 rgb(255 255 255 / 65%); pointer-events: none; }
+.magic-bento .magic-bento__border,
+.magic-bento .magic-bento__wave {
+  position: absolute; inset: -1px; z-index: 4; padding: 2px; border-radius: inherit; pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+.magic-bento .magic-bento__border {
+  background: radial-gradient(var(--mb-border-size, 250px) circle at var(--mb-x, -999px) var(--mb-y, -999px), var(--mb-glow-color), color-mix(in srgb, var(--mb-glow-color) 45%, transparent) 35%, transparent 80%);
+  opacity: var(--mb-near, 0);
+}
+.magic-bento .magic-bento__wave {
+  background: radial-gradient(circle at var(--mb-wx, -999px) var(--mb-wy, -999px), transparent calc(var(--mb-wr, 0px) - 80px), color-mix(in srgb, var(--mb-glow-color) 15%, transparent) calc(var(--mb-wr, 0px) - 50px), var(--mb-glow-color) calc(var(--mb-wr, 0px) - 7px), transparent var(--mb-wr, 0px));
+  opacity: var(--mb-wa, 0);
+}
+.magic-bento .magic-bento__content { position: relative; display: flex; flex: 1; flex-direction: column; min-width: 0; gap: 12px; }
+.magic-bento .magic-bento__header { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--mb-muted); }
+.magic-bento .magic-bento__icon { display: inline-flex; color: var(--mb-glow-color); }
+.magic-bento .magic-bento__visual { position: relative; display: flex; flex: 1; min-width: 0; align-items: center; justify-content: center; }
+.magic-bento .magic-bento__text { display: flex; flex-direction: column; gap: 5px; margin-top: auto; }
+.magic-bento .magic-bento__title { margin: 0; color: var(--mb-ink); font-size: 17px; font-weight: 600; line-height: 1.4; }
+.magic-bento .magic-bento__description { margin: 0; color: var(--mb-muted); font-size: 13px; line-height: 1.55; }
+.magic-bento[data-autohide] .magic-bento__title,
+.magic-bento[data-autohide] .magic-bento__description { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; }
+.magic-bento[data-autohide] .magic-bento__title { -webkit-line-clamp: 1; line-clamp: 1; }
+.magic-bento[data-autohide] .magic-bento__description { -webkit-line-clamp: 2; line-clamp: 2; }
+.magic-bento:not([data-motion]) .magic-bento__cell { opacity: 1; transform: none; transition: none; }
+.magic-bento:not([data-motion]) .magic-bento__card { transform: none; }
+.magic-bento:not([data-motion]) :is(.magic-bento__light,.magic-bento__stars,.magic-bento__wave) { opacity: 0; }
+.magic-bento:not([data-motion]) .magic-bento__border { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .magic-bento .magic-bento__cell, .magic-bento .magic-bento__cell > .magic-bento__card { opacity: 1; transform: none; transition: none; }
+  .magic-bento :is(.magic-bento__light,.magic-bento__stars,.magic-bento__border,.magic-bento__wave) { opacity: 0; }
+}

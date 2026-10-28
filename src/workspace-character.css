@@ -1,0 +1,181 @@
+/* LC-CHARACTER-v4: keep the cleaner workspace while restoring LifeCity's colours.
+   BorderGlow and MagicBento own their effects; these rules colour the real content. */
+@property --lc-character-border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+html:root body :is(.app-page, .lc-member-space, .lc-auth-page) {
+  background:
+    radial-gradient(ellipse at 3% 0%, color-mix(in srgb, var(--lc-glowPrimary, #e5f5ef) 64%, transparent), transparent 45rem),
+    radial-gradient(ellipse at 100% 15%, color-mix(in srgb, var(--lc-glowSecondary, #f1edfa) 45%, transparent), transparent 43rem),
+    radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--lc-glowHighlight, #fff4dd) 26%, transparent), transparent 42rem),
+    var(--lc-page, #f7faf9);
+}
+
+/* The frame remains colourful when motion is off. Only its orbit is optional. */
+html:root body :is(
+  .dashboard-editorial-hero, .members-editorial-hero, .services-editorial-hero,
+  .scanner-editorial-hero, .records-page-heading, .records-editorial-hero,
+  .lca-hero, .lcg-hero, .lmp-hero
+) {
+  --lc-character-hero-end: var(--lc-glowSecondary, #f1edfa);
+  --lc-character-hero-fill: linear-gradient(120deg,
+    color-mix(in srgb, var(--lc-glowPrimary, #e5f5ef) 86%, var(--lc-surface, #fff)) 0%,
+    var(--lc-surface, #fff) 51%,
+    color-mix(in srgb, var(--lc-character-hero-end) 76%, var(--lc-surface, #fff)) 100%);
+  background: var(--lc-character-hero-fill);
+  box-shadow: 0 5px 24px color-mix(in srgb, var(--lc-primary, #147d73) 4%, transparent);
+}
+
+html:root body :is(.services-editorial-hero, .scanner-editorial-hero) {
+  --lc-character-hero-end: var(--lc-glowHighlight, #fff4dd);
+}
+
+html:root body .lc-auth-frame {
+  --lc-character-hero-fill: linear-gradient(var(--lc-surface, #fff), var(--lc-surface, #fff));
+}
+
+/* Heroes not yet wrapped in BorderGlow receive the same signature frame.
+   Component hosts keep only their own decorative frame, avoiding doubled borders. */
+html:root body :is(
+  .dashboard-editorial-hero, .members-editorial-hero, .services-editorial-hero,
+  .scanner-editorial-hero, .records-page-heading, .records-editorial-hero,
+  .lca-hero, .lcg-hero, .lmp-hero, .lc-auth-frame
+):not(.lc-border-glow) {
+  border: 2px solid transparent;
+  background:
+    var(--lc-character-hero-fill) padding-box,
+    conic-gradient(from var(--lc-character-border-angle),
+      var(--lc-framePrimary, #8ac7b5), var(--lc-frameSecondary, #b8a4dc) 28%,
+      var(--lc-frameHighlight, #edce83) 52%, var(--lc-framePrimary, #8ac7b5) 78%,
+      var(--lc-framePrimary, #8ac7b5)) border-box;
+}
+
+html:root body .lc-border-glow:is(
+  .dashboard-editorial-hero, .members-editorial-hero, .services-editorial-hero,
+  .scanner-editorial-hero, .records-page-heading, .records-editorial-hero,
+  .lca-hero, .lcg-hero, .lmp-hero, .lc-auth-frame
+) { border-color: transparent; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:root[data-lc-motion='on'] body :is(
+    .dashboard-editorial-hero, .members-editorial-hero, .services-editorial-hero,
+    .scanner-editorial-hero, .records-page-heading, .records-editorial-hero,
+    .lca-hero, .lcg-hero, .lmp-hero, .lc-auth-frame
+  ):not(.lc-border-glow) {
+    animation: lc-character-border-orbit 18s linear infinite !important;
+  }
+}
+
+@keyframes lc-character-border-orbit {
+  from { --lc-character-border-angle: 0deg; }
+  to { --lc-character-border-angle: 360deg; }
+}
+
+/* Familiar little accents return without changing card dimensions or text. */
+html:root body :is(
+  .dashboard-hero-orbit, .members-hero-orbit, .services-hero-orbit, .scanner-hero-orbit
+) { display: block; opacity: .48; pointer-events: none; }
+html:root body :is(
+  .dashboard-hero-spark, .members-hero-spark, .services-hero-spark, .scanner-hero-spark,
+  .event-postcard-spark
+) { display: block; opacity: .65; pointer-events: none; }
+
+html:root body .topbar::after {
+  content: '';
+  display: block;
+  position: absolute;
+  inset-inline: 0;
+  top: auto;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg,
+    var(--lc-framePrimary, #8ac7b5), var(--lc-frameSecondary, #b8a4dc),
+    var(--lc-frameHighlight, #edce83), var(--lc-framePrimary, #8ac7b5));
+  opacity: .78;
+  pointer-events: none;
+}
+
+/* Each actual attendance metric keeps its own colour, including in Bento cards. */
+html:root body .dashboard-stats .dashboard-metric-card.metric-members {
+  --lc-metric-accent: var(--lc-primary, #147d73);
+  --lc-metric-wash: var(--lc-glowPrimary, #e5f5ef);
+}
+html:root body .dashboard-stats .dashboard-metric-card.metric-events {
+  --lc-metric-accent: var(--lc-safe-secondary, var(--lc-secondary, #7964ad));
+  --lc-metric-wash: var(--lc-glowSecondary, #f1edfa);
+}
+html:root body .dashboard-stats .dashboard-metric-card.metric-attendance {
+  --lc-metric-accent: var(--lc-success, #18764e);
+  --lc-metric-wash: var(--lc-successBg, #ecfdf3);
+}
+html:root body .dashboard-stats .dashboard-metric-card.metric-rate {
+  --lc-metric-accent: var(--lc-safe-highlight, var(--lc-highlight, #986a21));
+  --lc-metric-wash: var(--lc-glowHighlight, #fff4dd);
+}
+
+html:root body .dashboard-stats .dashboard-stat-card.dashboard-metric-card {
+  border-color: color-mix(in srgb, var(--lc-metric-accent, var(--lc-primary, #147d73)) 21%, var(--lc-surface, #fff));
+  background:
+    radial-gradient(circle at 104% 116%, var(--lc-metric-wash, var(--lc-glowPrimary, #e5f5ef)) 0 37%, transparent 37.5%),
+    linear-gradient(135deg, var(--lc-surface, #fff) 38%, color-mix(in srgb, var(--lc-metric-wash, var(--lc-glowPrimary, #e5f5ef)) 61%, var(--lc-surface, #fff)));
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--lc-metric-accent, var(--lc-primary, #147d73)) 7%, transparent);
+}
+
+html:root body .dashboard-stats .dashboard-metric-card > strong,
+html:root body .dashboard-stats .dashboard-metric-card .dashboard-metric-value {
+  color: var(--lc-metric-accent, var(--lc-primary, #147d73));
+}
+
+html:root body .dashboard-stats .dashboard-metric-card .dashboard-stat-icon {
+  background: var(--lc-metric-wash, var(--lc-glowPrimary, #e5f5ef));
+  color: var(--lc-metric-accent, var(--lc-primary, #147d73));
+  border: 1px solid color-mix(in srgb, var(--lc-metric-accent, var(--lc-primary, #147d73)) 12%, transparent);
+}
+
+/* Small surfaces echo their service/section accent instead of becoming grey. */
+html:root body .event-postcard-date::before,
+html:root body .event-postcard-date::after { content: ''; }
+
+html:root body .event-postcard-recent .event-postcard-date {
+  color: var(--lc-primary, #147d73);
+  background: var(--lc-glowPrimary, #e5f5ef);
+  border-color: color-mix(in srgb, var(--lc-primary, #147d73) 24%, var(--lc-surface, #fff));
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--lc-primary, #147d73) 9%, transparent);
+}
+html:root body .event-postcard-upcoming .event-postcard-date {
+  color: var(--lc-safe-secondary, var(--lc-secondary, #7964ad));
+  background: var(--lc-glowSecondary, #f1edfa);
+  border-color: color-mix(in srgb, var(--lc-secondary, #7964ad) 25%, var(--lc-surface, #fff));
+  box-shadow: 0 3px 12px color-mix(in srgb, var(--lc-secondary, #7964ad) 9%, transparent);
+}
+html:root body .event-postcard-recent .dashboard-service-note {
+  border-left-color: var(--lc-framePrimary, #8ac7b5);
+  background: color-mix(in srgb, var(--lc-glowPrimary, #e5f5ef) 55%, var(--lc-surface, #fff));
+}
+html:root body .event-postcard-upcoming .dashboard-service-note {
+  border-left-color: var(--lc-frameSecondary, #b8a4dc);
+  background: color-mix(in srgb, var(--lc-glowSecondary, #f1edfa) 58%, var(--lc-surface, #fff));
+}
+html:root body .active-checkin-panel {
+  border-color: color-mix(in srgb, var(--lc-framePrimary, #8ac7b5) 65%, var(--lc-surface, #fff));
+  background: linear-gradient(110deg, var(--lc-surface, #fff), color-mix(in srgb, var(--lc-glowPrimary, #e5f5ef) 72%, var(--lc-surface, #fff)));
+}
+html:root body :is(.service-form-card, .member-editor-card) > :is(.service-form-heading, .form-card-heading) {
+  border-bottom-color: color-mix(in srgb, var(--lc-framePrimary, #8ac7b5) 34%, var(--lc-border, #d6e7df));
+}
+html:root body :is(.service-form-card, .member-editor-card) {
+  border-top-color: color-mix(in srgb, var(--lc-frameSecondary, #b8a4dc) 30%, var(--lc-border, #d6e7df));
+  box-shadow: 0 4px 22px color-mix(in srgb, var(--lc-primary, #147d73) 5%, transparent);
+}
+
+@media (forced-colors: active) {
+  html:root body :is(
+    .dashboard-editorial-hero, .members-editorial-hero, .services-editorial-hero,
+    .scanner-editorial-hero, .records-page-heading, .records-editorial-hero,
+    .lca-hero, .lcg-hero, .lmp-hero, .lc-auth-frame
+  ):not(.lc-border-glow) { border-color: CanvasText; }
+}

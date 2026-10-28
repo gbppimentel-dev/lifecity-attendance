@@ -3,6 +3,7 @@ import {ResponsiveSelect} from './CompactMobile'
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useNoticeToast } from '../lib/useNoticeToast'
 import { Pencil, Search, RefreshCw, Check, X, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 type Values={first_name:string;last_name:string;email:string;churches:string[];ministries:string[]}
@@ -42,6 +43,7 @@ function EditorBody({onProfileChanged}:{onProfileChanged:()=>void}){
  const [saving,setSaving]=useState(false)
  const [error,setError]=useState('')
  const [notice,setNotice]=useState('')
+ useNoticeToast(notice)
  const [revision,setRevision]=useState(0)
  const [confirm,setConfirm]=useState<'request'|'mobile'|string|null>(null)
  const lock=useRef(false)
@@ -109,6 +111,7 @@ export function OwnerProfileRequests(){
  const [saving,setSaving]=useState(false)
  const [error,setError]=useState('')
  const [notice,setNotice]=useState('')
+ useNoticeToast(notice)
  const [revision,setRevision]=useState(0)
  const section=useRef<HTMLElement>(null)
  useEffect(()=>{

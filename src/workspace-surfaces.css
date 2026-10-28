@@ -1,0 +1,263 @@
+/* LC-SOFT-WORKSPACE-v1: a shared visual layer over the existing workspaces. */
+html:root {
+  --lc-font-ui: 'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --lc-panel-border: color-mix(in srgb, var(--lc-border, #d6e7df) 70%, var(--lc-surface, #fff));
+  --lc-panel-shadow: 0 3px 16px color-mix(in srgb, var(--lc-shadow, #315b53) 4%, transparent);
+  --lc-dialog-shadow: 0 18px 54px color-mix(in srgb, var(--lc-shadow, #315b53) 13%, transparent);
+  font-family: var(--lc-font-ui);
+  font-optical-sizing: auto;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+html:root body {
+  font-family: var(--lc-font-ui);
+  font-size: 14.5px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--lc-safe-text, var(--lc-text, #456d63));
+  background: var(--lc-page, #f7faf9);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html:root body :is(button, input, select, textarea, summary) { font-family: var(--lc-font-ui); }
+
+html:root body :is(.app-page, .lc-member-space, .lc-auth-page) {
+  background:
+    radial-gradient(ellipse at 3% 0%, color-mix(in srgb, var(--lc-glowPrimary, #e5f5ef) 45%, transparent), transparent 38rem),
+    var(--lc-page, #f7faf9);
+}
+
+html:root body :is(h1, h2, h3, h4) {
+  font-family: var(--lc-font-ui);
+  color: var(--lc-heading, #173e37);
+  font-weight: 650;
+  letter-spacing: -.028em;
+  text-wrap: balance;
+}
+
+html:root body :is(.eyebrow, .card-kicker, .records-section-kicker, .lcse-kicker) {
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1.5;
+  letter-spacing: .085em;
+  color: var(--lc-primary, #147d73);
+}
+
+/* Quiet surfaces share a radius and a very shallow shadow. */
+html:root body :is(
+  .form-card, .directory-card, .dashboard-card, .records-card,
+  .ministry-manager-card, .directory-tools-workspace, .csv-import-card,
+  .lct-panel, .lca-panel, .lch-panel, .lcf-inbox, .lpe-owner-panel,
+  .lcr-owner, .lcr-panel, .lmp-card, .lmp-service-card, .lcg-card,
+  .lc-whats-new, .scanner-camera-card, .manual-checkin-card
+) {
+  border: 1px solid var(--lc-panel-border);
+  border-radius: 16px;
+  background-color: var(--lc-surface, #fff);
+  background-image: none;
+  box-shadow: var(--lc-panel-shadow);
+}
+
+html:root body :is(.form-card, .ministry-manager-card, .directory-tools-workspace, .csv-import-card) {
+  padding: 24px;
+  margin-bottom: 22px;
+}
+
+html:root body .service-form-card::before,
+html:root body .service-form-card::after { content: none; display: none; }
+
+html:root body :is(.directory-toolbar, .records-toolbar) {
+  padding: 22px 24px;
+  border-bottom-color: var(--lc-panel-border);
+}
+
+html:root body :is(.directory-toolbar, .records-toolbar, .form-card, .ministry-manager-heading, .lca-heading, .lch-heading) h2 {
+  font-size: 21px;
+  font-weight: 650;
+  line-height: 1.3;
+  letter-spacing: -.025em;
+}
+
+html:root body :is(.directory-toolbar, .records-toolbar, .ministry-manager-heading, .lca-heading, .lch-heading) p:not(.eyebrow):not(.records-section-kicker) {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--lc-safe-muted, #60796f);
+}
+
+/* The page title is a concise introduction rather than a large display card. */
+html:root body :is(
+  .dashboard-editorial-hero, .members-editorial-hero, .services-editorial-hero,
+  .scanner-editorial-hero, .records-page-heading, .lca-hero, .lcg-hero, .lmp-hero
+) {
+  min-height: 0;
+  padding: 30px 32px;
+  margin-bottom: 24px;
+  border: 1px solid var(--lc-panel-border);
+  border-radius: 18px;
+  background: linear-gradient(115deg, color-mix(in srgb, var(--lc-glowPrimary, #e5f5ef) 28%, var(--lc-surface, #fff)), var(--lc-surface, #fff));
+  box-shadow: none;
+  animation: none;
+}
+
+html:root body :is(
+  .dashboard-editorial-hero, .members-editorial-hero, .services-editorial-hero,
+  .scanner-editorial-hero, .records-page-heading, .lca-hero, .lcg-hero, .lmp-hero
+)::before,
+html:root body :is(
+  .dashboard-editorial-hero, .members-editorial-hero, .services-editorial-hero,
+  .scanner-editorial-hero, .records-page-heading, .lca-hero, .lcg-hero, .lmp-hero
+)::after { content: none; }
+
+html:root body :is(
+  .dashboard-hero-orbit, .dashboard-hero-spark, .members-hero-orbit, .members-hero-spark,
+  .services-hero-orbit, .services-hero-spark, .scanner-hero-orbit, .scanner-hero-spark,
+  .event-postcard-spark
+) { display: none; }
+
+html:root body :is(
+  .dashboard-hero-copy, .members-hero-copy, .services-hero-copy,
+  .scanner-hero-copy, .records-page-heading, .lca-hero, .lcg-hero, .lmp-hero
+) h1 {
+  margin: 5px 0 12px;
+  font-size: clamp(32px, 3.1vw, 48px);
+  font-weight: 650;
+  line-height: 1.13;
+  letter-spacing: -.045em;
+}
+
+html:root body :is(.dashboard-hero-copy, .members-hero-copy, .services-hero-copy, .scanner-hero-copy) > p:not(.eyebrow) {
+  margin: 0;
+  max-width: 640px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--lc-safe-muted, #60796f);
+}
+
+html:root body :is(.dashboard-hero-caption, .members-hero-caption, .services-hero-caption, .scanner-hero-caption) {
+  margin-top: 15px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 450;
+  line-height: 1.55;
+  color: var(--lc-safe-muted, #60796f);
+  box-shadow: none;
+}
+
+html:root body :is(.dashboard-grid, .dashboard-stats) { gap: 18px; }
+html:root body .dashboard-stats { margin-bottom: 22px; }
+html:root body .dashboard-stats .dashboard-stat-card.dashboard-metric-card {
+  min-height: 150px;
+  padding: 20px;
+  border: 1px solid var(--lc-panel-border);
+  border-radius: 15px;
+  background: var(--lc-surface, #fff);
+  box-shadow: var(--lc-panel-shadow);
+  rotate: none;
+}
+html:root body .dashboard-stats .dashboard-metric-card::after { display: none; }
+html:root body .dashboard-stats .dashboard-metric-card > strong {
+  font-size: 46px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -.05em;
+  color: var(--lc-heading, #173e37);
+}
+html:root body .dashboard-stats .dashboard-stat-card .dashboard-metric-copy > p.lc-v3-metric-title {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--lc-safe-text, #456d63);
+}
+html:root body .dashboard-stats .dashboard-metric-copy small {
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--lc-safe-muted, #60796f);
+}
+html:root body .dashboard-stats .dashboard-stat-icon { border-radius: 11px; box-shadow: none; }
+html:root body .dashboard-card { padding: 24px; }
+html:root body .dashboard-card h2 { font-size: 19px; line-height: 1.4; font-weight: 600; }
+html:root body .dashboard-service-note {
+  padding: 12px 14px;
+  border: 0;
+  border-left: 2px solid color-mix(in srgb, var(--lc-primary, #147d73) 28%, var(--lc-surface, #fff));
+  border-radius: 0 8px 8px 0;
+  background: var(--lc-surfaceAlt, #f4f9f6);
+  font-size: 12px;
+  line-height: 1.65;
+}
+html:root body .event-postcard-date { border-radius: 12px; box-shadow: none; rotate: none; transform: none; }
+html:root body .event-postcard-date::before,
+html:root body .event-postcard-date::after { content: none; }
+html:root body .active-checkin-panel { border-radius: 14px; border-color: var(--lc-panel-border); box-shadow: none; }
+html:root body .recent-checkin-surface { border-color: var(--lc-panel-border); border-radius: 11px; box-shadow: none; }
+
+/* Lists retain their information density with a calmer visual hierarchy. */
+html:root body :is(.lca-table, .rt-table, .member-table) th {
+  background: var(--lc-surfaceAlt, #f4f9f6);
+  color: var(--lc-safe-muted, #60796f);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  line-height: 1.5;
+  border-color: var(--lc-panel-border);
+}
+html:root body :is(.lca-table, .rt-table, .member-table) td {
+  border-color: var(--lc-panel-border);
+  font-size: 13px;
+  line-height: 1.55;
+}
+html:root body :is(.lch-entry, .lcf-entry, .lcr-request, .lpe-request) { border-color: var(--lc-panel-border); border-radius: 12px; box-shadow: none; }
+html:root body .lcsp-directory .lcsv-title { font-size: 14px; font-weight: 600; line-height: 1.5; }
+html:root body .lcsp-directory .lcsv-meta,
+html:root body .lcsp-directory .lcsv-attendance,
+html:root body .lcsp-directory .lcsv-note { font-size: 12px; line-height: 1.6; }
+html:root body .lcsp-directory .lcsv-service-content { padding-block: 18px; }
+html:root body .lcsp-directory .lcsv-date { border-radius: 11px; box-shadow: none; }
+
+/* Dialogs and private/public member surfaces use the same quiet framing. */
+html:root body :is(.rt-dialog, .lcf-dialog, .lc-service-sheet) {
+  border-color: var(--lc-panel-border);
+  border-radius: 18px;
+  box-shadow: var(--lc-dialog-shadow);
+}
+html:root body :is(.rt-dialog, .lcf-dialog, .lc-service-sheet)::backdrop {
+  background: color-mix(in srgb, var(--lc-heading, #173e37) 30%, transparent);
+  backdrop-filter: blur(4px);
+}
+html:root body .lc-auth-frame {
+  border: 1px solid var(--lc-panel-border);
+  border-radius: 22px;
+  background: var(--lc-surface, #fff);
+  box-shadow: var(--lc-dialog-shadow);
+  animation: none;
+}
+html:root body .lc-auth-story {
+  background: linear-gradient(145deg, var(--lc-surfaceAlt, #f4f9f6), color-mix(in srgb, var(--lc-glowPrimary, #e5f5ef) 45%, var(--lc-surface, #fff)));
+}
+html:root body .lc-auth-story h1 { font-weight: 600; letter-spacing: -.035em; }
+html:root body .lc-auth-body h1 { font-weight: 650; letter-spacing: -.035em; }
+html:root body .lcg-card h3,
+html:root body .lmp-service-card h3 { font-size: 17px; font-weight: 600; line-height: 1.4; }
+html:root body .lmp-card h2 { font-size: 21px; font-weight: 600; }
+
+@media (min-width: 901px) {
+  /* The absolute date pill owns a separate column in dashboard postcards. */
+  html:root body .dashboard-card.event-postcard.has-date { padding-inline-start: 110px; }
+  html:root body .app-page > .content { padding-top: 34px; }
+  html:root body .topbar { min-height: 72px; border-bottom: 1px solid var(--lc-panel-border); box-shadow: 0 1px 8px color-mix(in srgb, var(--lc-shadow, #315b53) 3%, transparent); }
+  html:root body .topbar::after { display: none; }
+}
+
+@media (max-width: 900px) {
+  html:root body :is(.form-card, .ministry-manager-card, .directory-tools-workspace, .csv-import-card) { padding: 20px; }
+  html:root body :is(.dashboard-editorial-hero, .members-editorial-hero, .services-editorial-hero, .scanner-editorial-hero, .records-page-heading, .lca-hero, .lcg-hero, .lmp-hero) { padding: 22px; border-radius: 16px; }
+  html:root body .lcsp-directory .lcsv-title { font-size: 13px; }
+  html:root body .lcsp-directory .lcsv-meta { font-size: 11px; }
+  html:root body .lcsp-directory .lcsv-service-content { padding-block: 14px; }
+  html:root body .dashboard-card { padding: 20px; }
+}

@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { useNoticeToast } from '../lib/useNoticeToast'
 import { Bug, CheckCircle2, Lightbulb, MessageSquare, Send, Sparkles, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
@@ -9,6 +10,8 @@ export default function FeedbackWidget(){
  const [uid,setUid]=useState<string|null>(null),[authReady,setAuthReady]=useState(false),[open,setOpen]=useState(false)
  const [category,setCategory]=useState('bug'),[subject,setSubject]=useState(''),[message,setMessage]=useState(''),[anonymous,setAnonymous]=useState(false)
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[sent,setSent]=useState(false)
+ useNoticeToast(sent?'Feedback sent. Thank you.':'')
+ useNoticeToast(error,'error')
  const lock=useRef(false),requestId=useRef<string|null>(null),currentUid=useRef<string|null>(null),generation=useRef(0),alive=useRef(true)
  useEffect(()=>{alive.current=true;let observed=false,disposed=false
   function auth(next:string|null){if(disposed)return;if(currentUid.current!==next){generation.current++;currentUid.current=next;requestId.current=null;setSubject('');setMessage('');setAnonymous(false);setSent(false);setError('')}setUid(next);setAuthReady(true)}

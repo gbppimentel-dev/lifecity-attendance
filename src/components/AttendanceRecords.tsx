@@ -1,4 +1,5 @@
 import {ResponsiveSelect} from './CompactMobile'
+import { useNoticeToast } from '../lib/useNoticeToast'
 import { MotionPresence } from '../lib/motion'
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
@@ -119,6 +120,7 @@ export default function AttendanceRecords(_props: Props) {
     const [catalogError, setCatalogError] = useState("");
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
+    useNoticeToast(message, 'info');
     const [sort, setSort] = useState<Sort>("check_in");
     const [descending, setDescending] = useState(true);
     const [size, setSize] = useState(25);

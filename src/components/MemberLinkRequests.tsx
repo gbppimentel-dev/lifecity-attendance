@@ -3,6 +3,7 @@ import {ResponsiveSelect} from './CompactMobile'
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useNoticeToast } from '../lib/useNoticeToast'
 import { RefreshCw, Search, Link2, Check, X, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 
@@ -33,6 +34,7 @@ export default function MemberLinkRequests({owner=false,linked=false,onChanged}:
  const [saving,setSaving]=useState(false)
  const [error,setError]=useState('')
  const [notice,setNotice]=useState('')
+ useNoticeToast(notice)
  const [revision,setRevision]=useState(0)
  const [review,setReview]=useState<RequestRow|null>(null)
  const [cancel,setCancel]=useState<string|null>(null)

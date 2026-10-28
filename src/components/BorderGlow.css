@@ -1,0 +1,94 @@
+/* React Bits BorderGlow: live mesh/cone hover with a continuously moving frame. */
+@property --lc-bg-turn {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+html:root body .lc-border-glow {
+  --lc-bg-edge: 0;
+  --lc-bg-angle: 45deg;
+  --lc-bg-sensitivity: 30;
+  --lc-bg-color-sensitivity: 50;
+  --lc-bg-cone: 25;
+  --lc-bg-padding: 28px;
+  --lc-bg-fill-opacity: .14;
+  --lc-bg-duration: 12s;
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+}
+
+html:root body .lc-border-glow > :is(.lc-border-glow__frame, .lc-border-glow__mesh, .lc-border-glow__fill, .lc-border-glow__edge) {
+  position: absolute;
+  inset: 0;
+  display: block;
+  margin: 0;
+  padding: 0;
+  width: auto;
+  max-width: none;
+  height: auto;
+  border-radius: inherit;
+  pointer-events: none;
+  user-select: none;
+  z-index: -1;
+}
+
+/* Transparent mask reveals only the colored frame, leaving all content clear. */
+html:root body .lc-border-glow > .lc-border-glow__frame {
+  padding: 1.7px;
+  background: conic-gradient(from var(--lc-bg-turn), var(--lc-bg-color-1), var(--lc-bg-color-2), var(--lc-bg-color-3), var(--lc-bg-color-1));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: .9;
+  animation: lc-border-glow-orbit var(--lc-bg-duration) linear infinite;
+  animation-play-state: paused;
+}
+html:root body .lc-border-glow[data-bg-running] > .lc-border-glow__frame { animation-play-state: running; }
+
+html:root body .lc-border-glow > :is(.lc-border-glow__mesh, .lc-border-glow__fill) {
+  background: var(--lc-bg-gradient-1), var(--lc-bg-gradient-2), var(--lc-bg-gradient-3), var(--lc-bg-gradient-4), var(--lc-bg-gradient-5), var(--lc-bg-gradient-6), var(--lc-bg-gradient-7);
+  opacity: clamp(0, calc((var(--lc-bg-edge) - var(--lc-bg-color-sensitivity)) / (100 - var(--lc-bg-color-sensitivity))), 1);
+  transition: opacity 240ms ease-out;
+}
+html:root body .lc-border-glow > .lc-border-glow__mesh {
+  padding: 2px;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 5px var(--lc-bg-glow-40));
+}
+html:root body .lc-border-glow > .lc-border-glow__fill {
+  opacity: calc(var(--lc-bg-fill-opacity) * clamp(0, (var(--lc-bg-edge) - var(--lc-bg-color-sensitivity)) / (100 - var(--lc-bg-color-sensitivity)), 1));
+  mask-image: conic-gradient(from var(--lc-bg-angle) at center, #000 calc(var(--lc-bg-cone) * 1%), transparent calc((var(--lc-bg-cone) + 15) * 1%), transparent calc((85 - var(--lc-bg-cone)) * 1%), #000 calc((100 - var(--lc-bg-cone)) * 1%));
+}
+
+html:root body .lc-border-glow > .lc-border-glow__edge {
+  inset: calc(var(--lc-bg-padding) * -1);
+  opacity: clamp(0, calc((var(--lc-bg-edge) - var(--lc-bg-sensitivity)) / (100 - var(--lc-bg-sensitivity))), 1);
+  mask-image: conic-gradient(from var(--lc-bg-angle) at center, #000 2.5%, transparent 10%, transparent 90%, #000 97.5%);
+  transition: opacity 240ms ease-out;
+}
+html:root body .lc-border-glow > .lc-border-glow__edge::before {
+  content: '';
+  position: absolute;
+  inset: var(--lc-bg-padding);
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--lc-bg-glow-100), inset 0 0 3px var(--lc-bg-glow-50), inset 0 0 12px var(--lc-bg-glow-30), 0 0 3px var(--lc-bg-glow-50), 0 0 14px var(--lc-bg-glow-20), 0 0 26px var(--lc-bg-glow-10);
+}
+html:root body .lc-border-glow:focus-within > .lc-border-glow__mesh { opacity: .9; }
+html:root body .lc-border-glow:focus-within > .lc-border-glow__edge { opacity: .55; }
+
+@keyframes lc-border-glow-orbit { to { --lc-bg-turn: 360deg; } }
+
+html[data-lc-motion='off'] body .lc-border-glow > .lc-border-glow__frame { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  html body .lc-border-glow > .lc-border-glow__frame { animation: none !important; }
+  html body .lc-border-glow > :is(.lc-border-glow__mesh, .lc-border-glow__fill, .lc-border-glow__edge) { transition: none; }
+}
+@media (hover: none), (pointer: coarse) {
+  html body .lc-border-glow > :is(.lc-border-glow__mesh, .lc-border-glow__fill, .lc-border-glow__edge) { display: none; }
+}

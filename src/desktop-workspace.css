@@ -1,0 +1,37 @@
+/* LC-DESKTOP-WORKSPACE-v2: comfortable shared desktop measure. */
+@media (min-width: 901px) {
+  html body {
+    --lc-desktop-gutter: clamp(28px, 4vw, 64px);
+    --lc-desktop-max-width: 1400px;
+    --lc-desktop-content-width: min(calc(100% - var(--lc-desktop-gutter) * 2), var(--lc-desktop-max-width));
+    --lc-desktop-inset: max(var(--lc-desktop-gutter), calc((100% - var(--lc-desktop-max-width)) / 2));
+  }
+
+  html body .app-page > .content,
+  html body .lc-member-space:not(.is-embedded) > .lmp-content,
+  html body .lc-member-space:not(.is-embedded) > .lc-whats-new {
+    box-sizing: border-box;
+    width: var(--lc-desktop-content-width);
+    max-width: none;
+    min-width: 0;
+    margin-inline: auto;
+  }
+
+  html body .app-page > .topbar,
+  html body .lc-member-space:not(.is-embedded) > .lmp-topbar {
+    padding-inline: var(--lc-desktop-inset);
+  }
+
+  html body .lc-guest {
+    box-sizing: border-box;
+    width: var(--lc-desktop-content-width);
+    max-width: none;
+    margin-inline: auto;
+    padding-inline: 0;
+  }
+
+  html body .lc-member-space.is-embedded > .lmp-content {
+    width: 100%;
+    max-width: none;
+  }
+}

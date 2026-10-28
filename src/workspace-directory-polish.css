@@ -1,0 +1,69 @@
+/* Give the primary directory action a clear place in the teal palette. */
+html:root body .members-editorial-hero .members-create-action {
+  position: relative; isolation: isolate; overflow: hidden;
+  min-width: 238px; min-height: 106px; padding: 18px 62px 18px 20px;
+  border-color: color-mix(in srgb,var(--lc-primary,#147d73) 68%,var(--lc-heading,#173e37));
+  background: linear-gradient(125deg,var(--lc-primary,#147d73),color-mix(in srgb,var(--lc-primary,#147d73) 78%,var(--lc-heading,#173e37)));
+  box-shadow: 0 7px 20px color-mix(in srgb,var(--lc-primary,#147d73) 20%,transparent);
+  color: var(--lc-onPrimary,#fff);
+}
+html:root body .members-editorial-hero .members-create-action::after {
+  content: ''; position: absolute; z-index: -1; width: 125px; height: 125px; right: -54px; bottom: -65px;
+  border: 1px solid color-mix(in srgb,var(--lc-onPrimary,#fff) 24%,transparent); border-radius: 50%;
+  background: color-mix(in srgb,var(--lc-onPrimary,#fff) 7%,transparent); pointer-events: none;
+}
+html:root body .members-editorial-hero .members-create-action strong { color: inherit; font-size: 19px; font-weight: 650; }
+html:root body .members-editorial-hero :is(.members-create-action-kicker,.members-create-action-note) { color: inherit; opacity: .88; }
+html:root body .members-editorial-hero .members-create-action-kicker { font-size: 9px; letter-spacing: .09em; }
+html:root body .members-editorial-hero .members-create-action-icon {
+  width: 35px; height: 35px; top: 18px; right: 17px; border: 1px solid color-mix(in srgb,var(--lc-onPrimary,#fff) 22%,transparent);
+  background: color-mix(in srgb,var(--lc-onPrimary,#fff) 14%,transparent); color: inherit;
+}
+html:root body .members-editorial-hero .members-create-action:is(:hover,:focus-visible) {
+  background: linear-gradient(125deg,color-mix(in srgb,var(--lc-primary,#147d73) 94%,var(--lc-heading,#173e37)),color-mix(in srgb,var(--lc-primary,#147d73) 74%,var(--lc-heading,#173e37)));
+  box-shadow: 0 9px 25px color-mix(in srgb,var(--lc-primary,#147d73) 25%,transparent);
+}
+html:root body .members-editorial-hero .members-create-action:is(:hover,:focus-visible) .members-create-action-icon { background: color-mix(in srgb,var(--lc-onPrimary,#fff) 20%,transparent); color: inherit; }
+
+/* Tool icons stay still; tint and shadow provide the interaction feedback. */
+html:root body .members-editorial-hero .member-hero-tool svg,
+html:root body .members-editorial-hero .member-hero-tool:is(:hover,:focus-visible,.is-open) svg {
+  animation: none !important; transform: none !important; translate: none !important; rotate: none !important;
+}
+
+/* One shared toolbar aligns the workspace label and the import controls. */
+html:root body .directory-tools-workspace { padding: 0 20px 2px; overflow: visible; }
+html:root body .directory-tools-workspace-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px 20px;
+  min-height: 62px; margin: 0 -20px 18px; padding: 11px 20px;
+  border-bottom: 1px solid var(--lc-panel-border,#d6e7df);
+  background: color-mix(in srgb,var(--lc-glowPrimary,#e5f5ef) 42%,var(--lc-surface,#fff));
+  border-radius: 16px 16px 0 0;
+}
+html:root body .directory-tools-workspace-header .directory-tools-workspace-label {
+  position: static; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px;
+  margin: 0; padding: 0; min-width: 0; border: 0; background: transparent;
+  font-size: 10px; line-height: 1.5; letter-spacing: .07em;
+}
+html:root body .directory-tools-workspace-label strong { font-size: 11px; }
+html:root body .directory-tools-header-actions { flex: 0 0 auto; }
+html:root body .directory-tools-header-actions:empty { display: none; }
+html:root body .csv-import-actions {
+  position: static; display: flex; align-items: center; flex-wrap: nowrap;
+  width: auto; margin: 0; gap: 8px; transform: none; align-self: center;
+}
+html:root body .directory-tools-header-actions .csv-import-actions :is(.template-button,.csv-close-button) { min-height: 34px !important; height: 34px !important; }
+html:root body .directory-tools-header-actions .csv-import-actions .template-button { padding: 6px 11px; font-size: 11px; }
+html:root body .directory-tools-header-actions .csv-import-actions .csv-close-button { width: 34px !important; min-width: 34px !important; }
+html:root body .csv-import-actions :is(button,svg):is(:hover,:focus-visible),
+html:root body .csv-import-actions button:is(:hover,:focus-visible) svg { transform: none; animation: none; }
+html:root body .directory-tools-workspace .csv-import-card { padding-top: 22px; }
+
+@media (max-width: 600px) {
+  html:root body .members-editorial-hero .members-create-action { min-width: 0; min-height: 56px; padding: 12px 55px 12px 16px; }
+  html:root body .members-editorial-hero .members-create-action strong { font-size: 15px; }
+  html:root body .members-editorial-hero .members-create-action-icon { top: 11px; right: 12px; }
+  html:root body .directory-tools-workspace { padding-inline: 12px; }
+  html:root body .directory-tools-workspace-header { flex-wrap: wrap; margin-inline: -12px; padding-inline: 14px; }
+  html:root body .directory-tools-header-actions { margin-left: auto; }
+}

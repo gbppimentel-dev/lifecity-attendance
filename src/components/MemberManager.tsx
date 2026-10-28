@@ -1,7 +1,14 @@
+import BorderGlow from './BorderGlow'
+import FoldText from './FoldText'
+import { useToast } from '../lib/toasts'
+import { useNoticeToast } from '../lib/useNoticeToast'
 import {MobileFold} from './CompactMobile'
 import {ResponsiveSelect} from './CompactMobile'
 import ExportPanel from './ExportPanel'
 import { MotionPresence } from '../lib/motion'
+import { useWorkspaceCache } from '../lib/workspaceCache'
+import DirectorySwipeItem from './DirectorySwipeItem'
+import { deleteDirectoryEntryWithUndo, DirectoryEntryInUseError } from '../lib/directoryActions'
 // Change ID: LC-P08N-v1
 // UI refinement: LC-P08A-UI-v2
 // Change ID: LC-P08A-v1
@@ -16,6 +23,9 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Download,
+  Upload,
+  Church,
+  HandHeart,
   Eye,
   Pencil,
   Plus,
@@ -77,6 +87,13 @@ type MemberForm = {
   branchIds: string[]
   adminNote: string
 }
+
+type MemberPageSnapshot = {
+  rows: Member[]; ministries: Ministry[]; branches: Branch[]
+  total: number; registered: number; active: number; page: number
+  ministry_counts: Record<string, number>; branch_counts: Record<string, number>
+}
+const initialMemberParams = {p_search:'',p_ministry:'all',p_church:'all',p_status:'all',p_sort:'name-asc',p_page:1,p_size:25}
 
 type ContactFieldErrors = {
   email?: string
@@ -174,9 +191,17 @@ function formatDateTime(value: string) {
 }
 
 export default function MemberManager() {
+  const cache = useWorkspaceCache()
+  const [initialPage] = useState(() => cache.get<MemberPageSnapshot>('members:'+JSON.stringify(initialMemberParams)))
+  const { notify: emitToast } = useToast()
+  const noticeAlive = useRef(true)
+  useEffect(() => { noticeAlive.current = true; return () => { noticeAlive.current = false } }, [])
+  const notify = (options: Parameters<typeof emitToast>[0]) => noticeAlive.current ? emitToast(options) : ''
   const [csvBusy,setCsvBusy]=useState(false)
   const [csvMessage,setCsvMessage]=useState('')
   const [csvError,setCsvError]=useState('')
+  useNoticeToast(csvMessage, 'info')
+  useNoticeToast(csvError, 'error')
   const csvLock=useRef(false)
   const csvMounted=useRef(true)
   useEffect(()=>{csvMounted.current=true;return()=>{csvMounted.current=false}},[])
@@ -201,9 +226,9 @@ export default function MemberManager() {
     }catch(failure){if(csvMounted.current)setCsvError((failure as {code?:string}).code==='P0001'?(failure as {message:string}).message:'Could not export members. Confirm LC-P08A-v1.sql is installed and your admin access is active, then try again.')}
     finally{csvLock.current=false;if(csvMounted.current)setCsvBusy(false)}
   }
-  const [members, setMembers] = useState<Member[]>([])
-  const [ministries, setMinistries] = useState<Ministry[]>([])
-  const [branches, setBranches] = useState<Branch[]>([])
+  const [members, setMembers] = useState<Member[]>(initialPage?.rows ?? [])
+  const [ministries, setMinistries] = useState<Ministry[]>(initialPage?.ministries ?? [])
+  const [branches, setBranches] = useState<Branch[]>(initialPage?.branches ?? [])
   const [branchLoadError, setBranchLoadError] = useState('')
   const [search, setSearch] = useState('')
   const [ministryFilter, setMinistryFilter] = useState('all')
@@ -211,10 +236,12 @@ export default function MemberManager() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState<SortOption>('name-asc')
   const [message, setMessage] = useState('')
-  const [loading, setLoading] = useState(true)
+  useNoticeToast(message, 'error')
+  const [loading, setLoading] = useState(!initialPage)
   const [saving, setSaving] = useState(false)
 
   const [showImport, setShowImport] = useState(false)
+  const [importToolbarTarget, setImportToolbarTarget] = useState<HTMLDivElement | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [showMinistryManager, setShowMinistryManager] = useState(false)
   const [showBranchManager, setShowBranchManager] = useState(false)
@@ -245,6 +272,9 @@ export default function MemberManager() {
   const [branchRenameValue, setBranchRenameValue] = useState('')
   const [branchMessage, setBranchMessage] = useState('')
   const [blockedBranchId, setBlockedBranchId] = useState('')
+  const [openDirectoryRow, setOpenDirectoryRow] = useState('')
+  const [managerBusy, setManagerBusy] = useState(false)
+  const managerLock = useRef(false)
   const [managerDeleteTarget, setManagerDeleteTarget] = useState<
     { kind: 'ministry'; item: Ministry } | { kind: 'branch'; item: Branch } | null
   >(null)
@@ -260,7 +290,7 @@ export default function MemberManager() {
   const [membersPerPage, setMembersPerPage] = useState(25)
   const [searchQuery, setSearchQuery] = useState('')
   const [directoryError, setDirectoryError] = useState('')
-  const [directoryStats, setDirectoryStats] = useState({total:0,registered:0,active:0,page:1,ministry_counts:{} as Record<string,number>,branch_counts:{} as Record<string,number>})
+  const [directoryStats, setDirectoryStats] = useState(initialPage ? {total:initialPage.total,registered:initialPage.registered,active:initialPage.active,page:initialPage.page,ministry_counts:initialPage.ministry_counts,branch_counts:initialPage.branch_counts} : {total:0,registered:0,active:0,page:1,ministry_counts:{} as Record<string,number>,branch_counts:{} as Record<string,number>})
   const requestSequence = useRef(0)
   const filterKey = JSON.stringify([searchQuery,ministryFilter,branchFilter,statusFilter,sortBy,membersPerPage])
   const requestKey = JSON.stringify([filterKey,memberPage,search.trim()])
@@ -269,7 +299,8 @@ export default function MemberManager() {
   const pageRequest = {p_search:searchQuery,p_ministry:ministryFilter,p_church:branchFilter,p_status:statusFilter,p_sort:sortBy,p_page:memberPage,p_size:membersPerPage}
   const latestPageRequest = useRef({key:requestKey,params:pageRequest,pending:false})
   latestPageRequest.current = {key:requestKey,params:pageRequest,pending:search.trim() !== searchQuery}
-  const [loadedKey, setLoadedKey] = useState('')
+  const [loadedKey, setLoadedKey] = useState(initialPage ? requestKey : '')
+  const [dataKey, setDataKey] = useState(initialPage ? requestKey : '')
   const directoryBusy = loading || loadedKey !== requestKey || search.trim() !== searchQuery
 
 
@@ -293,6 +324,14 @@ export default function MemberManager() {
   useEffect(() => {
     if (search.trim() === searchQuery) void loadData()
   }, [requestKey])
+
+  const refreshDirectory = useRef(loadData)
+  refreshDirectory.current = loadData
+  useEffect(() => {
+    const refresh = () => { void refreshDirectory.current() }
+    window.addEventListener('lifecity-directory-change', refresh)
+    return () => window.removeEventListener('lifecity-directory-change', refresh)
+  }, [])
 
   function scrollToSection(
     ref: React.RefObject<HTMLElement | HTMLDivElement | null>,
@@ -325,8 +364,8 @@ export default function MemberManager() {
     })
   }
 
-  async function loadData() {
-    if (!csvMounted.current || latestPageRequest.current.pending) return
+  async function loadData(): Promise<boolean> {
+    if (!csvMounted.current || latestPageRequest.current.pending) return false
     const {key,params} = latestPageRequest.current
     const sequence = ++requestSequence.current
     const isCurrent = () => csvMounted.current && sequence === requestSequence.current && key === currentRequestKey.current
@@ -334,19 +373,23 @@ export default function MemberManager() {
     setDirectoryError('')
     try {
       const {data,error} = await supabase.rpc('lc_members_page', params)
-      if (!isCurrent()) return
+      if (!isCurrent()) return false
       if (error) throw error
       if (!data || !Array.isArray(data.rows) || !Array.isArray(data.ministries) || !Array.isArray(data.branches)) throw new Error('Invalid directory response')
       setMembers(data.rows as Member[])
       setMinistries(data.ministries as Ministry[])
       setBranches(data.branches as Branch[])
       setDirectoryStats({total:data.total,registered:data.registered,active:data.active,page:data.page,ministry_counts:data.ministry_counts,branch_counts:data.branch_counts})
+      setDataKey(key)
+      cache.set('members:'+JSON.stringify(params), data as MemberPageSnapshot)
       setBranchLoadError('')
+      return true
     } catch {
       if (isCurrent()) {
         setDirectoryError('Could not load members. Please try again.')
         setBranchLoadError('Directory data is unavailable. Please retry loading members.')
       }
+      return false
     } finally {
       if (isCurrent()) { setLoading(false); setLoadedKey(key) }
     }
@@ -522,66 +565,66 @@ export default function MemberManager() {
   }
 
   async function addManagedMinistry() {
+    if (managerLock.current) return
     const name = newManagedMinistryName.trim()
-
-    if (!name) return
-
-    const exists = ministries.some(
-      (ministry) => ministry.name.toLowerCase() === name.toLowerCase(),
-    )
-
-    if (exists) {
+    setBlockedMinistryId('')
+    if (!name) { setMinistryMessage('A ministry name is required.'); return }
+    if (ministries.some(ministry => ministry.name.toLowerCase() === name.toLowerCase())) {
       setMinistryMessage('A ministry with that name already exists.')
       return
     }
-
-    const { data, error } = await supabase
-      .from('ministries')
-      .insert({ name })
-      .select('id, name')
-      .single()
-
-    if (error) {
-      setMinistryMessage(
-        error.code === '23505'
-          ? 'A ministry with that name already exists.'
-          : error.message,
-      )
-      return
+    managerLock.current = true; setManagerBusy(true); setMinistryMessage('')
+    try {
+      const { data, error } = await supabase.from('ministries').insert({ name }).select('id, name').single()
+      if (error) throw error
+      if (!data?.id || typeof data.name !== 'string') throw new Error('Invalid ministry response')
+      cache.invalidate('members:')
+      const ministry = data as Ministry
+      if (noticeAlive.current) {
+        requestSequence.current++
+        setMinistries(current => [...current.filter(item => item.id !== ministry.id), ministry].sort((a, b) => a.name.localeCompare(b.name)))
+        setNewManagedMinistryName('')
+        setMinistryMessage(`${ministry.name} was added.`)
+      }
+      window.dispatchEvent(new CustomEvent('lifecity-directory-change'))
+    } catch (error) {
+      if (noticeAlive.current) setMinistryMessage((error as {code?: string}).code === '23505' ? 'A ministry with that name already exists.' : 'Could not add this ministry. Check your connection and try again.')
+    } finally {
+      managerLock.current = false
+      if (noticeAlive.current) setManagerBusy(false)
     }
-
-    const ministry = data as Ministry
-    setMinistries((current) =>
-      [...current, ministry].sort((a, b) => a.name.localeCompare(b.name)),
-    )
-    setNewManagedMinistryName('')
-    setMinistryMessage(`${ministry.name} was added.`)
   }
 
   async function addManagedBranch() {
+    if (managerLock.current) return
     const name = newManagedBranchName.trim()
-    if (!name) return
-
+    setBlockedBranchId('')
+    if (!name) { setBranchMessage('A church name is required.'); return }
     if (branches.some((branch) => branch.name.toLowerCase() === name.toLowerCase())) {
       setBranchMessage('A church with that name already exists.')
       return
     }
 
-    const { data, error } = await supabase
-      .from('branches')
-      .insert({ name })
-      .select('id, name')
-      .single()
-
-    if (error) {
-      setBranchMessage(error.code === '23505' ? 'A church with that name already exists.' : error.message)
-      return
+    managerLock.current = true; setManagerBusy(true); setBranchMessage('')
+    try {
+      const { data, error } = await supabase.from('branches').insert({ name }).select('id, name').single()
+      if (error) throw error
+      if (!data?.id || typeof data.name !== 'string') throw new Error('Invalid church response')
+      cache.invalidate('members:')
+      const branch = data as Branch
+      if (noticeAlive.current) {
+        requestSequence.current++
+        setBranches(current => [...current.filter(item => item.id !== branch.id), branch].sort((a, b) => a.name.localeCompare(b.name)))
+        setNewManagedBranchName('')
+        setBranchMessage(`${branch.name} was added.`)
+      }
+      window.dispatchEvent(new CustomEvent('lifecity-directory-change'))
+    } catch (error) {
+      if (noticeAlive.current) setBranchMessage((error as {code?: string}).code === '23505' ? 'A church with that name already exists.' : 'Could not add this church. Check your connection and try again.')
+    } finally {
+      managerLock.current = false
+      if (noticeAlive.current) setManagerBusy(false)
     }
-
-    const branch = data as Branch
-    setBranches((current) => [...current, branch].sort((a, b) => a.name.localeCompare(b.name)))
-    setNewManagedBranchName('')
-    setBranchMessage(`${branch.name} was added.`)
   }
 
   async function checkForDuplicates() {
@@ -758,6 +801,7 @@ export default function MemberManager() {
       return
     }
 
+    notify({ title: editingMember ? 'Member updated' : 'Member created', tone: 'success' })
     await loadData()
     closeForm()
     setSaving(false)
@@ -774,6 +818,7 @@ export default function MemberManager() {
       return
     }
 
+    notify({ title: member.is_starred ? 'Star removed' : 'Member starred', description: memberName(member), tone: 'success' })
     await loadData()
   }
 
@@ -872,6 +917,7 @@ export default function MemberManager() {
       return
     }
 
+    notify({ title: `${selectedMemberIds.length} member${selectedMemberIds.length === 1 ? '' : 's'} marked ${status}`, tone: 'success' })
     setSelectedMemberIds([])
     setBulkSaving(false)
     await loadData()
@@ -894,6 +940,7 @@ export default function MemberManager() {
       return
     }
 
+    notify({ title: 'Member deleted', description: memberName(deleteTarget), tone: 'success' })
     setDeleteTarget(null)
     setDeleteConfirmation('')
     setSaving(false)
@@ -918,6 +965,7 @@ export default function MemberManager() {
       return
     }
 
+    notify({ title: `${selectedMemberIds.length} members deleted`, tone: 'success' })
     setSelectedMemberIds([])
     setBulkDeleteConfirmation('')
     setShowBulkDelete(false)
@@ -930,7 +978,7 @@ export default function MemberManager() {
   }
 
   function messageTone(message: string) {
-    return /was added|was deleted|renamed successfully/i.test(message)
+    return /was added|was deleted|was restored|renamed successfully/i.test(message)
       ? 'is-success'
       : 'is-warning'
   }
@@ -948,6 +996,9 @@ export default function MemberManager() {
   }
 
   function beginRename(ministry: Ministry) {
+    if (managerLock.current) return
+    setOpenDirectoryRow('')
+    setManagerDeleteTarget(null)
     setMinistryMessage('')
     setBlockedMinistryId('')
     setRenamingMinistryId(ministry.id)
@@ -955,41 +1006,47 @@ export default function MemberManager() {
   }
 
   async function saveMinistryRename(ministry: Ministry) {
-    const name = renameValue.trim()
+    await saveDirectoryRename('ministry', ministry, renameValue)
+  }
 
-    if (!name) {
-      setMinistryMessage('A ministry name is required.')
-      return
+  async function saveDirectoryRename(kind: 'ministry' | 'branch', item: Ministry | Branch, value: string) {
+    if (managerLock.current) return
+    const name = value.trim(), isMinistry = kind === 'ministry'
+    const setFeedback = isMinistry ? setMinistryMessage : setBranchMessage
+    const subject = isMinistry ? 'ministry' : 'church'
+    if (!name) { setFeedback(`A ${subject} name is required.`); return }
+    if ((isMinistry ? ministries : branches).some(entry => entry.id !== item.id && entry.name.toLowerCase() === name.toLowerCase())) {
+      setFeedback(`A ${subject} with that name already exists.`); return
     }
-
-    const duplicate = ministries.some(
-      (item) =>
-        item.id !== ministry.id &&
-        item.name.toLowerCase() === name.toLowerCase(),
-    )
-
-    if (duplicate) {
-      setMinistryMessage('A ministry with that name already exists.')
-      return
+    managerLock.current = true; setManagerBusy(true); setFeedback('')
+    try {
+      const { data, error } = await supabase.from(isMinistry ? 'ministries' : 'branches').update({ name }).eq('id', item.id).select('id, name').single()
+      if (error) throw error
+      if (!data?.id || typeof data.name !== 'string') throw new Error('Invalid update response')
+      cache.invalidate('members:')
+      if (noticeAlive.current) {
+        requestSequence.current++
+        if (isMinistry) {
+          setMinistries(current => current.map(entry => entry.id === item.id ? data as Ministry : entry).sort((a, b) => a.name.localeCompare(b.name)))
+          setRenamingMinistryId(''); setRenameValue('')
+        } else {
+          setBranches(current => current.map(entry => entry.id === item.id ? data as Branch : entry).sort((a, b) => a.name.localeCompare(b.name)))
+          setRenamingBranchId(''); setBranchRenameValue('')
+        }
+        setFeedback(`${isMinistry ? 'Ministry' : 'Church'} renamed successfully.`)
+      }
+      window.dispatchEvent(new CustomEvent('lifecity-directory-change'))
+    } catch (error) {
+      if (noticeAlive.current) setFeedback((error as {code?: string}).code === '23505' ? `A ${subject} with that name already exists.` : `Could not rename this ${subject}. Check your connection and try again.`)
+    } finally {
+      managerLock.current = false
+      if (noticeAlive.current) setManagerBusy(false)
     }
-
-    const { error } = await supabase
-      .from('ministries')
-      .update({ name })
-      .eq('id', ministry.id)
-
-    if (error) {
-      setMinistryMessage(error.message)
-      return
-    }
-
-    setRenamingMinistryId('')
-    setRenameValue('')
-    setMinistryMessage('Ministry renamed successfully.')
-    await loadData()
   }
 
   async function deleteMinistry(ministry: Ministry) {
+    if (managerLock.current) return
+    setOpenDirectoryRow(''); setMinistryMessage(''); setBlockedMinistryId('')
     if (directoryBusy || directoryError) {setMinistryMessage('Wait for the directory to finish loading, or retry if it failed.');return}
     const count = ministryMemberCount(ministry.id)
 
@@ -1006,28 +1063,83 @@ export default function MemberManager() {
   }
 
   async function confirmManagerDelete() {
-    if (!managerDeleteTarget) return
+    if (!managerDeleteTarget || managerLock.current) return
     if (directoryBusy || directoryError) {
       const notify = managerDeleteTarget.kind === 'ministry' ? setMinistryMessage : setBranchMessage
       notify('Wait for the directory to finish loading, or retry if it failed.')
       return
     }
     const assigned = managerDeleteTarget.kind === 'ministry' ? ministryMemberCount(managerDeleteTarget.item.id) : branchMemberCount(managerDeleteTarget.item.id)
-    if (assigned > 0) {setManagerDeleteTarget(null);return}
-
     const { kind, item } = managerDeleteTarget
-    const table = kind === 'ministry' ? 'ministries' : 'branches'
-    const { error } = await supabase.from(table).delete().eq('id', item.id)
-
-    if (error) {
-      kind === 'ministry' ? setMinistryMessage(error.message) : setBranchMessage(error.message)
-      return
+    const setFeedback = kind === 'ministry' ? setMinistryMessage : setBranchMessage
+    const setBlocked = kind === 'ministry' ? setBlockedMinistryId : setBlockedBranchId
+    if (assigned > 0) {
+      setBlocked(item.id); setFeedback(`${item.name} cannot be deleted because it is assigned to ${assigned} member${assigned === 1 ? '' : 's'}.`)
+      setManagerDeleteTarget(null); return
     }
-
-    if (kind === 'ministry') setMinistryMessage(`${item.name} was deleted.`)
-    else setBranchMessage(`${item.name} was deleted.`)
-    setManagerDeleteTarget(null)
-    await loadData()
+    const table = kind === 'ministry' ? 'ministries' : 'branches'
+    let finishDelete!: () => void
+    const deletionFinished = new Promise<void>(resolve => { finishDelete = resolve })
+    managerLock.current = true; setManagerBusy(true); setFeedback(''); setBlocked('')
+    try {
+      const deleted = await deleteDirectoryEntryWithUndo(supabase, table, item.id)
+      cache.invalidate('members:')
+      if (noticeAlive.current) {
+        requestSequence.current++
+        if (kind === 'ministry') {
+          setMinistries(current => current.filter(entry => entry.id !== deleted.entry.id))
+          setForm(current => ({ ...current, ministryIds: current.ministryIds.filter(id => id !== deleted.entry.id) }))
+          setMinistryFilter(current => current === deleted.entry.id ? 'all' : current)
+        } else {
+          setBranches(current => current.filter(entry => entry.id !== deleted.entry.id))
+          setForm(current => ({ ...current, branchIds: current.branchIds.filter(id => id !== deleted.entry.id) }))
+          setBranchFilter(current => current === deleted.entry.id ? 'all' : current)
+        }
+        setFeedback(`${deleted.entry.name} was deleted.`)
+        setManagerDeleteTarget(null)
+      }
+      // The delete was committed even if its page was closed while awaiting
+      // the server. Keep its real Undo available in the workspace toast.
+      emitToast({ title: `${deleted.entry.name} deleted`, tone: 'success', onAction: async () => {
+        await deletionFinished
+        if (managerLock.current) throw new Error('Another directory update is in progress. Please try Undo again in a moment.')
+        managerLock.current = true
+        if (noticeAlive.current) setManagerBusy(true)
+        try {
+          await deleted.undo()
+          cache.invalidate('members:')
+          if (noticeAlive.current) {
+            requestSequence.current++
+            if (kind === 'ministry') setMinistries(current => [...current.filter(entry => entry.id !== deleted.entry.id), deleted.entry].sort((a, b) => a.name.localeCompare(b.name)))
+            else setBranches(current => [...current.filter(entry => entry.id !== deleted.entry.id), deleted.entry].sort((a, b) => a.name.localeCompare(b.name)))
+            setFeedback(`${deleted.entry.name} was restored.`); setBlocked('')
+          }
+          window.dispatchEvent(new CustomEvent('lifecity-directory-change'))
+        } catch (error) {
+          const feedback = error instanceof Error ? error.message : 'Could not undo this deletion. Check your connection and try Undo again.'
+          if (noticeAlive.current) setFeedback(feedback)
+          throw new Error(feedback)
+        } finally {
+          managerLock.current = false
+          if (noticeAlive.current) setManagerBusy(false)
+        }
+      } })
+      window.dispatchEvent(new CustomEvent('lifecity-directory-change'))
+    } catch (error) {
+      if (!noticeAlive.current) return
+      if (error instanceof DirectoryEntryInUseError || (error as {code?: string}).code === '23503') {
+        setBlocked(item.id)
+        setFeedback(`${item.name} cannot be deleted because it is assigned to members. View the affected members and remove their assignment first.`)
+        setManagerDeleteTarget(null)
+        await loadData()
+      } else {
+        setFeedback(error instanceof Error ? error.message : 'Could not delete this entry. Check your connection and try again. The entry has been kept.')
+      }
+    } finally {
+      managerLock.current = false
+      if (noticeAlive.current) setManagerBusy(false)
+      finishDelete()
+    }
   }
 
   function viewAffectedMembers(ministryId: string) {
@@ -1043,6 +1155,9 @@ export default function MemberManager() {
   }
 
   function beginBranchRename(branch: Branch) {
+    if (managerLock.current) return
+    setOpenDirectoryRow('')
+    setManagerDeleteTarget(null)
     setBranchMessage('')
     setBlockedBranchId('')
     setRenamingBranchId(branch.id)
@@ -1050,27 +1165,12 @@ export default function MemberManager() {
   }
 
   async function saveBranchRename(branch: Branch) {
-    const name = branchRenameValue.trim()
-    if (!name) {
-      setBranchMessage('A church name is required.')
-      return
-    }
-    if (branches.some((item) => item.id !== branch.id && item.name.toLowerCase() === name.toLowerCase())) {
-      setBranchMessage('A church with that name already exists.')
-      return
-    }
-    const { error } = await supabase.from('branches').update({ name }).eq('id', branch.id)
-    if (error) {
-      setBranchMessage(error.message)
-      return
-    }
-    setRenamingBranchId('')
-    setBranchRenameValue('')
-    setBranchMessage('Church renamed successfully.')
-    await loadData()
+    await saveDirectoryRename('branch', branch, branchRenameValue)
   }
 
   async function deleteBranch(branch: Branch) {
+    if (managerLock.current) return
+    setOpenDirectoryRow(''); setBranchMessage(''); setBlockedBranchId('')
     if (directoryBusy || directoryError) {setBranchMessage('Wait for the directory to finish loading, or retry if it failed.');return}
     const count = branchMemberCount(branch.id)
     if (count > 0) {
@@ -1351,10 +1451,10 @@ export default function MemberManager() {
 
   return (
     <>
-      <section className="members-editorial-hero">
+      <BorderGlow as="section" className="members-editorial-hero" borderRadius={18} animated>
         <div className="members-hero-copy">
           <p className="eyebrow">Member Directory</p>
-          <h1>Members</h1>
+          <h1><FoldText text="Members"/></h1>
           <p>
             Manage contact details, ministries, member status, and private QR
             codes.
@@ -1369,7 +1469,7 @@ export default function MemberManager() {
             onClick={toggleImport}
             aria-expanded={showImport}
           >
-            <Download size={18} />
+            <Upload size={18} />
             Import Members
           </button>
 
@@ -1378,7 +1478,7 @@ export default function MemberManager() {
             onClick={toggleMinistryManager}
             aria-expanded={showMinistryManager}
           >
-            <Settings2 size={18} />
+            <HandHeart size={18} />
             Ministries
           </button>
 
@@ -1387,7 +1487,7 @@ export default function MemberManager() {
             onClick={toggleBranchManager}
             aria-expanded={showBranchManager}
           >
-            <Settings2 size={18} />
+            <Church size={18} />
             Churches
           </button>
           </div>
@@ -1405,20 +1505,29 @@ export default function MemberManager() {
         <span className="members-hero-orbit" aria-hidden="true" />
         <span className="members-hero-spark members-hero-spark-one" aria-hidden="true">✦</span>
         <span className="members-hero-spark members-hero-spark-two" aria-hidden="true">✦</span>
-      </section>
+      </BorderGlow>
 
       <MotionPresence show={Boolean((showImport || showMinistryManager || showBranchManager))} motionKey={showImport ? "import" : showMinistryManager ? "ministries" : "churches"}>{(showImport || showMinistryManager || showBranchManager) && (
         <section className="directory-tools-workspace" ref={directoryToolsRef} aria-label="Directory Tools">
-          <div className="directory-tools-workspace-label">
-            <span>Directory Tools</span>
-            <strong>{showImport ? 'Import Members' : showMinistryManager ? 'Ministries' : 'Churches'}</strong>
+          <div className="directory-tools-workspace-header">
+            <div className="directory-tools-workspace-label">
+              <span>Directory Tools</span>
+              <strong>{showImport ? 'Import Members' : showMinistryManager ? 'Ministries' : 'Churches'}</strong>
+            </div>
+            {showImport && <div className="directory-tools-header-actions" ref={setImportToolbarTarget}/>}
           </div>
+
+          {!showImport && directoryError && <div className="ministry-message is-warning" role="alert">
+            <p>{directoryError} Refresh the directory before deleting an entry.</p>
+            <button type="button" className="secondary-button" disabled={directoryBusy} onClick={() => void loadData()}>Retry Directory</button>
+          </div>}
 
       {showImport && (
         <div ref={importRef}>
           <MemberImport
-            onImported={loadData}
+            onImported={async () => { await loadData() }}
             onClose={() => setShowImport(false)}
+            toolbarTarget={importToolbarTarget}
           />
         </div>
       )}
@@ -1447,6 +1556,8 @@ export default function MemberManager() {
 
           <div className="ministry-create-row">
             <input
+              aria-label="New ministry name"
+              disabled={managerBusy}
               value={newManagedMinistryName}
               onChange={(event) => setNewManagedMinistryName(event.target.value)}
               placeholder="Add a new Ministry, e.g. Dance"
@@ -1460,6 +1571,7 @@ export default function MemberManager() {
             <button
               className="secondary-button"
               type="button"
+              disabled={managerBusy}
               onClick={() => void addManagedMinistry()}
             >
               <Plus size={17} />
@@ -1468,7 +1580,7 @@ export default function MemberManager() {
           </div>
 
           {ministryMessage && (
-            <div className={`ministry-message ${messageTone(ministryMessage)}`}>
+            <div className={`ministry-message ${messageTone(ministryMessage)}`} role="status" aria-live="polite">
               <p>{managerMessageContent(ministryMessage)}</p>
 
               {blockedMinistryId && (
@@ -1482,88 +1594,27 @@ export default function MemberManager() {
             </div>
           )}
 
+          <div className="lc-directory-list-heading"><strong>Ministries <span>{ministries.length}</span></strong><small>Swipe left or use ⋯ for actions.</small></div>
           {ministries.length === 0 ? (
             <div className="empty-state compact-empty-state">
               <p>No ministries have been created yet.</p>
             </div>
           ) : (
-            <div className="ministry-management-list">
+            <div className="ministry-management-list lc-directory-list" aria-label="Ministries">
               {ministries.map((ministry) => {
                 const count = ministryMemberCount(ministry.id)
                 const isRenaming = renamingMinistryId === ministry.id
                 const isConfirmingDelete = managerDeleteTarget?.kind === 'ministry' && managerDeleteTarget.item.id === ministry.id
 
                 return (
-                  <article className="ministry-management-row" key={ministry.id}>
-                    <div className="ministry-management-name">
-                      {isRenaming ? (
-                        <input
-                          value={renameValue}
-                          onChange={(event) => setRenameValue(event.target.value)}
-                          autoFocus
-                        />
-                      ) : (
-                        <strong>{ministry.name}</strong>
-                      )}
-
-                      <span>
-                        {count} Assigned Member{count === 1 ? '' : 's'}
-                      </span>
-                    </div>
-
-                    <div className="ministry-management-actions">
-                      {isConfirmingDelete ? (
-                        <span className="manager-inline-delete-confirm">
-                          <span>Delete?</span>
-                          <button type="button" className="manager-inline-keep" onClick={() => setManagerDeleteTarget(null)} aria-label={`Keep ${ministry.name}`} title="Keep"><X size={17} /></button>
-                          <button type="button" className="manager-inline-confirm" onClick={() => void confirmManagerDelete()} aria-label={`Confirm Delete ${ministry.name}`} title="Delete"><Check size={17} /></button>
-                        </span>
-                      ) : isRenaming ? (
-                        <>
-                          <button
-                            className="edit-icon-button save-ministry-button"
-                            onClick={() => void saveMinistryRename(ministry)}
-                            aria-label={`Save ${ministry.name}`}
-                            title="Save Name"
-                          >
-                            <Check size={18} />
-                          </button>
-
-                          <button
-                            className="edit-icon-button"
-                            onClick={() => {
-                              setRenamingMinistryId('')
-                              setRenameValue('')
-                            }}
-                            aria-label="Cancel Rename"
-                            title="Cancel"
-                          >
-                            <X size={18} />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="edit-icon-button"
-                            onClick={() => beginRename(ministry)}
-                            aria-label={`Rename ${ministry.name}`}
-                            title="Rename Ministry"
-                          >
-                            <Pencil size={18} />
-                          </button>
-
-                          <button
-                            className="delete-icon-button"
-                              onClick={() => void deleteMinistry(ministry)}
-                              aria-label={`Delete ${ministry.name}`}
-                              title="Delete Ministry"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                        </>
-                      )}
-                    </div>
-                  </article>
+                  <DirectorySwipeItem key={ministry.id} name={ministry.name} kind="ministry" assigned={count}
+                    busy={managerBusy} open={openDirectoryRow === `ministry:${ministry.id}`}
+                    onOpenChange={open => setOpenDirectoryRow(open ? `ministry:${ministry.id}` : '')}
+                    editing={isRenaming} confirming={isConfirmingDelete} value={renameValue}
+                    onChange={setRenameValue} onRename={() => beginRename(ministry)}
+                    onDelete={() => void deleteMinistry(ministry)} onSave={() => void saveMinistryRename(ministry)}
+                    onCancelEdit={() => { setRenamingMinistryId(''); setRenameValue('') }}
+                    onConfirmDelete={() => void confirmManagerDelete()} onCancelDelete={() => setManagerDeleteTarget(null)}/>
                 )
               })}
             </div>
@@ -1588,6 +1639,8 @@ export default function MemberManager() {
 
           <div className="ministry-create-row">
             <input
+              aria-label="New church name"
+              disabled={managerBusy}
               value={newManagedBranchName}
               onChange={(event) => setNewManagedBranchName(event.target.value)}
               placeholder="Add a new Church, e.g. LifeCity - Main"
@@ -1598,14 +1651,14 @@ export default function MemberManager() {
                 }
               }}
             />
-            <button className="secondary-button" type="button" onClick={() => void addManagedBranch()}>
+            <button className="secondary-button" type="button" disabled={managerBusy} onClick={() => void addManagedBranch()}>
               <Plus size={17} />
               Add Church
             </button>
           </div>
 
           {branchMessage && (
-            <div className={`ministry-message ${messageTone(branchMessage)}`}>
+            <div className={`ministry-message ${messageTone(branchMessage)}`} role="status" aria-live="polite">
               <p>{managerMessageContent(branchMessage)}</p>
               {blockedBranchId && (
                 <button className="secondary-button" onClick={() => viewAffectedBranchMembers(blockedBranchId)}>
@@ -1615,41 +1668,22 @@ export default function MemberManager() {
             </div>
           )}
 
-          <div className="ministry-management-list">
+          <div className="lc-directory-list-heading"><strong>Churches <span>{branches.length}</span></strong><small>Swipe left or use ⋯ for actions.</small></div>
+          {branches.length === 0 && <div className="empty-state compact-empty-state"><p>No churches have been created yet.</p></div>}
+          <div className="ministry-management-list lc-directory-list" aria-label="Churches">
             {branches.map((branch) => {
               const count = branchMemberCount(branch.id)
               const isRenaming = renamingBranchId === branch.id
               const isConfirmingDelete = managerDeleteTarget?.kind === 'branch' && managerDeleteTarget.item.id === branch.id
               return (
-                <article className="ministry-management-row" key={branch.id}>
-                  <div className="ministry-management-name">
-                    {isRenaming ? (
-                      <input value={branchRenameValue} onChange={(event) => setBranchRenameValue(event.target.value)} autoFocus />
-                    ) : (
-                      <strong>{branch.name}</strong>
-                    )}
-                    <span>{count} Assigned Member{count === 1 ? '' : 's'}</span>
-                  </div>
-                  <div className="ministry-management-actions">
-                    {isConfirmingDelete ? (
-                      <span className="manager-inline-delete-confirm">
-                        <span>Delete?</span>
-                        <button type="button" className="manager-inline-keep" onClick={() => setManagerDeleteTarget(null)} aria-label={`Keep ${branch.name}`} title="Keep"><X size={17} /></button>
-                        <button type="button" className="manager-inline-confirm" onClick={() => void confirmManagerDelete()} aria-label={`Confirm Delete ${branch.name}`} title="Delete"><Check size={17} /></button>
-                      </span>
-                    ) : isRenaming ? (
-                      <>
-                        <button className="edit-icon-button save-ministry-button" onClick={() => void saveBranchRename(branch)} aria-label={`Save ${branch.name}`} title="Save Name"><Check size={18} /></button>
-                        <button className="edit-icon-button" onClick={() => { setRenamingBranchId(''); setBranchRenameValue('') }} aria-label="Cancel Rename" title="Cancel"><X size={18} /></button>
-                      </>
-                    ) : (
-                      <>
-                        <button className="edit-icon-button" onClick={() => beginBranchRename(branch)} aria-label={`Rename ${branch.name}`} title="Rename Church"><Pencil size={18} /></button>
-                        <button className="delete-icon-button" onClick={() => void deleteBranch(branch)} aria-label={`Delete ${branch.name}`} title="Delete Church"><Trash2 size={18} /></button>
-                      </>
-                    )}
-                  </div>
-                </article>
+                <DirectorySwipeItem key={branch.id} name={branch.name} kind="church" assigned={count}
+                  busy={managerBusy} open={openDirectoryRow === `branch:${branch.id}`}
+                  onOpenChange={open => setOpenDirectoryRow(open ? `branch:${branch.id}` : '')}
+                  editing={isRenaming} confirming={isConfirmingDelete} value={branchRenameValue}
+                  onChange={setBranchRenameValue} onRename={() => beginBranchRename(branch)}
+                  onDelete={() => void deleteBranch(branch)} onSave={() => void saveBranchRename(branch)}
+                  onCancelEdit={() => { setRenamingBranchId(''); setBranchRenameValue('') }}
+                  onConfirmDelete={() => void confirmManagerDelete()} onCancelDelete={() => setManagerDeleteTarget(null)}/>
               )
             })}
           </div>
@@ -1970,6 +2004,7 @@ export default function MemberManager() {
 <MobileFold title="Filter Members">            <label className={`filter-select ${filterSpotlight === 'ministry' ? 'filter-select-spotlight' : ''}`}>
               <Users size={17} />
               <ResponsiveSelect
+                aria-label="Filter by ministry"
                 value={ministryFilter}
                 onChange={(event) => setMinistryFilter(event.target.value)}
               >
@@ -1985,7 +2020,7 @@ export default function MemberManager() {
 
             <label className={`filter-select ${filterSpotlight === 'branch' ? 'filter-select-spotlight' : ''}`}>
               <Settings2 size={17} />
-              <ResponsiveSelect value={branchFilter} onChange={(event) => setBranchFilter(event.target.value)}>
+              <ResponsiveSelect aria-label="Filter by church" value={branchFilter} onChange={(event) => setBranchFilter(event.target.value)}>
               <option value="all">All Churches</option>
                 {branchesForFilter.map((branch) => (
                   <option key={branch.id} value={branch.id}>{branch.name}</option>
@@ -1996,6 +2031,7 @@ export default function MemberManager() {
             <label className="filter-select">
               <Star size={17} />
               <ResponsiveSelect
+                aria-label="Member status"
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value)}
               >
@@ -2073,7 +2109,7 @@ export default function MemberManager() {
           </div>
         )}
 
-        {directoryBusy ? (
+        {directoryBusy && dataKey !== requestKey ? (
           <div className="empty-state">
             <p>Loading Members…</p>
           </div>

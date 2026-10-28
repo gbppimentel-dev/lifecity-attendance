@@ -3,7 +3,9 @@
 // Change ID: LC-P08G-v1
 // Change ID: LC-UI-COPY-v2
 import { uiMessage } from '../lib/uiText'
+import { useNoticeToast } from '../lib/useNoticeToast'
 import { type ChangeEvent, Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Papa from 'papaparse'
 import { csvCell } from '../lib/memberCsv'
 import {
@@ -48,6 +50,7 @@ type ImportFilter = 'all' | 'errors' | 'ready'
 type Props = {
   onImported: () => Promise<void>
   onClose: () => void
+  toolbarTarget?: HTMLElement | null
 }
 
 function getValue(row: Record<string, string>, names: string[]) {
@@ -214,7 +217,7 @@ export function matchesImportReview(row: ImportRow, filter: ImportFilter, search
     .some(value => value.toLowerCase().includes(query))
 }
 
-export default function MemberImport({ onImported, onClose }: Props) {
+export default function MemberImport({ onImported, onClose, toolbarTarget }: Props) {
   const [rows, setRows] = useState<ImportRow[]>([])
   const [existingContacts, setExistingContacts] = useState<ExistingContact[]>([])
   const [contactsChecked,setContactsChecked]=useState(false)
@@ -227,6 +230,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
 
   const [fileName, setFileName] = useState('')
   const [message, setMessage] = useState('')
+  useNoticeToast(message, 'info')
   const [importing, setImporting] = useState(false)
   const [validating, setValidating] = useState(false)
   const [filter, setFilter] = useState<ImportFilter>('all')
@@ -472,6 +476,14 @@ export default function MemberImport({ onImported, onClose }: Props) {
     currentPage * pageSize,
   )
 
+  const toolbar = <div className="csv-import-actions">
+    <button type="button" className="secondary-button template-button" onClick={downloadTemplate}>
+      <Download size={17} /><span>Download Template</span>
+    </button>
+    <button className="csv-close-button" type="button" disabled={importing||validating||!!pendingImport}
+      onClick={onClose} aria-label="Close Member Import" title="Close Import"><X size={18}/></button>
+  </div>
+
   return (
     <section className="csv-import-card">
       <div className="csv-import-intro">
@@ -488,25 +500,7 @@ export default function MemberImport({ onImported, onClose }: Props) {
           </p>
         </div>
 
-        <div className="csv-import-actions">
-          <button
-            className="secondary-button template-button"
-            onClick={downloadTemplate}
-          >
-            <Download size={18} />
-            <span>Download Template</span>
-          </button>
-
-          <button
-            className="csv-close-button"
-            type="button"
-            disabled={importing||validating||!!pendingImport} onClick={onClose}
-            aria-label="Close Member Import"
-            title="Close Import"
-          >
-            <X size={18} />
-          </button>
-        </div>
+        {toolbarTarget ? createPortal(toolbar, toolbarTarget) : toolbar}
       </div>
 
       <div className="csv-import-steps">

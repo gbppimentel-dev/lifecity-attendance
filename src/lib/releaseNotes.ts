@@ -8,6 +8,50 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Directory Tools v8',title:'Clearer Tools, Reversible Directory Changes',highlights:[
+  note('Members has a solid teal Add Member action and distinct, steady Import, Ministry and Church icons. Import places Download Template and Close together in the shared toolbar.',staff),
+  note('Ministries and churches use swipe rows for Rename and Delete, with inline add/rename forms and clear messages for blocked changes or errors.',staff),
+  note('Successful ministry and church deletions offer Undo for 10 seconds, restoring the original record without overwriting a conflicting ID or name.',staff),
+  note('Ministry deletion requires the included one-time Supabase update, install-directory-delete-undo.sql. Until installed, the app keeps the entry and shows setup guidance.',staff),
+  note('Dashboard calendars keep their red pushpins. Refresh uses a stable-width label and smooth loading feedback, without a duplicate Updating badge.',staff)
+ ]},
+ {version:'Pre-Launch · Dashboard & Flow v7',title:'Clearer Gatherings, Quicker Navigation',highlights:[
+  note('What’s New has its soft green gradient again. Section entrances use a brief fade that keeps content steady and respects motion preferences.'),
+  note('Desktop navigation regains spring hover feedback, while Dashboard period and refresh controls return to teal and lavender.',staff),
+  note('Dashboard gatherings use calendar-style dates, separate schedule and venue details, softer service notes and clearer attendance progress.',staff),
+  note('Common staff screens warm in the background when the connection allows. Opening a screen that is still loading keeps the current view visible.',staff),
+  note('Recent Dashboard and Members snapshots can appear immediately on return while live data reloads. These snapshots stay only in the signed-in workspace’s memory.',staff)
+ ]},
+ {version:'Pre-Launch · Layout & Entrances v6',title:'A Balanced Header, a Gentler Flow',highlights:[
+  note('The desktop header has balanced spacing between the brand, navigation and account controls.',staff),
+  note('Sign-in, guest, member and administration pages use subtle AnimatedContent entrances as sections become visible.'),
+  note('Navigation responds immediately, panels enter gently and close without waiting. Animation and reduced-motion settings still apply, while camera and QR areas keep their usable layout.')
+ ]},
+ {version:'Pre-Launch · Controls & Counters v5',title:'Smoother Choices and Live Totals',highlights:[
+  note('GlideSelect brings themed dropdowns to periods, filters and other selection fields, with keyboard controls and search for longer option lists.',signedIn),
+  note('Staff navigation and Dashboard detail switches now use a moving RubberSegment indicator.',staff),
+  note('The four Dashboard metrics count smoothly to their real totals. Filter updates keep the current snapshot visible, and motion-off shows final values immediately.',staff)
+ ]},
+ {version:'Pre-Launch · Color & Motion v4',title:'LifeCity in Full Color',highlights:[
+  note('Moving teal, lavender and gold borders return to page headers, with a directional glow near the cursor.'),
+  note('Dashboard metrics have their individual colors again. Magic Bento adds a cursor spotlight, neighboring edge glow, subtle particles and click waves around the real attendance data.',staff),
+  note('The comfortable page width, Inter typography and cleaner controls remain. Effects pause offscreen and respect animation and reduced-motion settings.')
+ ]},
+ {version:'Pre-Launch · Interface Refresh v3',title:'A Lighter LifeCity',highlights:[
+  note('Desktop pages now have a comfortable centered width, with smaller headings and calmer cards.'),
+  note('Self-hosted Inter typography, softer borders, consistent form fields and clearer focus states bring the workspaces together.'),
+  note('Page changes respond immediately, with gentle content entrances and smooth control feedback. Decorative loops and click ripples have been removed; motion preferences still apply.')
+ ]},
+ {version:'Pre-Launch · Desktop Actions v2',title:'More Room, Clearer Feedback',highlights:[
+  note('Desktop pages use more of the screen, with aligned content and navigation and smaller side margins.'),
+  note('Action notifications now appear as dismissible swipe toasts. Hover or focus a notification to pause its countdown.'),
+  note('Services has separated swipe controls and a quiet instruction at the right of its list header. Sunday marking, archive, restore and deletion offer Undo.',staff),
+  note('The final service deletion button requires a short hold. Services with attendance keep their history through Archive.',staff)
+ ]},
+ {version:'Pre-Launch · Services Swipe Actions',title:'Cleaner Service Rows',highlights:[
+  note('Swipe or drag a service left to reveal Scanner, Sunday marking, Edit, and Delete, Archive or Restore. A small actions button offers the same controls.',staff),
+  note('A quiet hint explains the gesture. Rows fit phones, support keyboard controls, and keep confirmation steps for removing or archiving a service.',staff)
+ ]},
  {version:'Pre-Launch · Mobile Services Polish',title:'A Tighter Service Workspace',highlights:[
   note('Services uses a thin gradient header, compact action rows, quieter search, and aligned page-size controls.',staff),
   note('CSV choices use compact mobile layouts. Event forms have smaller helper text and keyboard-aware scrolling.',staff)

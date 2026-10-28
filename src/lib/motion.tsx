@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
+import AnimatedContent, { animateContent, type AnimatedContentHandle } from '../components/AnimatedContent'
 
 const KEY = 'lifecity-motion-enabled'
 const EVENT = 'lifecity-motion-change'
@@ -7,46 +8,22 @@ const preference = () => { try { return localStorage.getItem(KEY) !== 'off' } ca
 export function motionEnabled() {
   return (document.documentElement.dataset.lcMotion ? document.documentElement.dataset.lcMotion === 'on' : preference()) && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
-let currentTransition: { skipTransition: () => void } | null = null
 export function changeWithMotion(update: () => void) {
-  currentTransition?.skipTransition()
   if (!motionEnabled()) { update(); return }
-  // Animate the actual page, not a whole-window screenshot. Works without View Transitions.
-  const oldPage = document.querySelector<HTMLElement>('.lc-mobile-workspace > .content')
-  if (!oldPage?.animate) { update(); return }
-  let committed = false
-  let animation: Animation | null = null
-  const previousInert = oldPage.inert
-  const transition = { skipTransition: () => commit(false) }
-  function commit(animateNext: boolean) {
-    animation?.cancel()
-    if (committed) { if (currentTransition === transition) currentTransition = null; return }
-    committed = true
-    oldPage!.inert = previousInert
-    flushSync(update)
-    const newPage = document.querySelector<HTMLElement>('.lc-mobile-workspace > .content')
-    if (animateNext && motionEnabled() && newPage?.animate) {
-      animation = newPage.animate([{opacity:0,translate:'0 16px'},{opacity:1,translate:'0 0'}],{duration:340,easing:'cubic-bezier(.16,1,.3,1)'})
-      void animation.finished.catch(()=>{}).finally(()=>{if(currentTransition===transition)currentTransition=null})
-    } else if (currentTransition === transition) currentTransition = null
-  }
-  currentTransition = transition
-  oldPage.inert = true
-  animation = oldPage.animate([{opacity:1,translate:'0 0'},{opacity:0,translate:'0 -8px'}],{duration:140,easing:'ease-out',fill:'forwards'})
-  void animation.finished.then(()=>commit(true)).catch(()=>{})
+  // Commit immediately; the shared runtime reveals newly mounted sections.
+  // The header, focus, and page controls never wait for an outgoing animation.
+  flushSync(update)
 }
 
-/** Keep a closing panel mounted until its real height/opacity transition finishes. */
-// Forms and tool panels now mount/unmount immediately. Keep this component so
-// existing call sites need no changes and the general card observer skips them.
-export function MotionPresence({show,children}:{show:boolean;children:ReactNode;motionKey?:string}) {
-  return show ? <div className="lc-motion-presence lc-static-panel">{children}</div> : null
+/** Panels mount immediately, with a small entrance fade and no delayed close. */
+export function MotionPresence({show,children,motionKey}:{show:boolean;children:ReactNode;motionKey?:string}) {
+  return show ? <AnimatedContent key={motionKey} trigger="mount" distance={0} duration={.2} initialOpacity={.9}
+    className="lc-motion-presence lc-static-panel">{children}</AnimatedContent> : null
 }
 
 function applyMotion() {
   const enabled = motionEnabled()
   document.documentElement.dataset.lcMotion = enabled ? 'on' : 'off'
-  if (!enabled) currentTransition?.skipTransition()
 }
 // Apply before the first React render to prevent motion flashing on refresh.
 applyMotion()
@@ -65,7 +42,7 @@ export function MotionSettings() {
   }, [])
   return <section className="lc-motion-settings" aria-labelledby="lc-motion-title">
     <div><p className="eyebrow">Motion & Performance</p><h2 id="lc-motion-title">Interface Animations</h2>
-      <p>Page transitions, decorative card effects, export-bar motion, and mouse-click ripples. Forms open and close instantly.</p>
+      <p>Smooth section reveals as you browse, gentle panel entrances, interactive Dashboard cards, and moving gradient borders. Navigation responds immediately and panels close instantly.</p>
       <small>Applies immediately on this browser. Turn off for less motion and smoother performance.</small>
     </div>
     <label className="lc-motion-toggle"><input type="checkbox" checked={enabled} onChange={event => {
@@ -85,84 +62,137 @@ export function MotionRuntime() {
   useEffect(() => {
     const media = matchMedia('(prefers-reduced-motion: reduce)')
     let sessionPreference = preference()
-    let observer: MutationObserver | null = null
-    let resize: ResizeObserver | null = null
-    const animations = new Set<Animation>()
-    const ghosts = new Set<HTMLElement>()
-    const tracked = new Map<HTMLElement, { left: number; top: number; width: number; height: number }>()
-    const selector = '.dashboard-stat-card,.dashboard-card,.event-postcard,.service-list-item,.member-card,.lpe-review-card,.lcr-request,.lc-service-option,.scan-result,.lcse-choice'
-    const root = document.getElementById('root')!
-    function animate(element: HTMLElement, frames: Keyframe[], duration: number, done?: () => void) {
-      if (!element.animate) { done?.(); return }
-      const animation = element.animate(frames, { duration, easing: 'cubic-bezier(.2,.7,.2,1)' })
-      animations.add(animation)
-      void animation.finished.catch(() => {}).finally(() => { animations.delete(animation); done?.() })
-    }
-    function measure(element: HTMLElement) {
-      const rect = element.getBoundingClientRect()
-      if (rect.width && rect.height) tracked.set(element, {left:rect.left+scrollX,top:rect.top+scrollY,width:rect.width,height:rect.height})
-    }
-    function register(element: HTMLElement, entering: boolean) {
-      if (tracked.has(element) || element.closest('[aria-hidden="true"],.lc-motion-presence') || element.querySelector('video,canvas')) return
-      measure(element); resize?.observe(element)
-      const rect = element.getBoundingClientRect()
-      if (entering && rect.bottom > 0 && rect.top < innerHeight && rect.width) {
-        animate(element, [{opacity:0,translate:'0 8px'},{opacity:1,translate:'0 0'}], 220)
-      }
-    }
-    function stop() {
-      observer?.disconnect(); observer = null
-      resize?.disconnect(); resize = null
-      animations.forEach(animation => animation.cancel()); animations.clear()
-      ghosts.forEach(ghost => ghost.remove()); ghosts.clear(); tracked.clear()
-    }
-    function start() {
-      stop()
-      if (document.documentElement.dataset.lcMotion !== 'on') return
-      resize = new ResizeObserver(entries => entries.forEach(entry => measure(entry.target as HTMLElement)))
-      root.querySelectorAll<HTMLElement>(selector).forEach(element => register(element, false))
-      observer = new MutationObserver(records => {
-        // Animate only a bounded number per update; data tables may contain hundreds of rows.
-        let budget = 12
-        const additions = new Set<HTMLElement>()
-        records.forEach(record => record.addedNodes.forEach(node => {
-          if (!(node instanceof HTMLElement) || node.classList.contains('lc-click-ripple')) return
-          if (node.matches(selector)) additions.add(node)
-          node.querySelectorAll<HTMLElement>(selector).forEach(element => additions.add(element))
-        }))
-        // Forms mount/unmount immediately through static MotionPresence.
-        // Do not clone removed cards: duplicate snapshots can flash over a closing form.
-        tracked.forEach((_rect, element) => {
-          if (!element.isConnected) { tracked.delete(element); resize?.unobserve(element) }
-        })
-        additions.forEach(element => { if (element.isConnected) register(element, budget-- > 0 && !currentTransition) })
+    let frame = 0
+    let enabled = sessionPreference && !media.matches
+    let pruneRemoved = false
+    const tracked = new WeakSet<HTMLElement>()
+    const pendingRoots = new Set<HTMLElement>()
+    const hidden = new Set<HTMLElement>()
+    const awaitingScroll = new Set<HTMLElement>()
+    const animations = new Map<HTMLElement, AnimatedContentHandle>()
+    // Reveal meaningful content groups, never individual rows, live camera
+    // frames, particles, or controls. Existing group content is not rescanned.
+    const selector = [
+      '.dashboard-editorial-hero', '.active-checkin-panel', '.dashboard-stats', '.dashboard-grid',
+      '.members-editorial-hero', '.services-editorial-hero', '.scanner-editorial-hero',
+      '.records-page-heading', '.directory-card', '.records-card', '.scanner-event-picker', '.lc-scanner-idle',
+      '.form-card', '.directory-tools-workspace', '.ministry-manager-card', '.csv-import-card', '.manual-checkin-card', '.member-editor-card',
+      '.lca-hero', '.lca-panel', '.lct-panel', '.lch-panel', '.lcf-inbox', '.lc-motion-settings',
+      '.lcr-panel', '.lpe-owner-panel', '.lpe-editor', '.lmh-panel', '.lc-whats-new',
+      '.lc-auth-story', '.lc-auth-frame', '.lcg-hero', '.lcg-services', '.lcg-connect',
+      '.lmp-hero', '.lmp-grid', '.lmp-services',
+      '.lcd-head', '.lcd-toolbar', '.lcd-actions', '.lcd-live', '.lcd-metrics', '.lcd-focus', '.lcd-news',
+      '[data-lc-reveal]'
+    ].join(',')
+    const root = document.getElementById('root')
+    if (!root) return
+    function start(element: HTMLElement) {
+      if (!enabled || !element.isConnected || element.closest('[hidden],[aria-hidden="true"]')) return
+      // A cohesive fade leaves the page readable from its first frame.
+      // No delay, layout wrapper, transform, or per-section ScrollTrigger.
+      const handle = animateContent(element, {
+        trigger: 'mount', once: true, distance: 0,
+        duration: .22, initialOpacity: .9, ease: 'power2.out',
       })
-      observer.observe(root,{childList:true,subtree:true})
+      animations.set(element, handle)
+      void handle.finished.then(() => { if (animations.get(element) === handle) animations.delete(element) })
+    }
+    // One native observer waits for all below-fold sections. GSAP is created
+    // only when a section enters view; fetched lists do not create dormant
+    // timelines or scroll listeners for the rest of the document.
+    const scrollObserver = typeof IntersectionObserver === 'undefined' ? null : new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return
+        const element = entry.target as HTMLElement
+        scrollObserver?.unobserve(element); awaitingScroll.delete(element)
+        start(element)
+      })
+    }, { threshold: 0, rootMargin: '0px 0px -20px 0px' })
+    function flush() {
+      frame = 0
+      if (pruneRemoved) {
+        pruneRemoved = false
+        animations.forEach((handle, element) => { if (!element.isConnected) { handle.destroy(); animations.delete(element) } })
+        awaitingScroll.forEach(element => { if (!element.isConnected) { scrollObserver?.unobserve(element); awaitingScroll.delete(element) } })
+        hidden.forEach(element => { if (!element.isConnected) hidden.delete(element) })
+      }
+      const candidates = new Set<HTMLElement>()
+      pendingRoots.forEach(subtree => {
+        if (!subtree.isConnected) return
+        if (subtree.matches(selector)) candidates.add(subtree)
+        subtree.querySelectorAll<HTMLElement>(selector).forEach(element => candidates.add(element))
+      })
+      pendingRoots.clear()
+      const visible: HTMLElement[] = [], belowFold: HTMLElement[] = []
+      candidates.forEach(element => {
+        if (tracked.has(element) || element.closest('.lc-motion-presence,[data-animated-content]') || element.parentElement?.closest(selector)) return
+        if (element.closest('[hidden],[aria-hidden="true"]')) { hidden.add(element); return }
+        // Live camera/QR and fixed popups keep their existing exact geometry.
+        if (element.querySelector('video,canvas,.scanner-reader,.lmp-code')) { tracked.add(element); return }
+        if (!enabled) { tracked.add(element); hidden.delete(element); return }
+        // Finish all layout reads before any GSAP writes. The former
+        // interleaved loop forced layout again for every successive group.
+        const rect = element.getBoundingClientRect()
+        if (!rect.width && !rect.height) { hidden.add(element); return }
+        tracked.add(element); hidden.delete(element)
+        if (rect.top < innerHeight && rect.bottom > 0) visible.push(element)
+        else belowFold.push(element)
+      })
+      visible.forEach(start)
+      belowFold.forEach(element => {
+        if (!scrollObserver) return // Content stays visible without this API.
+        awaitingScroll.add(element); scrollObserver.observe(element)
+      })
+    }
+    function schedule() { if (!frame) frame = requestAnimationFrame(flush) }
+    function enqueue(subtree: HTMLElement) {
+      // Insertions inside a group (table rows, counts, form controls) never
+      // require another document scan or a repeated entrance.
+      if (subtree.parentElement?.closest(selector)) return
+      for (const queued of pendingRoots) if (queued.contains(subtree)) return
+      pendingRoots.forEach(queued => { if (subtree.contains(queued)) pendingRoots.delete(queued) })
+      pendingRoots.add(subtree); schedule()
+    }
+    const observer = new MutationObserver(records => {
+      records.forEach(record => {
+        if (record.type === 'attributes') {
+          const element = record.target as HTMLElement
+          if (!element.hidden && element.getAttribute('aria-hidden') !== 'true') enqueue(element)
+          return
+        }
+        record.addedNodes.forEach(node => { if (node instanceof HTMLElement) enqueue(node) })
+        if ((animations.size || awaitingScroll.size || hidden.size) &&
+          Array.from(record.removedNodes).some(node => node instanceof HTMLElement)) { pruneRemoved = true; schedule() }
+      })
+    })
+    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'aria-hidden'] })
+    function resized() {
+      // IntersectionObserver handles visible sections itself. Only groups
+      // previously hidden by responsive CSS need reconsideration on resize.
+      hidden.forEach(enqueue)
     }
     function sync(event?: Event) {
       if (event instanceof CustomEvent && typeof event.detail === 'boolean') sessionPreference = event.detail
       else if (event?.type === 'storage') sessionPreference = preference()
-      const enabled = sessionPreference && !media.matches
+      enabled = sessionPreference && !media.matches
       document.documentElement.dataset.lcMotion = enabled ? 'on' : 'off'
-      if (!enabled) currentTransition?.skipTransition()
-      start()
-    }
-    function click(event: MouseEvent) {
-      if (document.documentElement.dataset.lcMotion !== 'on' || event.button !== 0 || event.detail === 0 || !matchMedia('(pointer:fine)').matches || ghosts.size >= 8) return
-      const target = event.target as Element
-      if (target.closest('input,textarea,select,[contenteditable="true"],:disabled')) return
-      const ripple = document.createElement('span')
-      ripple.className = 'lc-click-ripple'; ripple.setAttribute('aria-hidden','true')
-      ripple.style.left = `${event.clientX}px`; ripple.style.top = `${event.clientY}px`
-      // Render inside a modal/fullscreen element when present so the effect stays visible.
-      ;(target.closest('dialog[open]') ?? document.fullscreenElement ?? document.body).appendChild(ripple)
-      ghosts.add(ripple)
-      animate(ripple,[{opacity:.5,transform:'translate(-50%,-50%) scale(.25)'},{opacity:0,transform:'translate(-50%,-50%) scale(1.5)'}],320,()=>{ripple.remove();ghosts.delete(ripple)})
+      if (!enabled) {
+        animations.forEach(handle => handle.settle()); animations.clear()
+        scrollObserver?.disconnect(); awaitingScroll.clear()
+      }
     }
     sync()
+    enqueue(root)
     window.addEventListener(EVENT,sync); window.addEventListener('storage',sync)
-    media.addEventListener('change',sync); document.addEventListener('click',click)
-    return () => { stop();window.removeEventListener(EVENT,sync);window.removeEventListener('storage',sync);media.removeEventListener('change',sync);document.removeEventListener('click',click) }
+    window.addEventListener('resize',resized)
+    media.addEventListener('change',sync)
+    return () => {
+      observer.disconnect(); cancelAnimationFrame(frame)
+      scrollObserver?.disconnect(); awaitingScroll.clear(); pendingRoots.clear(); hidden.clear()
+      animations.forEach(handle => handle.destroy()); animations.clear()
+      window.removeEventListener(EVENT,sync); window.removeEventListener('storage',sync)
+      window.removeEventListener('resize',resized); media.removeEventListener('change',sync)
+    }
   }, [])
   return null
 }
