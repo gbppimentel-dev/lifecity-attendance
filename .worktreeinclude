@@ -1,0 +1,3 @@
+# Copy the existing ignored frontend settings into local Codex-managed worktrees.
+# The values remain ignored by Git. Dependencies are installed per worktree.
+.env.local
