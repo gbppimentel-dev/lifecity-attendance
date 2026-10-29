@@ -19,6 +19,7 @@
     "test:member-notes": "node --test scripts/test-member-notes.mjs",
     "test:schedule": "node --test scripts/test-service-schedule.mjs",
     "test:scanner": "node --test scripts/test-scanner-attendance.mjs",
+    "test:phone": "node --test scripts/test-phone-kiosk.mjs scripts/test-phone-time-picker.mjs",
     "test:attendance": "node --test scripts/test-attendance-actions.mjs scripts/test-attendance-undo-sql.mjs"
   },
   "dependencies": {

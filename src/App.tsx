@@ -793,7 +793,7 @@ function AdminWorkspace({ account, onRefreshAccess }: { account: LifeCityAccount
   ]
 
   return (
-    <WorkspaceCacheProvider><main className="app-page lc-mobile-workspace">
+    <WorkspaceCacheProvider><main className="app-page lc-mobile-workspace" data-mobile-page={page}>
       <header className="topbar">
         <div className="brand">
           <div className="brand-icon small">

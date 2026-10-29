@@ -1,0 +1,218 @@
+/* Phone-only Services presentation. Desktop rules and action logic stay intact. */
+@media (max-width: 900px) {
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-editorial-hero {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    min-height: 0; margin: 0 0 14px; padding: 18px 16px; border-radius: 20px;
+    border: 1px solid transparent;
+    background: linear-gradient(115deg,var(--lc-glowPrimary,#e5f5ef),var(--lc-surface,#fff) 68%,var(--lc-glowSecondary,#f1edfa)) padding-box,
+      linear-gradient(120deg,#9bcbbd,#a99bd0,#e6c87c) border-box;
+    box-shadow: 0 5px 18px color-mix(in srgb,var(--lc-primary,#147d73) 5%,transparent);
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-hero-copy { min-width: 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-hero-copy .eyebrow { margin: 0 0 6px; font-size: 9px; line-height: 1.4; letter-spacing: .09em; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-hero-copy h1 { margin: 0; font-size: 28px; line-height: 1.15; letter-spacing: -.045em; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-editorial-hero :is(.services-hero-copy>p:not(.eyebrow),.services-hero-caption,.services-create-action-kicker,.services-create-action-note,.services-hero-orbit,.services-hero-spark) { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-editorial-hero .services-create-action {
+    display: flex; align-items: center; justify-content: center; gap: 9px; flex: none;
+    min-width: 0; width: auto; min-height: 46px; padding: 10px 13px; border-radius: 13px;
+    color: var(--lc-onPrimary,#fff); text-align: left; transform: none;
+    box-shadow: 0 4px 10px color-mix(in srgb,var(--lc-primary,#147d73) 14%,transparent);
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-editorial-hero .services-create-action strong { margin: 0; font-size: 13px; line-height: 1.4; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-editorial-hero .services-create-action-icon { position: static; display: grid; place-items: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 0; background: transparent; color: inherit; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-create-action-icon svg { width: 19px; height: 19px; }
+
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-services-directory.lcsp-directory { margin: 0; padding: 0; border-radius: 20px; overflow: visible; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .directory-toolbar.services-directory-toolbar { display: block; margin: 0; padding: 16px 14px 12px; border-radius: 19px 19px 0 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-directory-heading { align-items: flex-start; gap: 10px; margin-bottom: 13px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-directory-heading .services-directory-kicker { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-directory-heading h2 { font-size: 19px; line-height: 1.25; letter-spacing: -.035em; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-directory-heading .services-directory-count { margin-top: 5px; gap: 5px; font-size: 12px; line-height: 1.5; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-directory-timezone { max-width: 68px; padding-top: 2px; font-size: 10px; line-height: 1.5; text-align: right; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsp-search-tools { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: end; gap: 8px; width: 100%; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-search-field { gap: 0; min-width: 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-search-field>label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsp-search { min-height: 46px; height: 46px; padding: 0 11px; border-radius: 12px; background: var(--lc-surface,#fff); }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory #service-directory-search { height: 44px; min-height: 44px; max-height: 44px; font-size: 16px; line-height: normal; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory #service-directory-search::placeholder { font-size: 13px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-search>button { width: 44px; height: 44px; min-height: 44px; margin-right: -10px; border-radius: 10px; background: transparent; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsp-filter-toggle { display: inline-flex; justify-content: center; gap: 5px; min-height: 46px; padding: 10px 11px; border: 1px solid var(--lc-panel-border,#d6e7df); border-radius: 12px; background: var(--lc-surfaceAlt,#f4f8f6); color: var(--lc-primary,#147d73); font-size: 12px; line-height: 1.4; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-filter-toggle>span { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-filter-toggle[aria-expanded='true'] { border-color: color-mix(in srgb,var(--lc-primary,#147d73) 35%,var(--lc-panel-border,#d6e7df)); background: var(--lc-glowPrimary,#e5f5ef); }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .service-directory-controls { display: none; grid-column: 1/-1; min-width: 0; padding: 0; margin: 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .service-directory-controls.is-open { display: block; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .service-directory-controls>.filter-select { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsm-filters { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 4px; padding: 12px; border-radius: 13px; background: var(--lc-surfaceAlt,#f4f8f6); }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsm-select { min-width: 0; font-size: 12px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsm-select>span { margin-bottom: 6px; font-size: 11px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsm-select summary { min-height: 44px; padding: 9px 10px; border-radius: 10px; font-size: 12px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsm-select button { min-height: 44px; padding: 10px; font-size: 13px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-directory-scope { min-height: 0; margin: 0; padding: 0 14px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-directory-scope>p { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-filter-chips { gap: 6px; padding-bottom: 10px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-filter-chips>button { min-height: 36px; max-width: 100%; padding: 7px 9px; border-radius: 9px; font-size: 11px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-clear-filters { min-height: 44px; padding-inline: 5px; font-size: 11px; }
+
+  /* One compact check-in entry point, rather than a second oversized hero. */
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lc-service-scanner-hub { display: grid; grid-template-columns: minmax(0,1fr) 108px; align-items: center; gap: 7px 8px; min-width: 0; margin: 0 14px 10px; padding: 12px; border-radius: 14px; box-shadow: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-scanner-hub__intro { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-scanner-hub__selection { display: contents; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-scanner-hub__selection>.lc-select-control { grid-column: 1; grid-row: 2; min-width: 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-scanner-hub__label { grid-column: 1/-1; grid-row: 1; font-size: 11px; line-height: 1.4; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-scanner-hub__selection .glide-select { grid-column: 1; grid-row: 2; min-width: 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-scanner-hub__selection .glide-select__trigger { min-height: 46px; padding: 10px; border-radius: 11px; font-size: 13px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-scanner-hub__option { min-width: 0; font-size: 13px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory button.lc-service-scanner-hub__open { grid-column: 2; grid-row: 2; width: 100%; min-height: 46px; padding: 9px 7px; gap: 6px; border-radius: 11px; font-size: 11px; white-space: normal; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-scanner-hub__open>svg:last-child { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-scanner-hub__context { grid-column: 1/-1; grid-row: 3; min-width: 0; gap: 4px 10px; margin: 1px 0 0; font-size: 11px; line-height: 1.5; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-scanner-hub__context>span { display: inline-flex; align-items: flex-start; min-width: 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-scanner-hub__context svg { margin-top: 2px; }
+
+  /* Export stays available but no longer dominates a phone screen. */
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lc-export-panel.lc-export-panel--compact { margin: 0 14px 12px; border-radius: 13px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lc-export-panel--compact>summary { min-height: 48px; padding: 8px 11px; gap: 8px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-summary-copy { flex-direction: row; align-items: baseline; gap: 4px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-summary-copy strong { font-size: 13px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-summary-copy small { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-summary-icon { flex-basis: 29px; width: 29px; height: 29px; border-radius: 9px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lc-export-panel--compact .lcse-body { padding: 14px!important; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-heading { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 12px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-heading h3 { margin: 0 0 5px; font-size: 19px!important; line-height: 1.3; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-close { flex-basis: 44px; min-width: 44px; width: 44px; height: 44px; min-height: 44px; border-radius: 11px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-subtitle { font-size: 11px!important; line-height: 1.6!important; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-options { display: grid; grid-template-columns: minmax(0,1fr); gap: 9px; margin: 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-choice { min-height: 86px!important; padding: 12px!important; gap: 10px!important; border-radius: 12px!important; box-shadow: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-choice strong { margin: 0!important; font-size: 15px!important; line-height: 1.35; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-choice small { font-size: 12px!important; line-height: 1.5!important; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-choice-icon { flex-basis: 32px; width: 32px; height: 32px; border-radius: 10px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-hint { margin-top: 12px; font-size: 11px!important; line-height: 1.6!important; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-export-panel--compact .lcse-message { margin-top: 10px; padding: 9px 10px; border-radius: 10px; background: var(--lc-glowPrimary,#e5f5ef); color: var(--lc-primary,#147d73); font-size: 12px; }
+
+  /* Card grid puts date, note, Sunday control and attendance in useful space. */
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .services-recovered-list.lcsv-list { display: grid; gap: 11px; margin: 0; padding: 0 12px 12px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-list .lcsv-heading { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-list>.service-list-item { min-width: 0; border: 1px solid var(--lc-panel-border,#d6e7df); border-radius: 15px; background: var(--lc-surface,#fff); box-shadow: 0 3px 10px color-mix(in srgb,var(--lc-primary,#147d73) 3%,transparent); }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe { min-height: 0; border-radius: 14px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lc-swipe-row__surface { min-height: 0; padding-inline-end: 0; touch-action: pan-y pinch-zoom; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-service-content { display: grid; grid-template-columns: 47px minmax(0,1fr); grid-template-rows: auto auto auto auto; align-items: start; column-gap: 12px; row-gap: 5px; min-height: 0; padding: 14px 13px 12px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-main { display: contents; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-date { grid-column: 1; grid-row: 1/4; align-self: start; justify-self: start; width: 45px; min-height: 65px; margin-top: 3px; padding-bottom: 6px; border-radius: 10px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-date>.lcsv-date-month { padding: 5px 0 4px; font-size: 9px; border-radius: 9px 9px 0 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-date>strong { margin-top: 5px; font-size: 23px; line-height: 1.05; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-date>.lcsv-date-weekday { margin-top: 3px; font-size: 9px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-badges { grid-column: 2; grid-row: 1; padding-right: 35px; gap: 5px; min-height: 19px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-badges>span { padding: 3px 6px; font-size: 9px; line-height: 1.4; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-selected-badge { font-size: 8px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-title { grid-column: 2; grid-row: 2; margin: 0; padding-right: 30px; font-size: 15px; line-height: 1.4; letter-spacing: -.025em; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-meta { grid-column: 2; grid-row: 3; display: grid; gap: 4px; margin-top: 1px; font-size: 11px; line-height: 1.55; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-meta>span { display: flex; align-items: flex-start; gap: 5px; min-width: 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-meta>span>svg { width: 13px; height: 13px; margin-top: 2px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-note-mobile { display: block; grid-column: 1; grid-row: 4; width: 44px; min-width: 0; align-self: center; margin-top: 6px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-note-mobile>summary { display: inline-flex; align-items: center; justify-content: center; gap: 3px; width: 44px; height: 44px; min-height: 44px; margin: 0; padding: 0; border: 1px solid color-mix(in srgb,var(--lc-secondary,#7964ad) 16%,var(--lc-panel-border,#d6e7df)); border-radius: 11px; background: color-mix(in srgb,var(--lc-secondary,#7964ad) 6%,var(--lc-surface,#fff)); color: var(--lc-secondary,#7964ad); font-size: 0; line-height: 1; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-note-mobile>summary>svg { flex: none; width: 14px; height: 14px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-note-mobile>summary>svg:last-child { width: 11px; height: 11px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-note-mobile>summary>svg:first-child { transform: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-note-mobile[open] { grid-column: 1/-1; grid-row: 5; width: auto; margin-top: 2px; padding-top: 9px; border-top: 1px solid var(--lc-panel-border,#d6e7df); }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-note-mobile[open]>summary { justify-content: flex-start; gap: 7px; width: 100%; padding: 0 10px; font-size: 12px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-note-mobile .lcsv-note { display: block; margin: 7px 0 0; padding: 10px 11px; border-radius: 10px; font-size: 12px; line-height: 1.65; white-space: pre-wrap; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-note-desktop { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-row-controls { grid-column: 2; grid-row: 4; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 5px 8px; min-width: 0; min-height: 44px; margin-top: 6px; padding: 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-service-content:not(:has(.lcsv-note-mobile)) .lcsv-row-controls { grid-column: 1/-1; padding-top: 7px; border-top: 1px solid var(--lc-panel-border,#d6e7df); }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-sunday-toggle { flex: 0 0 auto; justify-content: flex-start; justify-self: start; width: auto; min-width: 94px; min-height: 44px; margin: 0; padding: 8px 9px; gap: 7px; border-radius: 11px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-sunday-label { font-size: 11px; font-weight: 600; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-attendance { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px; flex: 1 1 90px; min-width: 0; margin: 0; padding: 4px 0; border: 0; font-size: 10px; line-height: 1.4; text-align: right; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-attendance>div { gap: 4px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-attendance strong { font-size: 15px; line-height: 1.2; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-attendance>span { font-size: 10px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-attendance>small { flex-basis: 100%; width: fit-content; margin: 0; padding: 0; border-radius: 0; background: transparent; color: var(--lc-primary,#147d73); font-size: 9px; line-height: 1.5; }
+
+  /* Reveal-only swipe width still comes from SwipeRow's measured drawer. */
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lc-swipe-row__toggle { top: 10px; right: 7px; width: 44px; height: 44px; min-height: 44px; border: 1px solid transparent; border-radius: 12px; transform: none; color: var(--lc-muted,#71877f); opacity: 1; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lc-swipe-row__toggle[aria-expanded='true'] { background: var(--lc-glowPrimary,#e5f5ef); border-color: var(--lc-panel-border,#d6e7df); color: var(--lc-primary,#147d73); }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lc-swipe-row__rail { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 8px; width: var(--sr-drawer-width); padding: 12px 8px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lc-swipe-row__action { display: flex; flex: 0 0 auto; flex-direction: row; align-items: center; justify-content: flex-start; gap: 9px; width: 100%; min-height: 48px; height: 48px; margin: 0; padding: 8px 10px; border: 1px solid color-mix(in srgb,var(--service-action-color,var(--lc-primary,#147d73)) 19%,var(--lc-panel-border,#d6e7df)); border-radius: 11px; font-size: 12px; line-height: 1.4; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lc-swipe-row__action .lc-swipe-row__icon { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 8px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lc-swipe-row__action .lc-swipe-row__icon svg { width: 17px; height: 17px; }
+
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .service-inline-confirmation { display: grid; gap: 11px; padding: 14px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .service-inline-confirmation strong { font-size: 13px; line-height: 1.5; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .service-inline-confirmation>div>span { font-size: 11px; line-height: 1.6; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .service-inline-confirmation-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .service-inline-confirmation-actions>button { min-width: 0; width: 100%; min-height: 46px; height: auto; margin: 0; padding: 10px 8px; border-radius: 11px; font-size: 12px; line-height: 1.4; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsp-footer { display: grid; gap: 12px; padding: 14px; margin: 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-footer-summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-footer-summary>p { margin: 0; font-size: 11px; line-height: 1.5; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsm-page-size .lcsm-select>span { font-size: 11px; white-space: nowrap; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-page-buttons { display: flex; justify-content: center; gap: 6px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-page-buttons button { width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 11px; font-size: 12px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] :is(.services-directory-timezone,.services-directory-count,.lcsm-select>span,.lc-service-scanner-hub__label,.lc-service-scanner-hub__context,.lcsv-meta,.lcsv-date-weekday,.lcsp-footer-summary>p,.lcse-subtitle,.lcse-choice small,.lcse-hint) { color: var(--lc-safe-muted,#60796f); }
+
+  /* Editing uses readable inputs and reachable actions above the phone nav. */
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor { margin: 0 0 14px; border-radius: 20px; scroll-margin-top: 80px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__header { align-items: flex-start; gap: 10px; padding: 17px 15px; border-radius: 19px 19px 0 0; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__header-icon { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__intro .lc-service-editor__eyebrow { font-size: 9px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__intro h2 { font-size: 21px; line-height: 1.35; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__intro>p:last-child { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__close { flex-basis: 44px; width: 44px; height: 44px; min-height: 44px; border-radius: 12px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__layout { display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; padding: 17px 15px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__details { gap: 15px 10px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__field { gap: 7px; font-size: 12px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__field small { font-size: 10px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor :is(input:not([type='checkbox']),textarea) { min-height: 46px; padding: 11px 12px; border-radius: 12px; font-size: 16px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor :is(input,textarea)::placeholder { font-size: 14px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor .lc-service-schedule-trigger { min-height: 46px; padding: 11px 10px; border-radius: 12px; font-size: 13px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__note { padding: 13px; border-radius: 13px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__section-heading h3 { font-size: 14px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__section-heading p { font-size: 11px; line-height: 1.5; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__note textarea { min-height: 108px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__options { grid-column: auto; padding-top: 16px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__options-heading h3 { font-size: 14px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__options-heading p { font-size: 11px; line-height: 1.6; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__choice-grid { grid-template-columns: minmax(0,1fr); gap: 10px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__choice { min-height: 80px; padding: 12px; gap: 10px; border-radius: 13px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__choice-icon { width: 32px; height: 32px; flex-basis: 32px; border-radius: 10px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__choice-copy strong { font-size: 13px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__choice-copy small { font-size: 11px; line-height: 1.55; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__choice-check { flex-basis: 22px; width: 22px; height: 22px; border-radius: 7px; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__footer { position: sticky; z-index: 12; bottom: calc(var(--lc-phone-nav-height,72px) + env(safe-area-inset-bottom)); display: grid; gap: 9px; padding: 12px 15px; border-radius: 0 0 19px 19px; background: color-mix(in srgb,var(--lc-surface,#fff) 96%,transparent); box-shadow: 0 -5px 15px color-mix(in srgb,var(--lc-primary,#147d73) 4%,transparent); }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__footer>p { max-width: none; font-size: 10px; line-height: 1.5; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__actions { display: grid; grid-template-columns: minmax(0,.8fr) minmax(0,1.2fr); gap: 8px; width: 100%; }
+  html:root body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__actions button { width: 100%; min-width: 0; min-height: 46px; padding: 11px 9px; border-radius: 12px; font-size: 13px; }
+  html.lc-keyboard-editing body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor { padding-bottom: 0; }
+  html.lc-keyboard-editing body .lc-mobile-workspace[data-mobile-page='events'] .lc-service-editor__footer { bottom: 0; }
+
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-picker :is(.lc-service-picker__close,.lc-service-picker__footer button) { min-height: 44px; height: 44px; padding: 8px 12px; font-size: 13px; }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-picker .lc-service-picker__close { width: 44px; padding: 0; }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-picker__header h3 { font-size: 17px; }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-picker__header p { font-size: 11px; }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-date-picker__grid button { min-height: 44px; font-size: 14px; }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-date-picker__weekdays { font-size: 11px; }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-date-picker__navigation { grid-template-columns: 44px minmax(0,1fr) 88px 44px; gap: 4px; }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-date-picker__navigation .glide-select__trigger { padding-inline: 8px; gap: 5px; font-size: 12px; }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-date-picker button.lc-service-date-picker__arrow { width: 44px; height: 44px; min-height: 44px; }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-time-picker__hours { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-time-picker :is(.lc-service-time-picker__hours,.lc-service-time-picker__minutes)>button { min-height: 44px; font-size: 15px; }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-time-picker__section>p { font-size: 12px; }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-time-picker__period>button { min-height: 44px; font-size: 13px; }
+
+  @media (max-width: 370px) {
+    html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-date-picker__navigation { grid-template-columns: 44px minmax(0,1fr) 76px 44px; }
+    html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-date-picker__navigation .glide-select__trigger { padding-inline: 4px; gap: 3px; font-size: 11px; }
+    html:root body:has(.lc-mobile-workspace[data-mobile-page='events']) .lc-service-date-picker__navigation .glide-select__chevron { width: 12px; height: 12px; }
+    html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-hero-copy h1 { font-size: 25px; }
+    html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-editorial-hero .services-create-action { gap: 6px; padding-inline: 10px; }
+    html:root body .lc-mobile-workspace[data-mobile-page='events'] .services-editorial-hero .services-create-action strong { font-size: 12px; }
+    html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lc-service-scanner-hub { grid-template-columns: minmax(0,1fr) 98px; padding: 10px; }
+    html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-service-content { grid-template-columns: 42px minmax(0,1fr); column-gap: 9px; padding-inline: 11px; }
+    html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-date { width: 41px; }
+    html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-title { font-size: 14px; padding-right: 25px; }
+    html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-row-controls { gap: 4px 6px; }
+    html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-sunday-toggle { min-width: 86px; padding-inline: 7px; }
+    html:root body .lc-mobile-workspace[data-mobile-page='events'] .lcsp-directory .lcsv-swipe .lcsv-attendance { flex-basis: 78px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html[data-lc-motion='on'] body .lc-mobile-workspace[data-mobile-page='events'] :is(.services-create-action,.lcsp-filter-toggle,.lc-service-scanner-hub__open,.lcsv-sunday-toggle,.lcsv-note-mobile>summary,.lcse-choice,.lc-service-editor__actions button) { transition: background-color 160ms ease,border-color 160ms ease,box-shadow 160ms ease,transform 160ms ease; }
+    html[data-lc-motion='on'] body .lc-mobile-workspace[data-mobile-page='events'] :is(.services-create-action,.lc-service-scanner-hub__open,.lcse-choice,.lc-service-editor__actions button):active:not(:disabled) { transform: scale(.98); }
+  }
+}

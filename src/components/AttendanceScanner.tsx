@@ -386,6 +386,43 @@ export default function AttendanceScanner({ event, onCheckIn, checkInCount }: Pr
 
   useEffect(() => {
     if (!isKioskMode) return
+    const element = scannerLayoutRef.current
+    if (!element) return
+    const phone = matchMedia('(max-width:900px)')
+    const viewport = window.visualViewport
+    let frame = 0
+    const clearPhoneViewport = () => {
+      element.style.removeProperty('--lc-scan-viewport-height')
+      element.style.removeProperty('--lc-scan-viewport-top')
+    }
+    const fitPhoneViewport = () => {
+      if (!phone.matches) { clearPhoneViewport(); return }
+      const height = viewport?.height ?? window.innerHeight
+      const top = viewport?.offsetTop ?? 0
+      element.style.setProperty('--lc-scan-viewport-height', `${Math.max(1, Math.floor(height))}px`)
+      element.style.setProperty('--lc-scan-viewport-top', `${Math.max(0, Math.floor(top))}px`)
+    }
+    const scheduleFit = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(fitPhoneViewport)
+    }
+    fitPhoneViewport()
+    viewport?.addEventListener('resize', scheduleFit)
+    viewport?.addEventListener('scroll', scheduleFit)
+    window.addEventListener('resize', scheduleFit)
+    phone.addEventListener('change', scheduleFit)
+    return () => {
+      cancelAnimationFrame(frame)
+      viewport?.removeEventListener('resize', scheduleFit)
+      viewport?.removeEventListener('scroll', scheduleFit)
+      window.removeEventListener('resize', scheduleFit)
+      phone.removeEventListener('change', scheduleFit)
+      clearPhoneViewport()
+    }
+  }, [isKioskMode])
+
+  useEffect(() => {
+    if (!isKioskMode) return
     const previous = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     // Also isolate the viewport-filling fallback when native fullscreen is unavailable.
@@ -433,6 +470,9 @@ export default function AttendanceScanner({ event, onCheckIn, checkInCount }: Pr
       return
     }
     setIsKioskMode(true)
+    // Phone kiosk already fills the visible app viewport. Avoid a second
+    // browser fullscreen layer and its exit banner over the scanning guide.
+    if (matchMedia('(max-width:900px)').matches) return
     try { await scannerLayoutRef.current?.requestFullscreen?.() }
     catch { /* Keep the accessible viewport-filling kiosk if fullscreen is blocked. */ }
   }

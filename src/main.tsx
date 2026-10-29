@@ -27,6 +27,10 @@ import './workspace-directory-polish.css'
 import './services-workspace-polish.css'
 import './scanner-workspace-polish.css'
 import './records-workspace-polish.css'
+import './mobile-phone-shell.css'
+import './mobile-dashboard-phone.css'
+import './mobile-services-phone.css'
+import './mobile-scanner-phone.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode><MotionRuntime /><ToastProvider><App /></ToastProvider></StrictMode>,

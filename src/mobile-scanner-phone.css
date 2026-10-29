@@ -1,0 +1,221 @@
+/* Phone scanner refinements. The approved desktop scanner keeps its own rules. */
+@media (max-width:900px) {
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-page{min-width:0}
+  html:root body main[data-mobile-page='scanner'] .scanner-editorial-hero.lc-scanner-overview{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;min-height:0;margin:0 0 12px;padding:16px;border-radius:17px;box-shadow:0 4px 15px color-mix(in srgb,var(--lc-primary,#147d73) 4%,transparent)}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview__copy .lc-scanner-overview__eyebrow{font-size:9px;line-height:1.35;margin:0 0 6px;letter-spacing:.1em}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview__copy h1{font-size:24px;line-height:1.15;letter-spacing:-.04em;margin:0}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview__copy>p:not(.lc-scanner-overview__eyebrow){font-size:12px;line-height:1.5;margin:8px 0 0}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview.has-service{grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:12px 14px;margin-bottom:10px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview.has-service .lc-scanner-overview__copy h1{font-size:20px;line-height:1.2;letter-spacing:-.035em}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview.has-service .lc-scanner-overview__copy>p{display:none}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview__counter{display:flex;align-items:center;gap:10px;min-width:0;padding:8px 10px;border-radius:12px;background:color-mix(in srgb,var(--lc-primary,#147d73) 4%,var(--lc-surface,#fff));box-shadow:none}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview__counter-top{display:grid;justify-content:start;gap:4px;font-size:10px;line-height:1.35}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview__counter-top>span:first-child{gap:4px;white-space:nowrap}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview__counter-top>span:first-child>svg{width:12px;height:12px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview__state{justify-self:start;font-size:8px;line-height:1.3;padding:3px 5px;white-space:nowrap}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-overview__number{font-size:26px;line-height:1.1;letter-spacing:-.045em;margin:0;font-weight:700}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-selection-bar{gap:10px;grid-template-columns:32px minmax(0,1fr);margin:0 0 12px;padding:12px;border-radius:16px;background:linear-gradient(115deg,color-mix(in srgb,var(--lc-primary,#147d73) 5%,var(--lc-surface,#fff)),var(--lc-surface,#fff));box-shadow:0 3px 12px color-mix(in srgb,var(--lc-primary,#147d73) 3%,transparent)}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-selection-bar__symbol{width:32px;height:36px;border-radius:10px;align-self:start}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-selection-bar__symbol>svg{width:19px;height:19px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-selection-bar__copy .lc-scanner-selection-bar__eyebrow{font-size:9px;margin:0 0 3px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-selection-bar__copy h2{font-size:15px;line-height:1.35;letter-spacing:-.02em}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-selection-bar__meta{gap:3px 10px;margin-top:5px;font-size:11px;line-height:1.45}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-selection-bar__meta>span{min-width:0;max-width:100%;overflow-wrap:anywhere}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-selection-bar__hint{font-size:12px;line-height:1.45;margin-top:4px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-selection-bar>.lc-service-trigger{grid-column:1/-1;width:100%;max-width:none;min-width:0;min-height:44px;padding:9px 12px;border-radius:11px;font-size:13px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-availability{min-height:44px;padding:11px 12px;margin:0 0 12px;font-size:12px;border-radius:13px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-availability button{min-height:44px;font-size:12px}
+
+  /* Selection starts with readable, compact rows rather than large nested cards. */
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start{display:block;border-radius:17px;overflow:hidden}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__services{padding:14px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__services>header{gap:10px;align-items:flex-start;margin-bottom:13px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__services>header h2{font-size:17px;line-height:1.35}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__services>header p{font-size:12px;line-height:1.45;margin-top:4px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__services>header>span{font-size:10px;padding:5px 7px;white-space:nowrap}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__cards{display:grid;grid-template-columns:minmax(0,1fr);gap:9px}
+  html:root body main[data-mobile-page='scanner'] button.lc-scanner-start__service{display:grid;grid-template-columns:44px minmax(0,1fr) 20px;gap:4px 11px;min-height:0;padding:13px 11px;border-radius:13px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__service-top{display:contents}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__service-top>time{grid-column:1;grid-row:1/5;align-self:start;width:44px;min-height:58px;margin:2px 0 0;border-radius:10px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__service-top>time>span{font-size:9px;padding:4px 0}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__service-top>time>strong{font-size:22px;line-height:1.1}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__state{grid-column:2;grid-row:1;justify-self:start;align-self:start;font-size:9px;line-height:1.3;padding:3px 6px;margin:0 0 2px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__name{grid-column:2;grid-row:2;font-size:14px;line-height:1.4;margin:0;overflow-wrap:anywhere}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__meta{grid-column:2;display:flex;align-items:flex-start;gap:5px;font-size:11px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__meta>svg{flex:none;margin-top:2px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__service-bottom{display:contents}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__service-bottom>span{grid-column:2;font-size:10px;line-height:1.5;margin-top:3px;color:var(--lc-primary,#147d73)}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__service-bottom>svg{grid-column:3;grid-row:1/5;align-self:center;width:18px;height:18px;color:var(--lc-primary,#147d73)}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__guide{display:flex;align-items:center;flex-wrap:wrap;gap:5px 10px;padding:12px 14px;border-left:0;border-top:1px solid var(--lc-panel-border,#dce8e4);min-width:0;text-align:left}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__guide .lc-scanner-start__qr{display:none}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__guide h3{font-size:12px;margin:0;color:var(--lc-primary,#147d73)}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__guide p{flex:1 1 180px;font-size:11px;line-height:1.45;margin:0}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__guide>span{flex:1 0 100%;font-size:10px;line-height:1.45;margin:0;padding:0;border:0}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__more{font-size:11px;line-height:1.5;margin:11px 0 0}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__empty{padding:16px 0;gap:10px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__empty h3{font-size:15px}
+  html:root body main[data-mobile-page='scanner'] .lc-scanner-start__empty p{font-size:12px;line-height:1.5}
+
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station:not(.is-kiosk-mode) .lc-scan-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:start}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station:not(.is-kiosk-mode) .lc-scan-camera{border-radius:17px;box-shadow:0 5px 16px color-mix(in srgb,var(--lc-primary,#147d73) 4%,transparent)}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station:not(.is-kiosk-mode) .lc-scan-camera__header{min-height:46px;padding:10px 12px;gap:9px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__header h2{font-size:15px;line-height:1.3;letter-spacing:-.02em}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__state{font-size:9px;line-height:1.4;padding:5px 7px;border-radius:7px;gap:5px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station:not(.is-kiosk-mode) .lc-scan-camera__stage{height:clamp(190px,34svh,320px);min-height:0;aspect-ratio:auto}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station:not(.is-kiosk-mode)[data-camera-state='error'] .lc-scan-camera__stage{height:140px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__guide{border-radius:11px;color:#eafff6;box-shadow:0 0 0 100vmax rgb(3 17 14 / .57)}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__guide>i{width:23px;height:23px;opacity:1}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__guide>span{font-size:11px;line-height:1.4;padding:5px 9px;top:calc(100% + 9px);border:1px solid #a1d7c54a;background:#103e32ed;border-radius:8px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__stage-hint{font-size:11px;padding:6px 9px;bottom:10px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__tools{display:block;padding:8px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__tools>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;min-width:0}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station .lc-scan-tool{min-height:44px;padding:9px 10px;border-radius:11px;font-size:12px;line-height:1.35;gap:6px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__tools .lc-scan-tool>svg{flex:none;width:17px;height:17px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__error{margin:0 9px 9px;padding:11px;border-radius:12px;gap:9px;align-items:flex-start}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__error strong{font-size:13px;line-height:1.4}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-camera__error p{font-size:12px;line-height:1.5}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-rail{display:grid;gap:10px;min-height:0}
+
+  /* One canonical live region: results stay compact and readable beside the camera. */
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback{border-radius:14px;box-shadow:0 3px 12px color-mix(in srgb,var(--feedback-accent) 4%,transparent)}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback>header{display:none}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback:has(.lc-scan-dismiss)>header{display:flex;min-height:0;height:0;padding:0;position:relative;z-index:1;border:0}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback:has(.lc-scan-dismiss)>header .lc-scan-eyebrow{display:none}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station .lc-scan-feedback .lc-scan-dismiss{position:absolute;right:2px;top:2px;width:44px;height:44px;min-height:44px;border-radius:11px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback__body{display:grid;grid-template-columns:minmax(0,1fr);min-height:52px;gap:6px;padding:12px 14px;align-content:center}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback:has(.lc-scan-dismiss) .lc-scan-feedback__body{padding-right:46px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback__status{gap:7px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback__status>svg{width:20px;height:20px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback__body h3{font-size:13px;line-height:1.4;font-weight:650}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback__member{font-size:20px;line-height:1.2;letter-spacing:-.025em;overflow-wrap:anywhere}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback__member[data-long]{font-size:17px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback__body p{font-size:12px;line-height:1.5}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback__time{font-size:10px;line-height:1.4;padding:4px 6px;justify-self:start}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-feedback[data-state='ready'] .lc-scan-feedback__body{display:flex;gap:8px;min-height:48px;padding:11px 13px}
+
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual{border-radius:15px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station .lc-scan-manual__heading{min-height:58px;padding:11px 12px;gap:9px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__symbol{width:32px;height:32px;border-radius:10px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__heading strong{font-size:14px;line-height:1.35}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__heading small{font-size:11px;line-height:1.4}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__form{gap:9px;padding:0 12px 12px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__search{height:48px;min-height:48px;padding:0 10px;border-radius:11px;gap:7px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__search input{height:46px;min-height:46px;font-size:16px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__search input::placeholder{font-size:13px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station .lc-scan-manual__search>button{width:44px;height:44px;min-height:44px;margin-right:-8px;border-radius:10px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__help{font-size:11px;line-height:1.5}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__empty{padding:11px;gap:8px;border-radius:11px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__empty p{font-size:12px;line-height:1.5}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__results ul{max-height:240px;max-height:32svh;gap:6px;scroll-padding-block:6px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__results li>button{min-height:62px;padding:10px;border-radius:11px;gap:9px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__results li>button strong{font-size:13px;line-height:1.4}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__results li>button small{font-size:11px;line-height:1.45}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__count{font-size:11px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__message{font-size:12px;line-height:1.5;padding:11px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station .lc-scan-primary{min-height:46px;padding:10px 12px;font-size:13px;border-radius:11px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-member-selected{padding:11px;gap:8px;border-radius:12px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-member-selected strong{font-size:14px;line-height:1.35}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-member-selected small{font-size:9px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-member-selected>div>span{font-size:11px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station .lc-scan-member-selected>.lc-scan-dismiss{width:44px;height:44px;min-height:44px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-manual__error p{font-size:12px;line-height:1.5}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-recent{padding:12px 13px;border-radius:14px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-recent__heading h3{font-size:12px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-recent__heading>span{font-size:10px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-recent ul{gap:8px;margin-top:10px}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-recent li>strong{font-size:12px;line-height:1.4}
+  html:root body main[data-mobile-page='scanner'] .lc-scan-recent time{font-size:10px}
+
+  /* Kiosk owns exactly the visible viewport; the result never falls below it. */
+  html:root body main[data-mobile-page='scanner'] .scanner-layout.lc-scan-station.is-kiosk-mode{inset:var(--lc-scan-viewport-top,0px) 0 auto;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;width:100%;height:var(--lc-scan-viewport-height,100dvh);max-height:var(--lc-scan-viewport-height,100dvh);min-height:0;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));overflow:hidden;overscroll-behavior:none;isolation:isolate}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service{display:flex;align-items:center;gap:9px;min-width:0;min-height:50px;padding:0 2px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service__details{min-width:0;flex:1}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service .lc-scan-eyebrow{font-size:8px;margin:0 0 3px;line-height:1.3}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service h2{font-size:14px;line-height:1.25;-webkit-line-clamp:2;letter-spacing:-.02em;overflow-wrap:anywhere}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service__details>p:last-child{font-size:10px;line-height:1.35;margin:3px 0 0}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service__actions{gap:8px;flex:none}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-total{gap:3px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-total>strong{font-size:24px;line-height:1;font-weight:700}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-total>span{font-size:9px;line-height:1.2}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service__actions>.lc-scan-tool{min-height:44px;padding:9px;font-size:11px;gap:5px;border-radius:11px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;align-items:stretch;gap:8px;height:100%;min-height:0;overflow:hidden}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera{display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100%;min-height:0;border-radius:16px;overflow:hidden}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera:has(.lc-scan-camera__error){grid-template-rows:auto minmax(0,1fr) auto auto}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera__header{min-height:38px;padding:9px 11px;gap:8px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera__header h2{font-size:14px;line-height:1.3}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera__stage{height:100%;min-height:0;aspect-ratio:auto}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera__tools{padding:6px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera__tools>div{grid-template-columns:minmax(0,1fr)}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera__tools .lc-scan-tool{min-height:42px;padding:8px 10px;font-size:12px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-rail{display:grid;grid-template-rows:auto;gap:0;align-content:start;min-height:0;height:auto;max-height:29dvh;overflow:hidden}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback{flex:none;display:block;min-height:0;border-radius:14px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback__body{min-height:0;padding:11px 13px;gap:5px;overflow:hidden}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback:has(.lc-scan-dismiss) .lc-scan-feedback__body{padding-right:45px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback__body h3{font-size:13px;line-height:1.35}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback__member{font-size:clamp(20px,5.5vw,26px);line-height:1.18}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback__member[data-long]{font-size:19px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback__body p{font-size:11px;line-height:1.4}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback__time{font-size:10px;line-height:1.35}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode :is(.lc-scan-recent,.lc-scan-kiosk-help){display:none}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode[data-camera-state='error'] .lc-scan-camera{grid-template-rows:auto auto minmax(0,1fr)}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode[data-camera-state='error'] .lc-scan-camera__stage{display:none}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode[data-camera-state='error'] .lc-scan-camera__error{min-height:0;overflow:auto;overscroll-behavior:contain;margin:0 8px 8px;padding:10px}
+
+  /* The existing service dialog becomes a phone sheet with a fixed search header. */
+  html:root body dialog.lc-scanner-service-picker{inset:auto 0 0;width:100%;max-width:100%;height:min(760px,calc(100dvh - 16px));max-height:calc(100dvh - 16px);margin:0;border-radius:22px 22px 0 0;padding-bottom:env(safe-area-inset-bottom)}
+  html:root body .lc-scanner-service-picker__header{gap:10px;padding:17px 15px 14px}
+  html:root body .lc-scanner-service-picker__header h2{font-size:21px;line-height:1.25}
+  html:root body .lc-scanner-service-picker__header div>span{font-size:11px;line-height:1.45;margin-top:4px}
+  html:root body .lc-scanner-service-picker__header p{font-size:9px;margin-bottom:4px}
+  html:root body .lc-scanner-service-picker__symbol{width:37px;height:41px;border-radius:12px}
+  html:root body .lc-scanner-service-picker button.lc-scanner-service-picker__close{width:44px;height:44px;min-height:44px;border-radius:12px}
+  html:root body .lc-scanner-service-picker__tools{padding:13px 15px 0}
+  html:root body .lc-scanner-service-picker__search{height:48px;min-height:48px;border-radius:12px}
+  html:root body .lc-scanner-service-picker .lc-scanner-service-picker__search input{height:46px;min-height:46px;max-height:46px;font-size:16px}
+  html:root body .lc-scanner-service-picker .lc-scanner-service-picker__search input::placeholder{font-size:13px}
+  html:root body .lc-scanner-service-picker__search>button{width:44px;height:44px;min-height:44px;margin-right:-8px}
+  html:root body .lc-scanner-service-picker__scope{font-size:11px;margin:10px 0 2px}
+  html:root body .lc-scanner-service-picker__scope strong{font-size:12px}
+  html:root body .lc-scanner-service-picker__scope>span{font-size:10px}
+  html:root body .lc-scanner-service-picker__list{padding:0 15px 15px;scroll-padding-top:42px}
+  html:root body .lc-scanner-service-picker__group h3{font-size:11px;padding:12px 1px 8px}
+  html:root body .lc-scanner-service-picker button.lc-scanner-service-picker__option{min-height:88px;gap:10px;padding:12px 10px;border-radius:13px}
+  html:root body .lc-scanner-service-picker__option-copy>strong{font-size:13px;line-height:1.4}
+  html:root body .lc-scanner-service-picker__option-copy>span{font-size:11px;line-height:1.45}
+  html:root body .lc-scanner-service-picker__date{width:42px;min-height:59px}
+  html:root body .lc-scanner-service-picker__date>small{font-size:9px}
+  html:root body .lc-scanner-service-picker__date>strong{font-size:22px}
+  html:root body .lc-scanner-service-picker__footer{padding:12px 15px;min-height:65px;gap:10px}
+  html:root body .lc-scanner-service-picker__footer>div>span{font-size:10px}
+  html:root body .lc-scanner-service-picker__footer strong{font-size:12px;line-height:1.4}
+  html:root body .lc-scanner-service-picker button.lc-scanner-service-picker__clear{min-height:44px;font-size:12px;padding:9px 10px}
+}
+
+@media (max-width:900px) and (orientation:landscape) and (max-height:540px) {
+  html:root body main[data-mobile-page='scanner'] .lc-scan-station:not(.is-kiosk-mode) .lc-scan-camera__stage{height:240px}
+  html:root body main[data-mobile-page='scanner'] .scanner-layout.lc-scan-station.is-kiosk-mode{gap:6px;padding:6px max(8px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service{min-height:42px;gap:10px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service .lc-scan-eyebrow{display:none}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service h2{font-size:14px;-webkit-line-clamp:1}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service__details>p:last-child{font-size:10px;margin-top:2px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-kiosk-service__actions>.lc-scan-tool{min-height:40px;font-size:11px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-layout{grid-template-columns:minmax(0,1fr) minmax(200px,.65fr);grid-template-rows:minmax(0,1fr);gap:8px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera__header{min-height:34px;padding:7px 10px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera__header h2{font-size:13px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera__tools{padding:4px 6px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera__tools .lc-scan-tool{min-height:40px;padding:7px 10px;font-size:11px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-rail{height:100%;max-height:none;display:flex;align-content:stretch;justify-content:center;overflow:hidden}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback{max-height:100%;overflow:hidden}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback__body{padding:14px;gap:8px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback__member{font-size:23px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback__member[data-long]{font-size:19px}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-feedback__body p{font-size:11px;line-height:1.4}
+  html:root body main[data-mobile-page='scanner'] .is-kiosk-mode .lc-scan-camera__guide>span{font-size:10px;padding:4px 7px;top:calc(100% + 5px)}
+}
+
+@media (max-width:900px) and (prefers-reduced-motion:no-preference) {
+  html[data-lc-motion='on']:root body main[data-mobile-page='scanner'] :is(.lc-scan-tool,.lc-scan-primary,.lc-scanner-start__service,.lc-scanner-service-picker__trigger){transition:background-color 160ms ease,border-color 160ms ease,box-shadow 160ms ease,transform 160ms ease}
+  html[data-lc-motion='on']:root body main[data-mobile-page='scanner'] :is(.lc-scan-tool,.lc-scan-primary,.lc-scanner-start__service):active{transform:scale(.985)}
+  html[data-lc-motion='on']:root body main[data-mobile-page='scanner'] .lc-scan-feedback[data-state='success']{animation:lc-phone-scan-confirm 260ms ease-out}
+  @keyframes lc-phone-scan-confirm{from{box-shadow:0 0 0 5px color-mix(in srgb,var(--lc-primary,#147d73) 14%,transparent);opacity:.8}to{box-shadow:0 0 0 0 transparent;opacity:1}}
+}

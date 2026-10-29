@@ -1,0 +1,122 @@
+/* Phone dashboard only. The approved desktop dashboard is not restyled here. */
+@media (max-width: 900px) {
+  html:root body .lcd-mobile { gap: 12px; }
+  html:root body .lcd-mobile .lcd-head {
+    min-height: 90px; padding: 17px 16px; gap: 12px; border-width: 1px; border-radius: 19px;
+    background: linear-gradient(118deg, var(--lc-glowPrimary, #e5f5ef), var(--lc-surface, #fff) 62%, var(--lc-glowSecondary, #f1edfa)) padding-box,
+      linear-gradient(120deg, #8bc5b2, #b3a0d3 65%, #e6c77d) border-box;
+    box-shadow: 0 4px 18px color-mix(in srgb, var(--lc-primary, #147d73) 5%, transparent);
+  }
+  html:root body .lcd-mobile .lcd-head > div { min-width: 0; }
+  html:root body .lcd-mobile .lcd-head p { margin: 0 0 6px; font-size: 10px; line-height: 1.3; letter-spacing: .085em; text-transform: uppercase; font-weight: 650; color: var(--lc-primary, #147d73); }
+  html:root body .lcd-mobile .lcd-head h1 { margin: 0; font-size: 29px; line-height: 1.15; font-weight: 750; letter-spacing: -.04em; }
+  html:root body .lcd-mobile .lcd-icon-button { flex: 0 0 44px; width: 44px; height: 44px; min-height: 44px; border-radius: 13px; background: color-mix(in srgb, var(--lc-surface, #fff) 88%, transparent); border-color: color-mix(in srgb, var(--lc-primary, #147d73) 20%, var(--lc-surface, #fff)); }
+  html:root body .lcd-mobile .lcd-icon-button:disabled { opacity: .75; }
+  html:root body .lcd-mobile .lcd-header-art > span { width: 110px; height: 110px; top: 25px; right: 61px; opacity: .23; }
+  html:root body .lcd-mobile .lcd-header-art > svg { top: 15px; right: 72px; width: 18px; height: 18px; opacity: .5; }
+  html:root body .lcd-mobile .lcd-toolbar { padding: 4px 10px 4px 12px; min-height: 56px; border-radius: 15px; border-color: color-mix(in srgb, var(--lc-primary, #147d73) 13%, var(--lc-surface, #fff)); background: color-mix(in srgb, var(--lc-surface, #fff) 72%, var(--lc-glowPrimary, #e5f5ef)); }
+  html:root body .lcd-mobile .lcd-period-control { gap: 7px; min-width: 0; font-size: 12px; }
+  html:root body .lcd-mobile .lcd-period-control > span { color: var(--lc-safe-muted, #60796f); }
+  html:root body .lcd-mobile .lcd-period-glide { width: auto; min-width: 112px; max-width: 150px; }
+  html:root body .lcd-mobile .lcd-period-glide .glide-select__trigger { min-height: 44px; padding: 8px 10px; gap: 8px; border: 0; border-radius: 11px; background: transparent; box-shadow: none; color: var(--lc-heading, #173e37); font-size: 13px; font-weight: 650; }
+  html:root body .lcd-mobile .lcd-checkin-summary { display: grid; gap: 2px; flex: 0 0 auto; margin: 0; text-align: right; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  html:root body .lcd-mobile .lcd-checkin-summary strong { font-size: 17px; font-weight: 750; color: var(--lc-heading, #173e37); }
+  html:root body .lcd-mobile .lcd-checkin-summary span { font-size: 10px; color: var(--lc-safe-muted, #60796f); }
+  html:root body .lcd-mobile .lcd-actions { grid-template-columns: 1.22fr 1fr; gap: 9px; }
+  html:root body .lcd-mobile .lcd-actions button { gap: 8px; min-height: 46px; padding: 10px 11px; border-radius: 14px; font-size: 13px; font-weight: 650; line-height: 1.2; }
+  html:root body .lcd-mobile .lcd-actions button:first-child { background: linear-gradient(115deg, var(--lc-button, #147d73), color-mix(in srgb, var(--lc-button, #147d73) 84%, #154e47)); color: var(--lc-safe-button-text, #fff); border-color: transparent; box-shadow: 0 4px 11px color-mix(in srgb, var(--lc-primary, #147d73) 15%, transparent); }
+  html:root body .lcd-mobile .lcd-actions button:first-child > svg:last-child { margin-left: auto; width: 14px; }
+  html:root body .lcd-mobile .lcd-actions button:last-child { border-color: color-mix(in srgb, var(--lc-primary, #147d73) 18%, var(--lc-surface, #fff)); background: var(--lc-surface, #fff); }
+  html:root body .lcd-mobile .lcd-live { padding: 13px; gap: 12px; border-radius: 17px; background: linear-gradient(115deg, var(--lc-glowPrimary, #e5f5ef), var(--lc-surface, #fff)); border-color: color-mix(in srgb, var(--lc-primary, #147d73) 28%, var(--lc-surface, #fff)); }
+  html:root body .lcd-mobile .lcd-live .lcd-kicker { display: flex; align-items: center; gap: 5px; color: var(--lc-primary, #147d73); font-size: 9px; }
+  html:root body .lcd-mobile .lcd-live .lcd-kicker i { width: 6px; height: 6px; border-radius: 50%; background: var(--lc-primary, #147d73); }
+  html:root body .lcd-mobile .lcd-live h2 { margin: 5px 0 4px; font-size: 14px; line-height: 1.4; }
+  html:root body .lcd-mobile .lcd-live p { margin: 0; font-size: 11px; line-height: 1.5; }
+  html:root body .lcd-mobile .lcd-live > strong { display: grid; gap: 3px; flex: 0 0 auto; font-size: 28px; line-height: 1; }
+  html:root body .lcd-mobile .lcd-live > strong small { font-size: 9px; white-space: nowrap; }
+  html:root body .lcd-mobile .lcd-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  html:root body .lcd-mobile .lcd-metrics article {
+    --lcd-metric-accent: var(--lc-primary, #147d73); --lcd-metric-wash: var(--lc-glowPrimary, #e5f5ef);
+    position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto;
+    align-content: start; gap: 6px; min-height: 116px; padding: 13px 14px; border-radius: 17px; overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--lcd-metric-accent) 19%, var(--lc-surface, #fff));
+    background: linear-gradient(135deg, var(--lc-surface, #fff), var(--lcd-metric-wash));
+    box-shadow: 0 3px 9px color-mix(in srgb, var(--lcd-metric-accent) 4%, transparent);
+  }
+  html:root body .lcd-mobile .lcd-metrics article::after { content: ''; position: absolute; z-index: -1; right: -17px; bottom: -24px; width: 81px; height: 81px; border-radius: 50%; background: color-mix(in srgb, var(--lcd-metric-accent) 6%, transparent); pointer-events: none; }
+  html:root body .lcd-mobile .lcd-metrics .lcd-metric-services { --lcd-metric-accent: var(--lc-safe-secondary, #705797); --lcd-metric-wash: var(--lc-glowSecondary, #f1edfa); }
+  html:root body .lcd-mobile .lcd-metrics .lcd-metric-latest { --lcd-metric-accent: #3d7f91; --lcd-metric-wash: #eaf4f6; }
+  html:root body .lcd-mobile .lcd-metrics .lcd-metric-sunday { --lcd-metric-accent: #956922; --lcd-metric-wash: var(--lc-glowHighlight, #fff4dd); }
+  html:root body .lcd-mobile .lcd-metrics article > span { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 12px; line-height: 1.4; font-weight: 650; color: var(--lcd-metric-accent); }
+  html:root body .lcd-mobile .lcd-metrics article > span svg { width: 16px; height: 16px; flex: 0 0 auto; color: inherit; }
+  html:root body .lcd-mobile .lcd-metrics article > strong { display: block; min-width: 0; font-size: 30px; line-height: 1.05; font-weight: 750; color: var(--lc-heading, #173e37); letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+  html:root body .lcd-mobile .lcd-metrics article > small { display: block; min-width: 0; font-size: 11px; line-height: 1.45; text-align: left; color: var(--lc-safe-muted, #60796f); }
+  html:root body .lcd-mobile .lcd-focus { border: 1px solid var(--lc-border, #d6e7df); border-radius: 19px; background: var(--lc-surface, #fff); overflow: hidden; box-shadow: 0 4px 18px color-mix(in srgb, var(--lc-primary, #147d73) 4%, transparent); }
+  html:root body .lcd-mobile .lcd-switch.rubber-segment { width: 100%; padding: 4px; border: 0; border-bottom: 1px solid var(--lc-border, #d6e7df); border-radius: 18px 18px 0 0; background: var(--lc-surfaceAlt, #f4f9f6); }
+  html:root body .lcd-mobile .lcd-switch.rubber-segment :is(button, .rubber-segment__copy) { min-height: 44px; height: 44px; padding: 8px 6px; font-size: 12px; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+  html:root body .lcd-mobile .lcd-detail { min-height: 0; padding: 17px 15px 4px; }
+  html:root body .lcd-mobile .lcd-detail-content { min-width: 0; }
+  html:root body .lcd-mobile .lcd-event-heading { display: grid; grid-template-columns: 52px minmax(0, 1fr); align-items: start; gap: 13px; margin: 2px 0 13px; }
+  html:root body .lcd-mobile .lcd-event-heading > div { min-width: 0; }
+  html:root body .lcd-mobile .lcd-event-heading .lcd-kicker { display: block; margin: 0 0 4px; font-size: 9px; line-height: 1.4; font-weight: 650; letter-spacing: .065em; text-transform: uppercase; color: var(--lc-safe-secondary, #705797); }
+  html:root body .lcd-mobile .lcd-event-heading h2 { margin: 0; font-size: 16px; line-height: 1.45; font-weight: 700; letter-spacing: -.02em; }
+  html:root body .lcd-mobile .lcd-mini-calendar { position: relative; display: grid; grid-template-rows: 19px 29px 16px; width: 52px; padding-bottom: 3px; border: 1px solid color-mix(in srgb, var(--lc-primary, #147d73) 28%, var(--lc-surface, #fff)); border-radius: 10px; background: var(--lc-surface, #fff); color: var(--lc-primary, #147d73); text-align: center; box-shadow: 0 3px 0 color-mix(in srgb, var(--lc-primary, #147d73) 8%, var(--lc-surface, #fff)); font-variant-numeric: tabular-nums; }
+  html:root body .lcd-mobile .lcd-mini-calendar > span { align-content: center; border-radius: 9px 9px 0 0; background: var(--lc-glowPrimary, #e5f5ef); font-size: 9px; line-height: 1; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+  html:root body .lcd-mobile .lcd-mini-calendar > strong { align-content: center; font-size: 25px; line-height: 1; font-weight: 750; }
+  html:root body .lcd-mobile .lcd-mini-calendar > small { font-size: 8px; line-height: 16px; font-weight: 650; text-transform: uppercase; }
+  html:root body .lcd-mobile .lcd-mini-calendar::before { content: ''; position: absolute; z-index: 2; top: -5px; right: -4px; width: 9px; height: 9px; border: 1px solid #b7474c; border-radius: 50%; background: radial-gradient(circle at 32% 28%, #ffb0a9 0 14%, #df5d5d 21% 64%, #b74349); box-shadow: 1px 1px 0 #772a2f20; pointer-events: none; }
+  html:root body .lcd-mobile .lcd-mini-calendar::after { content: ''; position: absolute; z-index: 1; top: 3px; right: -1px; width: 2px; height: 12px; border-radius: 2px; background: #a33d44; rotate: -14deg; transform-origin: top center; pointer-events: none; }
+  html:root body .lcd-mobile .lcd-event-meta { display: grid; gap: 7px; margin-bottom: 7px; }
+  html:root body .lcd-mobile .lcd-event-meta p { display: flex; align-items: start; gap: 8px; margin: 0; font-size: 12px; line-height: 1.55; color: var(--lc-safe-muted, #60796f); }
+  html:root body .lcd-mobile .lcd-event-meta svg { flex: 0 0 15px; margin-top: 2px; color: var(--lc-primary, #147d73); }
+  html:root body .lcd-mobile .lcd-event-meta p > :is(span, time) { min-width: 0; overflow-wrap: anywhere; }
+  html:root body .lcd-mobile .lcd-event-total { display: flex; align-items: center; gap: 8px; margin: 12px 0 8px; color: var(--lc-safe-muted, #60796f); font-size: 11px; line-height: 1.5; }
+  html:root body .lcd-mobile .lcd-event-total strong { color: var(--lc-primary, #147d73); font-size: 21px; line-height: 1.1; font-weight: 750; }
+  html:root body .lcd-mobile .lcd-progress { height: 5px; margin: 10px 0 13px; }
+  html:root body .lcd-mobile .lcd-note { margin-top: 12px; border-top-style: dashed; }
+  html:root body .lcd-mobile .lcd-note summary { display: list-item; min-height: 44px; padding: 13px 0; font-size: 12px; font-weight: 550; color: var(--lc-safe-secondary, #705797); }
+  html:root body .lcd-mobile .lcd-note p { margin: 0 0 12px; padding: 12px; border-radius: 10px; background: var(--lc-surfaceAlt, #f4f9f6); font-size: 12px; line-height: 1.6; color: var(--lc-safe-text, #456d63); overflow-wrap: anywhere; }
+  html:root body .lcd-mobile .lcd-empty { margin: 0; padding: 4px 0 17px; font-size: 13px; line-height: 1.6; }
+  html:root body .lcd-mobile .lcd-activity-heading { align-items: center; flex-wrap: nowrap; gap: 8px; margin: -3px 0 3px; }
+  html:root body .lcd-mobile .lcd-activity-heading h2 { margin: 0; font-size: 15px; line-height: 1.35; }
+  html:root body .lcd-mobile .lcd-activity-heading button { flex: 0 0 auto; min-height: 44px; padding: 7px 4px; font-size: 11px; }
+  html:root body .lcd-mobile .lcd-activity > button { display: grid; grid-template-columns: 31px minmax(0, 1fr) auto; gap: 9px; align-items: center; min-height: 64px; padding: 10px 0; }
+  html:root body .lcd-mobile .lcd-activity-avatar { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 11px; background: var(--lc-glowPrimary, #e5f5ef); color: var(--lc-primary, #147d73); font-size: 10px; font-weight: 700; font-style: normal; }
+  html:root body .lcd-mobile .lcd-activity strong { font-size: 12px; line-height: 1.4; }
+  html:root body .lcd-mobile .lcd-activity small { font-size: 10px; line-height: 1.45; }
+  html:root body .lcd-mobile .lcd-activity time { align-self: start; padding-top: 3px; font-size: 10px; color: var(--lc-safe-muted, #60796f); }
+  html:root body .lcd-mobile .lcd-more { min-height: 44px; font-size: 12px; }
+  html:root body .lcd-mobile .lcd-news { border-radius: 16px; border-color: color-mix(in srgb, var(--lc-primary, #147d73) 19%, var(--lc-surface, #fff)); background: linear-gradient(110deg, var(--lc-glowPrimary, #e5f5ef), var(--lc-surface, #fff)); overflow: hidden; }
+  html:root body .lcd-mobile .lcd-news > summary { min-height: 48px; padding: 15px 14px; font-size: 13px; line-height: 1.35; font-weight: 650; color: var(--lc-heading, #173e37); }
+  html:root body .lcd-mobile .lcd-news > summary > span { padding-top: 2px; font-size: 10px; font-weight: 400; color: var(--lc-safe-muted, #60796f); }
+  html:root body .lcd-mobile .lcd-news .lc-whats-new { padding: 14px; }
+  html:root body .lcd-mobile :is(button, summary) { -webkit-tap-highlight-color: transparent; }
+  html:root body .lcd-mobile :is(button, summary):focus-visible { outline: 2px solid var(--lc-focus, #7964ad); outline-offset: 2px; }
+  html:root body .lcd-mobile .lcd-actions button:active, html:root body .lcd-mobile .lcd-icon-button:active { filter: brightness(.94); }
+}
+
+@media (max-width: 360px) {
+  html:root body .lcd-mobile .lcd-head { padding: 15px 13px; min-height: 84px; }
+  html:root body .lcd-mobile .lcd-head h1 { font-size: 27px; }
+  html:root body .lcd-mobile .lcd-period-control { gap: 3px; }
+  html:root body .lcd-mobile .lcd-period-control > span { font-size: 10px; }
+  html:root body .lcd-mobile .lcd-period-glide { min-width: 98px; max-width: 120px; }
+  html:root body .lcd-mobile .lcd-period-glide .glide-select__trigger { padding-inline: 7px; font-size: 12px; }
+  html:root body .lcd-mobile .lcd-checkin-summary strong { font-size: 15px; }
+  html:root body .lcd-mobile .lcd-metrics article { min-height: 111px; padding: 12px; }
+  html:root body .lcd-mobile .lcd-metrics article > span { gap: 5px; font-size: 11px; }
+  html:root body .lcd-mobile .lcd-metrics article > strong { font-size: 28px; }
+  html:root body .lcd-mobile .lcd-metrics article > small { font-size: 10px; }
+  html:root body .lcd-mobile .lcd-event-heading { grid-template-columns: 47px minmax(0, 1fr); gap: 11px; }
+  html:root body .lcd-mobile .lcd-mini-calendar { width: 47px; }
+  html:root body .lcd-mobile .lcd-event-heading h2 { font-size: 15px; }
+  html:root body .lcd-mobile .lcd-news > summary > span { display: none; }
+}
+
+@media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
+  html[data-lc-motion=on] body .lcd-mobile .lcd-detail-content { animation: lcd-phone-detail-in 180ms ease-out both; }
+  html[data-lc-motion=on] body .lcd-mobile .lcd-live .lcd-kicker i { animation: lcd-phone-live-pulse 2.4s ease-in-out infinite; }
+  html[data-lc-motion=on] body .lcd-mobile .lcd-progress > span { transition: width 260ms ease; }
+  @keyframes lcd-phone-detail-in { from { opacity: .35; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes lcd-phone-live-pulse { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--lc-primary, #147d73) 12%, transparent); } }
+}
