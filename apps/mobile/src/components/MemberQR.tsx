@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, type ViewInstance } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
 import * as Sharing from 'expo-sharing';
@@ -9,7 +9,7 @@ import { useSession } from '../lib/session';
 
 type Profile = { first_name: string; last_name: string; member_number: string; qr_token: string | null; status: string; churches?: string[]; ministries?: string[] };
 export function MemberQR({ profile }: { profile: Profile }) {
-  const shot = useRef<View>(null), active = useRef(true), revision = useRef(0);
+  const shot = useRef<ViewInstance>(null), active = useRef(true), revision = useRef(0);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [idWidth, setIdWidth] = useState(260);
   const { session } = useSession();
   useEffect(() => { active.current = true; revision.current++; return () => { active.current = false; revision.current++; }; }, [profile.qr_token, profile.member_number, session?.user.id]);
@@ -19,6 +19,7 @@ export function MemberQR({ profile }: { profile: Profile }) {
     setBusy(true); setError('');
     try {
       if (!await Sharing.isAvailableAsync()) throw Error('File sharing is unavailable on this device.');
+      if (!active.current || request !== revision.current || !shot.current) return;
       const uri = await captureRef(shot, { format: 'png', quality: 1, result: 'tmpfile', width: 1000 });
       if (!active.current || request !== revision.current) return;
       await Sharing.shareAsync(uri, { mimeType: 'image/png', dialogTitle: 'Share Member ID' });

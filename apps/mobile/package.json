@@ -7,7 +7,7 @@
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.tests.json",
     "check": "expo install --check",
     "export:android": "expo export --platform android",
     "test": "node --experimental-strip-types --test tests/*.test.ts"
