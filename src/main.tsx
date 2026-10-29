@@ -24,6 +24,9 @@ import './workspace-character.css'
 import './workspace-selections.css'
 import './workspace-dashboard-polish.css'
 import './workspace-directory-polish.css'
+import './services-workspace-polish.css'
+import './scanner-workspace-polish.css'
+import './records-workspace-polish.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode><MotionRuntime /><ToastProvider><App /></ToastProvider></StrictMode>,

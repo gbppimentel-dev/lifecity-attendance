@@ -36,17 +36,21 @@ Members get a personal space for their profile, QR, attendance history, and feed
 ### Member Directory
 
 - Register and edit member profiles with names, contact details, active/inactive status, and private administrative notes.
+- Use a grouped member form with searchable church/ministry choices, selected counts and optional inline creation. Matched desktop rows pair contact details with the private reminder, then Churches with Ministries. Fields start directly with First Name and Last Name; headings and controls use Title Case.
 - Associate members with multiple churches and ministries.
 - Search, filter, sort, and paginate the directory.
+- Scan compact identity/community rows with inline Star/Unstar, existing private notes and QR/ID access. Open a name for its profile, or use the remaining profile/edit actions in the member tools menu. A circular checkbox uses teal for active and rose for inactive, with a white check/X disk and accessible status labels. Its interaction is adapted from Javierrocadev on Uiverse.io.
+- Status changes require a confirmed database response and provide 10-second Undo while the directory remains open. Later status changes, profile editing and bulk status actions supersede earlier status Undo. Failed or uncertain writes refresh the directory and clear cached counts.
+- Choose among four sort options directly, review removable filter chips, and clear the current filters without cycling through sort modes.
 - Star members and use the supported bulk actions to manage selections.
-- View member details and personal QR codes.
+- View member profiles in a side panel with Overview and Attendance tabs. Private notes open in a matching panel and can be edited there; note-only saves verify the returned row and refuse to overwrite a note changed elsewhere. A focused member ID dialog presents the private QR code and download action.
 - Download QR images and generated member IDs.
 - Import CSV data with mapping, validation, preview, and review before submission.
 - Export a quick directory or a detailed administrative CSV.
-- Use a solid teal Add Member action and distinct static Import, Ministry and Church tool icons. Import keeps Download Template and Close in the shared directory toolbar.
-- Add ministries/churches inline; swipe a category row or use its action control for Rename and Delete. Assigned categories remain blocked, with inline explanations and affected-member shortcuts.
+- Use a solid teal Add Member action and distinct Import, Ministry and Church tool icons, with subtle lift, icon scaling and press feedback that respect motion preferences. Directory Tools uses a compact hanging label with matching attached Download Template/Close controls; ministry and church panels use the same close tab.
+- Opening a directory tools panel scrolls to keep its three switching buttons just below the header. Ministry and church feedback uses the same anchor for validation, saved changes, deletion and Undo, leaving an already-visible toolbar steady. Inline editors and confirmations focus without scrolling; late feedback cannot pull a closed panel into view. CSV export uses a compact utility panel that shows its matching-member scope and retains all-page filtering and sort behavior.
+- Add ministries/churches inline; swipe a category row or use its action control for Rename and Delete. Rename has labeled, aligned Save/Cancel controls, and deletion names the entry with explicit Keep/Delete choices. Themed inline notices explain success, blocked changes and errors, with affected-member shortcuts where relevant.
 - Successful category deletion offers a 10-second Undo toast, paused on hover/focus. Undo restores the actual deleted row, including its original ID, name and returned columns, and never overwrites a conflicting record. Ministry deletion first requires the [one-time database update](#one-time-directory-delete-setup).
-
 ### Services and Gatherings
 
 - Create and edit services with a name, start date/time, venue, Sunday-service flag, public visibility, and administrative note.
@@ -54,7 +58,9 @@ Members get a personal space for their profile, QR, attendance history, and feed
 - Archive or restore services through the available action flow.
 - Delete services only when the applicable data rules allow it.
 - Search, filter, sort, paginate, and export service data.
-- Swipe or drag a service left, or use its small actions button, to reveal Scanner, Sunday marking, Edit, and Delete/Archive/Restore. The desktop Date/Service header includes a quiet instruction on its right.
+- Mark Sunday directly on a service row. Swipe or use its actions button for Edit and Delete/Archive/Restore. A shared Check-In Desk opens the scanner for an eligible service; the desktop Date/Service header includes a quiet swipe instruction on its right.
+- Schedule services with a custom calendar and time picker. New minute choices are 00, 15, 30 and 45; existing off-quarter times remain unchanged until explicitly edited. Calendar navigation, focus restoration and required-field validation are supported.
+- Inline changes keep the current service rows visible while the same view refreshes. Failed background reads retain the last loaded list with an inline retry message.
 - Keep service details visible in the closed row; expand administrative notes on phones. Swiping only reveals controls, and destructive actions retain their confirmation flow.
 - Hold the final delete button for 1.3 seconds to confirm; releasing early cancels. Sunday marking, archive, restore and deletion show an Undo toast for 10 seconds, paused on hover/focus. Delete Undo restores the original service ID and saved columns; attendance protection still applies.
 - Notifications are held in the current browser session. Reloading or signing out clears them. A newer change to the same service field replaces its earlier Undo, and Undo refuses a conflicting current value.
@@ -64,10 +70,16 @@ Members get a personal space for their profile, QR, attendance history, and feed
 
 - Select a service and scan member QR codes with the device camera.
 - Display successful, duplicate, and unsuccessful check-in feedback.
+- See the selected service's total in the page header. Confirmed new attendance refreshes that total from the server; duplicate and unsuccessful check-ins do not increment it.
+- Choose ongoing or upcoming gatherings from a searchable side panel with a fixed search field and grouped calendar rows.
+- Before selecting a service, use quick cards for the ongoing and next upcoming services. Cards show their schedule, venue and check-in count.
 - Search for a member and check in manually when a QR code cannot be scanned.
+- Review a matched member before confirming manual attendance. Search errors, no matches, inactive members and duplicate check-ins have distinct feedback; a short cooldown prevents a held QR from being submitted repeatedly.
 - Retry camera startup and switch available cameras.
 - Switch cameras using the camera-switch icon.
-- Use a full-screen kiosk layout with a large camera area and a dedicated feedback panel.
+- Use a fixed, non-scrolling kiosk layout. The camera has priority; service details, attendance total, latest result and Exit Kiosk remain visible. Manual entry is available after exiting kiosk.
+- The camera preview fills its panel without a square scan mask. The video retains its native aspect ratio, and the decoder scans the whole source frame.
+- A corner guide marks QR placement in web and kiosk views. The surrounding preview is dimmed to highlight the clear target; this visual overlay does not restrict the decoder's scanning area.
 - Keep member details out of the QR payload: the app uses an opaque token.
 - Refresh relevant attendance totals through subscriptions and other component refresh behavior.
 
@@ -82,19 +94,23 @@ Camera, fullscreen, audio, and camera-switching support depend on the browser an
 - Default Records to completed services; explicitly choose in-progress or archive-inclusive scopes when needed.
 - Exclude upcoming services from reportable attendance history.
 - Inspect saved member/service snapshot information and provenance.
+- Use grouped community/service rows, direct column sort choices and a focused attendance details side panel. Desktop headers offer category-specific sort menus with one active order; narrow screens keep the compact overall sort menu. Aligned filters and distinct colored totals make the current view easier to scan. Same-view refreshes retain the existing rows.
+- Hold Remove for 1.3 seconds to confirm a check-in removal. Confirmed removals offer a 10-second Undo toast, paused on hover/focus; restoration preserves the original ID, time, scanner, note and reporting snapshot. This requires the [one-time Records update](#one-time-attendance-undo-setup).
 - Export matching records across pages using Quick or Detailed CSV.
 
 The service directory export and attendance report export serve different purposes: one describes services as they currently exist; the other reports recorded attendance with saved historical details.
 
 ### Personal Member Space
 
+- See current and upcoming services near the top, with a three-service preview and an expandable paginated schedule.
 - View the linked directory profile and personal attendance QR.
-- Download a QR or member ID and review attendance history.
+- Open the attendance QR in a native side panel. QR and Member ID downloads recheck the active member connection before exporting; profile/token/status changes or failed access checks close the private panel.
+- Review searchable attendance history with date filters, saved service details and compact report totals.
 - Browse upcoming/current gatherings.
 - Update a mobile number directly through the supported profile flow.
-- Submit other profile changes for Owner review.
-- Review previous profile-change requests without stretching the adjacent QR card.
-- Follow personal feedback tickets, see unread updates, and mark updates as read.
+- Edit contact information and submit other profile changes for Owner review in a side panel with separate Profile Details and Requests tabs.
+- Review compact before/requested comparisons and previous decisions without stretching the adjacent QR card.
+- Follow personal feedback tickets, see unread updates, mark updates as read, and open the guarded feedback composer directly from the ticket section.
 
 Signing in does not automatically connect a Google account to a member record. Unlinked users submit a link request so the Owner can verify the connection.
 
@@ -103,9 +119,12 @@ Signing in does not automatically connect a Google account to a member record. U
 - Search and review accounts, roles, access status, and member links.
 - Grant or remove administrator access, suspend/reactivate accounts, and manage profile connections.
 - Review member-link and profile-change requests with confirmation steps.
+- Use aligned request filters and compact current/requested comparisons. Leaving the Accounts tab clears transient confirmations and member verification while keeping searches and filters.
 - Inspect activity history and use its export flow.
 - Edit shared appearance settings with a custom color picker and live preview.
+- Keep unsaved palette choices when switching Settings tabs; save, discard or reload explicitly. Palette edits stay within the preview until saved.
 - Review feedback, reveal a masked sender when needed, and update ticket status.
+- Sender reveals clear when leaving Feedback or hiding the browser tab. Same-filter account, request, activity and feedback refreshes retain their last successful content while loading.
 
 ### Feedback and Release History
 
@@ -115,6 +134,8 @@ Signing in does not automatically connect a Google account to a member record. U
 - Track tickets as **New**, **In Progress**, **Completed**, or **Considered**.
 - See role-specific What’s New entries and Version History.
 - Open the Tech Stack page from the footer and select a technology to learn how the app uses it.
+
+Guest Preview presents a public service schedule with calendar cards, current/upcoming status, Manila times and venues. Member and guest service cards use paper-style status and Sunday labels overlapping the top-right corner, with restrained hover motion. Same-page refreshes retain the last matching schedule; changing pages uses a loading state until the requested page arrives. The UI projects the guest RPC response to public fields only, without member data, attendance counts or private notes.
 
 “Completed” means an improvement has been implemented. “Considered” keeps an idea available for possible future work. Internally, existing backend values `resolved` and `closed` remain mapped to those visible labels for compatibility.
 
@@ -175,11 +196,13 @@ flowchart TD
 
 The frontend is a TypeScript React single-page application bundled by Vite. `App.tsx` resolves authentication/account state and selects the appropriate workspace. Staff navigation uses component state rather than a routing library. Larger screens are loaded lazily; `ScreenBoundary` supplies loading/error containment.
 
-Staff navigation warms a destination module on pointer or keyboard-focus intent. After the first screen paints, idle work warms Members, Records and Owner Settings sequentially; this background queue skips Data Saver and reported 2g connections. Scanner loads on navigation intent rather than in that queue. React transitions keep the current view visible while a cold destination module loads, with navigation feedback shown immediately.
+Staff navigation warms a destination module on pointer or keyboard-focus intent. After the first screen paints, idle work warms Members, Records and Owner Settings sequentially; this background queue skips Data Saver and reported 2g connections. Scanner loads on navigation intent rather than in that queue. Navigation selects the destination immediately and keeps the current view visible while its module loads, with a progress indicator and guards against late commits from superseded navigation.
 
 Supabase provides authentication, database queries, RPC access, and Realtime subscriptions. Components use hooks to load data, debounce searches, coordinate mutations, and refresh results. There is no separate custom Node/Express backend in this repository.
 
-An in-memory cache belongs to each signed-in staff workspace, with at most 12 snapshots expiring after 60 seconds. Dashboard and the Members default first-page query can initialize from a recent snapshot; every mount still fetches live data, and normal refresh/realtime behavior remains. Cache entries are not written to disk and disappear when that workspace unmounts, including on sign-out.
+Visited Dashboard, Records and Owner Settings screens remain mounted in native hidden panels. Settings retains visited tabs, including filters and palette drafts; hidden panels cannot receive keyboard focus. Visible panels enter with a short opacity fade that respects motion preferences. Members keeps its existing remount cleanup and recent query snapshots; Services retains its list while background data arrives. Scanner unmounts when leaving so camera tracks stop. Confirmed attendance changes and Realtime events revalidate retained Records in place.
+
+An in-memory cache belongs to each signed-in staff workspace, with at most 12 snapshots expiring after 60 seconds. Dashboard and the Members default first-page query can initialize from a recent snapshot. Refresh controls, mutations and Realtime subscriptions still retrieve current data. Cache entries are not written to disk and disappear when that workspace unmounts, including on sign-out.
 
 The interface uses custom CSS, theme variables, SVG illustrations, Lucide icons and native browser dialogs. AnimatedContent supplies GSAP section fades; its reusable API also supports ScrollTrigger. Motion and browser animation APIs support local interactions. The Tech Stack view is a full-screen native dialog with bundled technology logos: closing it restores the preceding screen instead of discarding its state.
 
@@ -277,6 +300,11 @@ Open the address printed by Vite, usually `http://localhost:5173`. Restart the d
 | `npm run test:demo:sql` | Check the demo reset SQL |
 | `npm run test:services` | Check service action behavior |
 | `npm run test:directory` | Check ministry/church deletion, Undo and the ministry SQL guard |
+| `npm run test:member-status` | Check confirmed member status updates and Undo |
+| `npm run test:member-notes` | Check note-only saves, stale-note protection and errors |
+| `npm run test:schedule` | Check calendar boundaries, Manila dates, quarter-hour choices and legacy time preservation |
+| `npm run test:scanner` | Check successful/duplicate/error attendance, stale service guards and scan cooldown |
+| `npm run test:attendance` | Check guarded removal/Undo and run the SQL installer against isolated PostgreSQL |
 | `npm run test:motion` | Check navigation and motion helper behavior |
 
 Focused Node tests cover the areas listed above; there is no lint or end-to-end browser test command. A successful build checks types and bundling; it does not validate a live database, physical camera, browser rendering, or role enforcement.
@@ -321,6 +349,14 @@ The current ministry relationship uses `ON DELETE CASCADE`, so the function lock
 
 If the RPC is missing, ministry deletion stops with an inline message naming the installer; it does not fall back to an unguarded table delete. Add, rename and church tools remain available under their existing permissions. Successful deletion retains the complete server-returned row for Undo. Restore uses insert rather than upsert and refuses ID/name collisions; it does not overwrite another record or reconstruct member assignments.
 
+### One-Time Attendance Undo Setup
+
+Run the complete contents of [supabase/install-attendance-delete-undo.sql](supabase/install-attendance-delete-undo.sql) once in the existing project's Supabase SQL editor, then refresh Records. This update has not been applied to Supabase by the local code changes.
+
+The current snapshot trigger rebuilds reporting details on every normal attendance insert, so simply reinserting a removed record would change its historical data. The installer adds guarded removal/restoration RPCs and server-only, actor-bound receipts. Its restore trigger preserves only the trusted original reporting snapshot after verifying every other field. Existing RLS, snapshot capture and activity logging stay in place. A conflicting ID, newer check-in, missing foreign key, expired receipt or different account prevents restoration; no upsert replaces another record.
+
+The Undo action appears for 10 seconds and pauses on hover/focus. Server receipts expire after 24 hours and are pruned on a later authorized removal. Missing RPCs block removal with the installer filename; the frontend does not fall back to a permanent table delete. The installer is repeatable and has isolated PostgreSQL regression tests; it is not a complete backend installer.
+
 ### Authentication Configuration
 
 Enable Google as an authentication provider in the intended Supabase project. Configure its Google OAuth credentials and authorized callback according to that project's Auth settings. Add the local and deployed app URLs to the permitted redirect configuration.
@@ -358,7 +394,7 @@ Displayed reporting times use Manila formatting where specified. Detailed export
 
 ### Feedback Identity
 
-“Hide My Identity” masks the sender by default in the Owner inbox. It is **not irreversible anonymity**: the Owner can reveal the name/email through the supported review action. Administrators do not receive the Owner feedback workspace. Actual enforcement depends on deployed database permissions.
+“Submit Anonymously” masks the sender by default in the Owner inbox. It is **not irreversible anonymity**: the Owner can reveal the name/email through the supported review action. Administrators do not receive the Owner feedback workspace. Actual enforcement depends on deployed database permissions. The feedback composer uses a side panel with a scrollable form and a persistent submission area; the checkbox has no explanatory subtext.
 
 ### Public Repository Hygiene
 
@@ -389,7 +425,7 @@ The member CSV helper quotes values, escapes quotes, emits a UTF-8 BOM, and neut
 
 ## Appearance and Motion
 
-Desktop workspaces above 900px use a centered 1,400px maximum width with responsive 28–64px minimum side margins. Header spacing balances the brand, navigation and account controls within that shared measure. Shared surfaces use quieter teal accents, shallow shadows and lighter typography; controls use consistent rounded borders and focus states. Sign-in forms and dialogs retain readable widths. Shared swipe toasts report actions while retaining inline validation guidance.
+Desktop workspaces above 900px use a centered 1,400px maximum width with responsive 28–64px minimum side margins. Header spacing balances the brand, navigation and account controls within that shared measure. Shared surfaces use quieter teal accents, shallow shadows and lighter typography; controls use consistent rounded borders and focus states. Sign-in forms and dialogs retain readable widths. Shared swipe toasts use themed icon tiles, a compact action button and an inset countdown track, while validation guidance remains inline. Failed Undo stays available with error feedback.
 
 The shared theme contains 37 color controls grouped into brand, backgrounds, surfaces, text, buttons, decoration, and feedback. A custom picker and interactive preview help the Owner inspect the palette before saving. Derived shades and readable color pairs are maintained in `theme.ts` and `themeShades.ts`.
 
@@ -403,7 +439,13 @@ GlideSelect replaces the visible browser dropdown in supported periods, filters,
 
 RubberSegment supplies the moving selection indicator for staff navigation and Dashboard detail switches, with spring hover feedback in desktop navigation. CountUp animates the four primary Dashboard metrics from their current value to the latest snapshot value, without replaying unchanged totals on refresh. Animated digits are hidden from assistive technology, which receives the final value once. Both features respect the app and device motion settings.
 
-Keep new components tied to existing theme variables and the `data-lc-motion` convention. Do not introduce an unrelated hard-coded palette or animation dependency for a small feature. The Tech Stack page uses a compact logo index and a shared detail panel with explanations and usage diagrams. On phones, nine tiles appear per page and each tool opens in a native modal detail sheet, restrained hover colors, and no entrance animation. Logo sources and usage notes are recorded in [Technology Logos](docs/technology-logos.md).
+Keep new components tied to existing theme variables and the `data-lc-motion` convention. Do not introduce an unrelated hard-coded palette or animation dependency for a small feature. The Tech Stack page has a full-width sticky header, a themed gradient hero with connected React, Supabase and Vercel tiles and integrated totals, and a colorful discovery area with a searchable 31-entry library and five category filters. An expandable architecture map links each layer to its tools. A bounded desktop inspector explains each technology and its use in LifeCity. In Practice examples use connected Start, Process and Result cards that follow category colors and stack vertically in narrower panels. The detail inspector remains scrollable by wheel and keyboard while its scrollbar is hidden; category selection and the search clear control replace the redundant Clear Filters action. Phones retain nine tiles per page and native detail sheets without entrance animation; filtering resets pagination and selected content stays aligned with the results. Keyboard selection, nested Escape and focus/scroll restoration are supported. Logo sources and usage notes are recorded in [Technology Logos](docs/technology-logos.md).
+
+Services uses the same directory control scale: aligned search, labeled custom selects, removable filter chips and calendar rows. Sunday marking stays in each row with the existing confirmed change and Undo flow; swipe actions contain Edit and Delete/Archive/Restore. A single Check-In Desk selects from upcoming and in-progress services and opens the scanner, independently of directory filters. It defaults to the existing eligible selection, an ongoing service, or the next upcoming service; no eligible service keeps the launch disabled. The New Service card matches Add Member, and the Services title uses FoldText. The service editor pairs required name/date/time and optional location with a private note, followed by Sunday and Guest Preview options. Controlled values, submission errors and saving locks remain shared with the existing create/edit flow. Workspace navigation resets scrolling after the destination commits; service forms, confirmations and export panels reveal their content below fixed navigation. Deletion confirmation controls share a 44px height and consistent typography. Member profile menus scroll only when their content needs it; bulk selection has a contained selection toolbar.
+
+ServiceDatePicker and ServiceTimePicker share a native dialog shell, themed controls and focus restoration. Calendar calculations use UTC calendar dates while Today and suggested times follow Manila time. The service directory distinguishes its initial loading state from same-query background refreshes, preserving mounted rows for inline updates. ScannerOverview owns the service total; AttendanceScanner keeps camera, confirmation and manual entry together. Successful attendance requests ask the parent to refresh server totals, while attempt and service guards suppress stale results after switching services or leaving the page.
+
+Scanner uses one service chooser, quick service cards and short status text. A visual corner guide shows QR placement without narrowing full-frame decoding. Camera metadata sets a cover width that preserves the source aspect ratio before the decoder measures the video; stage resizing restarts the decoder with current bounds. Kiosk uses a viewport-sized grid with hidden overflow, a camera-first split and a compact result rail. Native fullscreen and the fixed-position fallback share this layout; body scrolling and surrounding controls are restored on exit. Narrow portrait screens retain the service, count, camera and latest result while omitting recent history.
 
 ## Project Structure
 
@@ -413,7 +455,10 @@ Keep new components tied to existing theme variables and the `data-lc-motion` co
 | `src/main.tsx` | React root, stylesheet order, motion runtime |
 | `src/components/Dashboard.tsx` | Snapshot metrics and recent activity |
 | `src/components/MemberManager.tsx` / `MemberImport.tsx` | Directory operations and CSV import |
-| `src/components/AttendanceScanner.tsx` / `ScannerServicePicker.tsx` | Camera check-in and service selection |
+| `src/components/AttendanceScanner.tsx` / `ScannerServicePicker.tsx` / `ScannerOverview.tsx` | Camera, manual check-in, service selection and totals |
+| `src/components/ServiceEditor.tsx` / `ServiceDatePicker.tsx` / `ServiceTimePicker.tsx` | Service form and custom schedule controls |
+| `src/lib/serviceSchedule.ts` | Calendar and quarter-hour scheduling helpers |
+| `src/lib/attendanceActions.ts` / `supabase/install-attendance-delete-undo.sql` | Confirmed check-in removal and exact historical Undo |
 | `src/components/AttendanceRecords.tsx` / `ServiceExport.tsx` | Historical reporting and service export |
 | `src/components/MemberPortal.tsx` / `GuestPreview.tsx` | Member and public experiences |
 | `src/components/ProfileChanges.tsx` / `MemberLinkRequests.tsx` | Profile and identity review workflows |

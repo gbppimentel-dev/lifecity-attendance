@@ -38,14 +38,14 @@ export default function ServiceExport({archive,month,year,sort,search='',disable
    const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8;'}))
    const link=document.createElement('a');link.href=url;link.download=`LifeCity-Services-${detailed?'Detailed':'Quick'}-${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(link)
    try{link.click()}finally{link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),30000)}
-   setMessage(`CSV prepared with ${data.rows.length.toLocaleString()} matching services. Your browser handles the download.`)
+   setMessage(`CSV prepared with ${data.rows.length.toLocaleString()} matching services.`)
   }catch(failure){if(alive.current)setError((failure as {code?:string}).code==='P0001'?(failure as {message:string}).message:'Could not export services. Confirm LC-P08B-v1.sql is installed and your admin access is active, then try again.')}
   finally{lock.current=false;if(alive.current)setBusy(false)}
  }
- return <ExportPanel label="Export Services" title="Your Services, Ready to Share"
+ return <ExportPanel label="Export Services" title="Choose Your CSV"
   subtitle="All matching services · All pages · Current filters and sort order"
-  quick="9 core columns · Service name, date, status, location, service flags, and attendance totals."
-  detailed="16 reporting fields · Everything in Quick CSV, plus service ID, UTC timestamps, and private admin notes."
+  quick="Service name, schedule, status, location and attendance totals."
+  detailed="Quick CSV plus service IDs, UTC timestamps and private admin notes."
   hint="Includes upcoming and archived services when they match your filters. For historical check-in snapshots, use Records. Up to 10,000 services per export."
   disabled={busy||disabled} onQuick={()=>void download(false)} onDetailed={()=>void download(true)}>
   {busy&&<p className="lcse-message" role="status">Preparing your service export…</p>}

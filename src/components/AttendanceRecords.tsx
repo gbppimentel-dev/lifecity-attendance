@@ -1,11 +1,18 @@
 import {ResponsiveSelect} from './CompactMobile'
-import { useNoticeToast } from '../lib/useNoticeToast'
 import { MotionPresence } from '../lib/motion'
+import { useToast } from '../lib/toasts'
+import { removeAttendanceWithUndo } from '../lib/attendanceActions'
+import { revealWorkspaceRegion } from '../lib/workspaceViewport'
+import HoldButton from './HoldButton'
+import ServiceDatePicker from './ServiceDatePicker'
+import GlideSelect from './GlideSelect'
+import './AttendanceRecords.css'
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
 // Requires records-complete-v4-20260918.sql. Full replacement for src/components/AttendanceRecords.tsx.
-import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { CalendarDays, ChevronDown, Download, FileSearch, RotateCcw, ScanLine, Search, SlidersHorizontal, Trash2, UsersRound, X, Eye, ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Fragment, type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from 'react-dom'
+import { CalendarDays, ChevronDown, Download, FileSearch, RotateCcw, ScanLine, Search, SlidersHorizontal, Trash2, UsersRound, X, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Church, Clock3, MapPin, ShieldCheck, ArrowUpRight, ArrowDown, ArrowUp, Check } from "lucide-react";
 import { supabase } from "../lib/supabase";
 type NamedItem = {
     id: string;
@@ -74,6 +81,25 @@ const manilaDate = (value: string | Date) => dateFormatter.format(new Date(value
 const stamp = (value: string) => new Date(value).toLocaleString("en-PH", { timeZone: "Asia/Manila", year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" });
 const names = (items: NamedItem[]) => items.map(item => item.name).join(" | ");
 const fullName = (row: Row) => `${row.first_name} ${row.last_name}`;
+const shortDate = (value: string) => new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value));
+const timeOnly = (value: string) => new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit', second: '2-digit' }).format(new Date(value));
+const calendarMonth = (value: string) => new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', month: 'short' }).format(new Date(value));
+const calendarDay = (value: string) => new Intl.DateTimeFormat('en-PH', { timeZone: 'Asia/Manila', day: 'numeric' }).format(new Date(value));
+const sortChoices: { value: Sort; label: string }[] = [{ value: 'check_in', label: 'Check-In Time' }, { value: 'member', label: 'Member Name' }, { value: 'church', label: 'Church' }, { value: 'ministry', label: 'Ministry' }, { value: 'service', label: 'Service Name' }];
+const sortLabel = (field: Sort, descending: boolean) => field === 'check_in' ? `Check-In · ${descending ? 'Newest First' : 'Oldest First'}` : `${sortChoices.find(choice => choice.value === field)?.label} · ${descending ? 'Z–A' : 'A–Z'}`;
+function SortColumn({ label, fields, sort, descending, disabled, onChange }: {
+    label: string; fields: Sort[]; sort: Sort; descending: boolean; disabled: boolean; onChange: (value: string) => void;
+}) {
+    const active = fields.includes(sort);
+    return <div className="lcr-column-sort" data-active={active || undefined}>
+      <GlideSelect className="lcr-column-sort__select" ariaLabel={`Sort by ${label}`} size="sm" radius={7} menuWidth={215} searchable={false}
+        placeholder={label} value={active ? `${sort}:${descending ? 'desc' : 'asc'}` : ''} disabled={disabled} onChange={onChange}
+        options={fields.flatMap(field => [false, true].map(direction => ({
+            value: `${field}:${direction ? 'desc' : 'asc'}`,
+            label: <span className="lcr-column-option"><span className="lcr-column-option__trigger" aria-hidden="true">{label}{direction ? <ArrowDown size={12}/> : <ArrowUp size={12}/>}</span><span className="lcr-column-option__menu">{field === 'check_in' ? direction ? 'Newest First' : 'Oldest First' : `${sortChoices.find(choice => choice.value === field)?.label} · ${direction ? 'Z–A' : 'A–Z'}`}</span></span>,
+        })))}/>
+    </div>;
+}
 function shiftDate(value: string, days: number) { const date = new Date(`${value}T12:00:00+08:00`); date.setUTCDate(date.getUTCDate() + days); return manilaDate(date); }
 // Neutralize spreadsheet formulas in free-text exports, then quote every field.
 function csvValue(value: unknown) { let text = String(value ?? ""); if (/^[\s]*[=+@-]|^[\t\r\n]/.test(text))
@@ -94,12 +120,23 @@ function ReportDialog({ children, onClose, label, locked = false }: {
     locked?: boolean;
 }) {
     const ref = useRef<HTMLDialogElement>(null);
-    useEffect(() => { const dialog = ref.current; dialog?.showModal(); return () => { dialog?.close(); }; }, []);
-    return <dialog ref={ref} className="rt-dialog" aria-labelledby={label} onCancel={e => { e.preventDefault(); if (!locked)
+    useLayoutEffect(() => {
+        const dialog = ref.current;
+        const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        const overflow = document.body.style.overflow, padding = document.body.style.paddingRight;
+        const gap = Math.max(0, innerWidth - document.documentElement.clientWidth);
+        document.body.style.overflow = 'hidden';
+        if (gap) document.body.style.paddingRight = `${(parseFloat(getComputedStyle(document.body).paddingRight) || 0) + gap}px`;
+        dialog?.showModal();
+        return () => { dialog?.close(); document.body.style.overflow = overflow; document.body.style.paddingRight = padding; const target = previous?.isConnected ? previous : document.querySelector<HTMLElement>('.lcr-refresh'); target?.focus({ preventScroll: true }); };
+    }, []);
+    return createPortal(<dialog ref={ref} className="lcr-detail" aria-labelledby={label} onCancel={e => { e.preventDefault(); if (!locked)
         onClose(); }} onClick={e => { if (e.target === e.currentTarget && !locked)
-        onClose(); }}>{children}</dialog>;
+        { const box = e.currentTarget.getBoundingClientRect(); if (e.clientX < box.left || e.clientX > box.right || e.clientY < box.top || e.clientY > box.bottom) onClose(); } }}>{children}</dialog>, document.body);
 }
 export default function AttendanceRecords(_props: Props) {
+    const toast = useToast();
+    const alive = useRef(true), mutationLock = useRef(false);
     const [report, setReport] = useState<Report>(emptyReport);
     const [loading, setLoading] = useState(true);
     const [dateRange, setDateRange] = useState<DateRange>("all");
@@ -120,13 +157,13 @@ export default function AttendanceRecords(_props: Props) {
     const [catalogError, setCatalogError] = useState("");
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
-    useNoticeToast(message, 'info');
     const [sort, setSort] = useState<Sort>("check_in");
     const [descending, setDescending] = useState(true);
     const [size, setSize] = useState(25);
     const [asOf, setAsOf] = useState(() => new Date().toISOString());
     const [pageState, setPageState] = useState({ key: "", index: 0 });
     const [loadedKey, setLoadedKey] = useState("");
+    const [loadedView, setLoadedView] = useState("");
     const [detail, setDetail] = useState<Row | null>(null);
     const [removeTarget, setRemoveTarget] = useState<Row | null>(null);
     const [removing, setRemoving] = useState(false);
@@ -135,10 +172,29 @@ export default function AttendanceRecords(_props: Props) {
     const [exportProgress, setExportProgress] = useState(0);
     const cancelExport = useRef(false);
     const exportLock = useRef(false);
-    useEffect(() => () => { cancelExport.current = true; }, []);
+    useEffect(() => { alive.current = true; return () => { alive.current = false; cancelExport.current = true; }; }, []);
+    useEffect(() => {
+        const refresh = () => setAsOf(previous => new Date(Math.max(Date.now(), Date.parse(previous) + 1)).toISOString());
+        window.addEventListener('lifecity-attendance-changed', refresh);
+        return () => window.removeEventListener('lifecity-attendance-changed', refresh);
+    }, []);
     const tableTop = useRef<HTMLDivElement>(null);
+    const exportPanel = useRef<HTMLElement>(null), confirmation = useRef<HTMLElement>(null);
     const pendingScroll = useRef<string | null>(null);
     const [removeError, setRemoveError] = useState("");
+    useEffect(() => {
+        const leave = (event: Event) => {
+            if ((event as CustomEvent<{page:string}>).detail?.page === 'records') return;
+            // Records stays mounted between visits; its body-level dialog and
+            // confirmation are transient and must not follow another screen.
+            setDetail(null);
+            setRemoveTarget(null);
+            setRemoveError('');
+            pendingScroll.current = null;
+        };
+        window.addEventListener('lifecity-workspace-activate', leave);
+        return () => window.removeEventListener('lifecity-workspace-activate', leave);
+    }, []);
     useEffect(() => { const timer = window.setTimeout(() => setQuery(memberQuery.trim()), 250); return () => window.clearTimeout(timer); }, [memberQuery]);
     useEffect(() => {
         let cancelled = false;
@@ -175,10 +231,13 @@ export default function AttendanceRecords(_props: Props) {
         return [shiftDate(today, -29), today]; return dateRange === "custom" ? [customStart, customEnd] : ["", ""]; }, [dateRange, customStart, customEnd, asOf]);
     const invalidRange = Boolean(range[0] && range[1] && range[0] > range[1]);
     const request = { p_filters: { event_id: eventId, church_id: churchId, ministry_id: ministryId, query, scope: eventScope, sunday_only: sundayOnly, start: range[0], end: range[1] }, p_sort: sort, p_desc: descending, p_as_of: asOf };
-    const key = JSON.stringify({ ...request, size });
+    const key = JSON.stringify({ p_filters: request.p_filters, p_sort: sort, p_desc: descending, size });
     const page = pageState.key === key ? pageState.index : 0;
-    const fetchKey = `${key}:${page}`;
+    const viewKey = `${key}:${page}`;
+    const fetchKey = `${viewKey}:${asOf}`;
     const busy = loading || catalogLoading || loadedKey !== fetchKey || query !== memberQuery.trim();
+    const hasSnapshot = loadedView === viewKey;
+    const blocking = busy && !hasSnapshot;
     useEffect(() => {
         let cancelled = false;
         if (invalidRange) {
@@ -191,7 +250,7 @@ export default function AttendanceRecords(_props: Props) {
         setLoading(true);
         setError("");
         const { size: pageSize, ...args } = JSON.parse(key);
-        getReport({ ...args, p_limit: pageSize, p_offset: page * pageSize }).then(result => {
+        getReport({ ...args, p_as_of: asOf, p_limit: pageSize, p_offset: page * pageSize }).then(result => {
             if (cancelled)
                 return;
             const last = Math.max(0, Math.ceil(result.total / pageSize) - 1);
@@ -201,19 +260,20 @@ export default function AttendanceRecords(_props: Props) {
             }
             setReport(result);
             setLoadedKey(fetchKey);
+            setLoadedView(viewKey);
         }).catch(e => { if (!cancelled) {
             setError(e.message);
-            setReport(emptyReport);
+            if (!hasSnapshot) setReport(emptyReport);
             setLoadedKey(fetchKey);
         } }).finally(() => { if (!cancelled)
             setLoading(false); });
         return () => { cancelled = true; };
-    }, [key, page, fetchKey, invalidRange]);
+    }, [key, page, fetchKey, invalidRange, asOf]);
     const pages = Math.max(1, Math.ceil(report.total / size));
     function goPage(index: number) {
         if (exporting || busy || removing || index === page)
             return;
-        pendingScroll.current = `${key}:${index}`;
+        pendingScroll.current = `${key}:${index}:${asOf}`;
         setRemoveTarget(null);
         setPageState({ key, index });
     }
@@ -221,22 +281,14 @@ export default function AttendanceRecords(_props: Props) {
         if (busy || pendingScroll.current !== fetchKey)
             return;
         const frame = window.requestAnimationFrame(() => {
-            tableTop.current?.scrollIntoView({
-                behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-                block: "start",
-            });
+            revealWorkspaceRegion(tableTop.current, 'start');
             pendingScroll.current = null;
         });
         return () => window.cancelAnimationFrame(frame);
     }, [busy, fetchKey]);
+    useLayoutEffect(() => { if (exportOpen) revealWorkspaceRegion(exportPanel.current); }, [exportOpen]);
+    useLayoutEffect(() => { if (!removeTarget) return; confirmation.current?.querySelector<HTMLButtonElement>('[data-confirm-cancel]')?.focus({ preventScroll: true }); revealWorkspaceRegion(confirmation.current); }, [removeTarget?.id]);
     useEffect(() => { setRemoveTarget(null); setRemoveError(""); }, [key]);
-    function changeSort(next: Sort) { if (exporting || removing)
-        return; if (sort === next)
-        setDescending(!descending);
-    else {
-        setSort(next);
-        setDescending(next === "check_in");
-    } }
     const activeCount = [
         dateRange !== "all",
         eventId,
@@ -273,8 +325,15 @@ export default function AttendanceRecords(_props: Props) {
         clear: () => void;
         className?: string;
     }>;
+    function selectSort(value: string) {
+        if (busy || exporting || removing) return;
+        const [next, direction] = value.split(':');
+        if (!sortChoices.some(choice => choice.value === next) || !['asc','desc'].includes(direction)) return;
+        setSort(next as Sort);
+        setDescending(direction === 'desc');
+    }
     async function exportCsv(mode: ExportMode) {
-        if (exportLock.current || busy || error || !report.total)
+        if (exportLock.current || mutationLock.current || busy || error || !report.total)
             return;
         exportLock.current = true;
         cancelExport.current = false;
@@ -322,170 +381,116 @@ export default function AttendanceRecords(_props: Props) {
             link.click();
             link.remove();
             window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-            setMessage(`Exported ${exported.toLocaleString()} records · ${mode === "quick" ? "Quick" : "Detailed"} CSV.`);
+            if (alive.current) toast.notify({ title: 'CSV Ready', description: `${exported.toLocaleString()} records · ${mode === "quick" ? "Quick" : "Detailed"} CSV`, tone: 'success' });
         }
         catch (e) {
-            setMessage(e instanceof Error ? e.message : "Export failed. Please retry.");
+            if (alive.current) setMessage(e instanceof Error ? e.message : "Export failed. Please retry.");
         }
         finally {
             exportLock.current = false;
-            setExporting(false);
+            if (alive.current) setExporting(false);
         }
     }
     async function removeCheckIn() {
-        if (!removeTarget || exportLock.current)
+        if (!removeTarget || exportLock.current || mutationLock.current)
             return;
+        const target = removeTarget;
+        mutationLock.current = true;
         setRemoving(true);
         setMessage("");
         setRemoveError("");
         try {
-            const { data, error } = await supabase.from("attendance").delete().eq("id", removeTarget.id).select("id");
-            if (error)
-                throw error;
-            if (!data?.length)
-                throw new Error("The record was not removed. It may already be deleted, or access may be restricted.");
-            setRemoveTarget(null);
-            setAsOf(new Date().toISOString());
-            setMessage("Check-in removed.");
+            const change = await removeAttendanceWithUndo(supabase, target.id);
+            if (alive.current) {
+                setRemoveTarget(null);
+                setDetail(current => current?.id === target.id ? null : current);
+                setReport(current => ({ ...current, rows: current.rows.filter(row => row.id !== target.id) }));
+                setAsOf(new Date().toISOString());
+            }
+            toast.notify({ title: 'Check-In Removed', description: `${fullName(target)} · ${target.service_name}`, tone: 'success', duration: 10000,
+                actionLabel: 'Undo', onAction: async () => {
+                    if (mutationLock.current || exportLock.current) throw new Error('Finish the current action before using Undo.');
+                    mutationLock.current = true;
+                    if (alive.current) setRemoving(true);
+                    try { await change.undo(); window.dispatchEvent(new Event('lifecity-attendance-changed')); }
+                    finally { mutationLock.current = false; if (alive.current) setRemoving(false); }
+                } });
         }
         catch (e) {
-            setRemoveError(e instanceof Error ? e.message : "Could not remove check-in.");
+            if (alive.current) setRemoveError(e instanceof Error ? e.message : "Could not remove check-in.");
+            // Let HoldButton reset its gesture state after an unsuccessful write.
+            throw e;
         }
         finally {
-            setRemoving(false);
+            mutationLock.current = false;
+            if (alive.current) setRemoving(false);
         }
     }
-    return (<section className="records-card records-table-v1" data-change-id="records-complete-v4-20260918">
-      <div className="records-toolbar"><div><p className="records-section-kicker">Attendance Ledger</p><h2>Your Check-In History</h2><p>Completed services by default. Export every matching record across all pages.</p></div><button className="primary-button" aria-expanded={exportOpen} aria-controls="records-export-center" onClick={() => setExportOpen(!exportOpen)} disabled={exporting}><Download size={18}/>Export CSV</button></div>
-      <MotionPresence show={Boolean(exportOpen)}>{exportOpen && <section id="records-export-center" className="rh-export-center" aria-label="CSV Export Center">
-        <div className="rh-export-heading"><div><p className="records-section-kicker">CSV Export Center</p><h3>Your Report, Ready to Share</h3><p>{busy ? "Updating results…" : `${report.total.toLocaleString()} matching records`} · All pages · Current filters and sort order</p></div><button className="rt-icon" aria-label="Close Export Center" disabled={exporting} onClick={() => setExportOpen(false)}><X size={17}/></button></div>
-        <div className="rh-export-choices">
-          <button className="rh-export-choice" disabled={busy || !!error || exporting || removing || !report.total} onClick={() => void exportCsv("quick")}><Download size={22}/><span><strong>Quick CSV</strong><small>8 core columns · Member, Churches, ministries, service, check-in and attendance status.</small></span></button>
-          <button className="rh-export-choice detailed" disabled={busy || !!error || exporting || removing || !report.total} onClick={() => void exportCsv("detailed")}><FileSearch size={22}/><span><strong>Detailed CSV</strong><small>32 reporting fields · IDs, saved contact details, service details, notes and snapshot provenance.</small></span></button>
-        </div>
-        <p className="rh-history-note">New check-ins preserve details at entry. Earlier records are labelled “Backfilled from current data” in Detailed CSV.</p>
-        {exporting && <div className="rh-export-progress" role="status"><progress max={report.total || 1} value={exportProgress}/><span>{exportProgress.toLocaleString()} / {report.total.toLocaleString()} Prepared</span><button className="rt-button" onClick={() => { cancelExport.current = true; }}>Cancel Export</button></div>}
-      </section>}</MotionPresence>
-      <div className="records-summary-shelf rh-summary-v4">{[{ label: "Check-Ins Found", value: report.total, Icon: ScanLine, color: "mint" }, { label: "Unique Members", value: report.members, Icon: UsersRound, color: "violet" }, { label: "Services Included", value: report.services, Icon: CalendarDays, color: "gold" }].map(({ label, value, Icon, color }) => <div className="records-summary-item" key={label}><span className={`records-summary-icon ${color}`}><Icon size={17}/></span><div><strong>{busy ? <span className="rh-skeleton rh-number-skeleton" aria-label="Loading"/> : value.toLocaleString()}</strong><span>{label}</span></div></div>)}<div className="records-summary-item rh-top-group"><span className="records-summary-icon violet"><UsersRound size={17}/></span><div><strong>{busy ? "—" : report.top_group?.name ?? "No Affiliations"}</strong><span>{busy ? "Most Attended Church" : report.top_group ? `Most Attended ${uiStatus(report.top_group.kind)} · ${report.top_group.check_ins.toLocaleString()} Check-Ins` : "No Church or ministry in these results"}</span>{!busy && report.top_group && report.top_group.ties > 1 && <small>+{report.top_group.ties-1} Tied</small>}</div></div></div>
-      <fieldset className="records-filter-panel rh-filter-fieldset" disabled={exporting || removing}>
-        <div className="records-filter-panel-heading">
-          <div>
-            <p className="records-filter-kicker">Find the Right Records</p>
-            <h3>Filters</h3>
-          </div>
-          <div className="records-filter-panel-actions">
-            <span className="records-result-count">
-              {busy ? "Updating…" : `${report.total} Records Found`}
-            </span>
-            {activeCount > 0 && <span className="records-filter-count">{activeCount} Active</span>}
-            {activeCount > 0 && <button type="button" className="records-clear-filters" onClick={clearFilters}><RotateCcw size={15}/>Clear All</button>}
-            <button type="button" className="records-more-filter-button" aria-expanded={moreOpen} onClick={() => setMoreOpen(!moreOpen)}>
-              <SlidersHorizontal size={16}/>
-              More Filters
-              <ChevronDown size={16}/>
-            </button>
-          </div>
-        </div>
-        {activeFilterChips.length > 0 && (<div className="records-active-filter-chips" aria-label="Active Filters">
-            {activeFilterChips.map((chip) => (<button key={chip.label} type="button" className={chip.className ?? "records-filter-chip"} onClick={chip.clear} title={`Remove ${chip.label} Filter`}>
-                {chip.label}<X size={13}/>
-              </button>))}
-          </div>)}
-        <div className="records-primary-filters">
-          <label className="records-filter-field"><span>Event Status</span><ResponsiveSelect value={eventScope} onChange={e => { setEventScope(e.target.value as EventScope); setEventId(""); }}>{(Object.entries(scopeLabels) as [
-        EventScope,
-        string
-    ][]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</ResponsiveSelect></label>
-          <label className="records-filter-field">
-            <span>Service</span>
-            <ResponsiveSelect value={eventId} disabled={catalogLoading} onChange={(event) => setEventId(event.target.value)}>
-              <option value="">{catalogLoading ? "Loading Services…" : `All · ${scopeLabels[eventScope]}`}</option>
-              {services.map((event) => (<option key={event.id} value={event.id}>
-                  {event.name} · {manilaDate(event.service_date)}{event.service_state === "archived" ? " (Archived)" : event.service_state === "in-progress" ? " (In Progress)" : ""}
-                </option>))}
-            </ResponsiveSelect>
-          </label>
-          <label className="records-filter-field records-member-search">
-            <span>Member</span>
-            <div className="records-search-input">
-              <Search size={16}/>
-              <input value={memberQuery} onChange={(event) => setMemberQuery(event.target.value)} placeholder="Name, member ID, email or mobile"/>
-            </div>
-          </label>
-        </div>
-        {moreOpen && (<div className="records-more-filters">
-            <label className="records-filter-field">
-              <span>Church</span>
-              <ResponsiveSelect value={churchId} onChange={(event) => setChurchId(event.target.value)}>
-                <option value="">All Churches</option>
-                {churches.map((item) => (<option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>))}
-              </ResponsiveSelect>
-            </label>
-            <label className="records-filter-field">
-              <span>Ministry</span>
-              <ResponsiveSelect value={ministryId} onChange={(event) => setMinistryId(event.target.value)}>
-                <option value="">All Ministries</option>
-                {ministries.map((item) => (<option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>))}
-              </ResponsiveSelect>
-            </label>
-            <label className="records-filter-field">
-              <span>Date Range</span>
-              <ResponsiveSelect value={dateRange} onChange={(event) => setDateRange(event.target.value as DateRange)}>
-                <option value="all">All Time</option>
-                <option value="today">Today</option>
-                <option value="week">Last 7 Days</option>
-                <option value="month">Last 30 Days</option>
-                <option value="custom">Custom Range</option>
-              </ResponsiveSelect>
-            </label>
-            {dateRange === "custom" && (<div className="records-custom-dates">
-                <label className="records-filter-field"><span>From</span><input type="date" value={customStart} onChange={(event) => setCustomStart(event.target.value)}/></label>
-                <label className="records-filter-field"><span>To</span><input type="date" value={customEnd} onChange={(event) => setCustomEnd(event.target.value)}/></label>
-              </div>)}
-            <div className="records-scope-options">
-            <label className="records-sunday-filter">
-              <input type="checkbox" checked={sundayOnly} onChange={(event) => setSundayOnly(event.target.checked)}/>
-              <span>Sunday Services Only</span>
-            </label>
-            </div>
-          </div>)}
-      </fieldset>
+    return <section className="lcr-workspace" aria-label="Attendance Ledger">
+      <header className="lcr-header">
+        <div><p className="lcr-eyebrow">Attendance Ledger</p><h2 id="lcr-ledger-heading" tabIndex={-1}>Check-In History</h2><p>Review saved check-ins and export matching records.</p></div>
+        <button type="button" className="lcr-primary" aria-expanded={exportOpen} aria-controls="records-export-center" onClick={() => setExportOpen(!exportOpen)} disabled={exporting || removing}><Download size={17} aria-hidden="true"/>Export CSV</button>
+      </header>
 
-      {catalogError && <p className="rt-notice" role="alert">{uiMessage(catalogError)}</p>}
-      {message && <p className="rt-notice" role="status">{uiMessage(message)}</p>}
-      <div className="rt-table-top" ref={tableTop}>
-        <div><h3>Attendance Records</h3><p>Times in Manila · Member and service details use saved snapshots. Event Status reflects the current archive state.</p></div>
-        <button type="button" className="rt-button" disabled={loading || exporting || removing} onClick={() => { setCatalogError(""); setAsOf(new Date().toISOString()); }}><RotateCcw size={15}/>Refresh</button>
+      <div className="lcr-summary" aria-label="Report Summary">
+        {[{ label: "Check-Ins", value: report.total, Icon: ScanLine, color: "teal" }, { label: "Members", value: report.members, Icon: UsersRound, color: "violet" }, { label: "Services", value: report.services, Icon: CalendarDays, color: "gold" }].map(({ label, value, Icon, color }) => <div className="lcr-stat" data-color={color} key={label}><span className="lcr-stat__icon"><Icon size={17} aria-hidden="true"/></span><div><strong>{blocking ? <span className="lcr-skeleton" aria-label="Loading"/> : value.toLocaleString()}</strong><span>{label}</span></div></div>)}
+        <div className="lcr-stat lcr-stat--group" data-color="sky"><span className="lcr-stat__icon"><Church size={17} aria-hidden="true"/></span><div><span>{report.top_group ? `Top ${uiStatus(report.top_group.kind)}` : 'Top Affiliation'}</span><strong>{blocking ? '—' : report.top_group?.name ?? 'No Affiliation'}</strong><small>{!blocking && report.top_group ? `${report.top_group.check_ins.toLocaleString()} Check-Ins${report.top_group.ties > 1 ? ` · ${report.top_group.ties} Tied` : ''}` : 'Based on matching check-ins'}</small></div></div>
       </div>
-      <div className="rh-mobile-sort"><label>Sort by<ResponsiveSelect value={sort} disabled={busy || exporting || removing} onChange={e=>changeSort(e.target.value as Sort)}>{[{value:"check_in",label:"Check-In Time"},{value:"member",label:"Member"},{value:"church",label:"Church"},{value:"ministry",label:"Ministry"},{value:"service",label:"Service"}].map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</ResponsiveSelect></label><button className="rt-button" disabled={busy || exporting || removing} onClick={()=>setDescending(!descending)} aria-label={descending ? "Change to Ascending Order" : "Change to Descending Order"}><ArrowUpDown size={15}/>{descending ? "Descending" : "Ascending"}</button></div>
-      {error ? <p className="rt-notice rt-error" role="alert">{uiMessage(error)}</p> : busy ? <div className="rh-loading" role="status" aria-label="Loading Attendance Records"><span className="rh-sr-only">Loading Attendance Records…</span>{Array.from({length:6},(_,i) => <div className="rh-skeleton-row" key={i} aria-hidden="true">{Array.from({length:6},(_,j)=><span key={j} className="rh-skeleton"/>)}</div>)}</div> : !report.rows.length ? <div className="empty-state rh-empty"><FileSearch size={30}/><h3>No Matching Attendance</h3><p>Try adjusting filters or changing Event Status to include archived or in-progress services. Upcoming services are excluded.</p>{activeCount > 0 && <button className="rt-button" onClick={clearFilters}><RotateCcw size={15}/>Clear Filters</button>}</div> : <div className="rt-scroll" tabIndex={0} role="region" aria-label="Attendance table, scroll horizontally for more columns"><table className="rt-table" role="table" aria-label="Attendance Records"><thead role="rowgroup"><tr role="row">
-        {([{ key: "member", label: "Member" }, { key: "church", label: "Church" }, { key: "ministry", label: "Ministries" }, { key: "service", label: "Service" }, { key: "check_in", label: "Check-In Time" }] as {
-            key: Sort;
-            label: string;
-        }[]).map(c => <th role="columnheader" key={c.key} scope="col" aria-sort={sort === c.key ? descending ? "descending" : "ascending" : "none"}><button disabled={exporting || removing} onClick={() => changeSort(c.key)}>{c.label}<span aria-hidden="true">{sort === c.key ? descending ? "↓" : "↑" : <ArrowUpDown size={13}/>}</span></button></th>)}
-        <th role="columnheader" scope="col">Actions</th>
-      </tr></thead><tbody role="rowgroup">{report.rows.map(r => <Fragment key={r.id}><tr className="rh-record-card" role="row">
-        <td role="cell" data-label="Member"><button className="rt-member" onClick={() => setDetail(r)}><span className={`rt-dot ${r.member_status === "active" ? "is-active" : ""}`} title={`Saved Member Status: ${uiStatus(r.member_status)}`} aria-label={`Saved Member Status: ${uiStatus(r.member_status)}`}/><strong>{fullName(r)}</strong></button><small>{r.member_number}{r.snapshot_source === "backfilled_current_data" && <span className="rh-backfill" title="Historical values were not available; this record was backfilled from the profile at migration time."> · Backfilled</span>}</small></td>
-        <td role="cell" data-label="Church">{r.churches.length ? names(r.churches) : <span className="rt-muted">Unassigned</span>}</td>
-        <td role="cell" data-label="Ministries"><div className="rt-pills">{r.ministries.slice(0, 2).map(m => <span key={m.id}>{m.name}</span>)}{r.ministries.length > 2 && <button onClick={() => setDetail(r)} aria-label={`View All ${r.ministries.length} Ministries for ${fullName(r)}`}>+{r.ministries.length - 2}</button>}{!r.ministries.length && <span className="rt-muted">None</span>}</div></td>
-        <td role="cell" data-label="Service"><strong>{r.service_name}</strong><small>{manilaDate(r.service_date)} · {r.service_state.replace("-", " ")}</small></td>
-        <td role="cell" data-label="Check-In Time" className="rt-time">{stamp(r.checked_in_at)}</td>
-        <td role="cell" data-label="Actions"><div className="rt-actions"><button className="rt-icon" title="View Attendance Details" aria-label={`View Attendance for ${fullName(r)}`} onClick={() => setDetail(r)}><Eye size={17}/></button><button className="rt-icon rt-danger" title="Remove Check-In" aria-label={`Remove Check-In for ${fullName(r)}`} disabled={removing || exporting} aria-expanded={removeTarget?.id === r.id} aria-controls={removeTarget?.id === r.id ? `rt-remove-${r.id}` : undefined} onClick={() => { setMessage(""); setRemoveError(""); setRemoveTarget(removeTarget?.id === r.id ? null : r); }}><Trash2 size={16}/></button></div></td>
-      </tr>
-        {removeTarget?.id === r.id && <tr role="row" className="rt-inline-row"><td role="cell" colSpan={6}>
-          <section id={`rt-remove-${r.id}`} className="rt-inline-confirm" aria-label="Confirm Check-In Removal" onKeyDown={e => { if (e.key === "Escape" && !removing)
-                    setRemoveTarget(null); }}>
-            <div><strong>Remove This Check-In?</strong><p>This permanently removes <b>{fullName(r)}</b>’s attendance for <b>{r.service_name}</b>.</p>{removeError && <p className="rt-inline-error" role="alert">{uiMessage(removeError)}</p>}</div>
-            <div className="rt-inline-actions"><button autoFocus className="rt-button" disabled={removing} onClick={() => setRemoveTarget(null)}>Cancel</button><button className="rt-button rt-danger" disabled={removing} onClick={() => void removeCheckIn()}><Trash2 size={15}/>{removing ? "Removing…" : "Remove Check-In"}</button></div>
-          </section>
-        </td></tr>}
-      </Fragment>)}</tbody></table></div>}
-      <div className="rt-pagination"><label>Rows per Page <ResponsiveSelect disabled={exporting || removing} value={size} onChange={e => setSize(Number(e.target.value))}>{[25, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}</ResponsiveSelect></label><span aria-live="polite">{busy ? "Updating…" : report.total ? `${page * size + 1}–${Math.min((page + 1) * size, report.total)} of ${report.total.toLocaleString()}` : "0 Records"}</span><nav aria-label="Attendance Pages">{[{ label: "First Page", index: 0, Icon: ChevronsLeft, disabled: page === 0 }, { label: "Previous Page", index: page - 1, Icon: ChevronLeft, disabled: page === 0 }].map(({ label, index, Icon, disabled }) => <button key={label} className="rt-icon" aria-label={label} disabled={exporting || busy || removing || !!error || disabled} onClick={() => goPage(index)}><Icon size={17}/></button>)}<span>Page {page + 1} of {pages}</span>{[{ label: "Next Page", index: page + 1, Icon: ChevronRight }, { label: "Last Page", index: pages - 1, Icon: ChevronsRight }].map(({ label, index, Icon }) => <button key={label} className="rt-icon" aria-label={label} disabled={exporting || busy || removing || !!error || page >= pages - 1} onClick={() => goPage(index)}><Icon size={17}/></button>)}</nav></div>
-      {detail && <ReportDialog label="rt-detail-heading" onClose={() => setDetail(null)}><div className="rt-dialog-body"><button autoFocus className="rt-icon rt-close" aria-label="Close Details" onClick={() => setDetail(null)}><X size={19}/></button><p className="records-section-kicker">Attendance Details</p><h2 id="rt-detail-heading">{fullName(detail)}</h2><p>{detail.member_number} · {uiStatus(detail.member_status)} member</p><dl>{[["Service", detail.service_name], ["Service Start", stamp(detail.service_date)], ["Service State", uiStatus(detail.service_state)], ["Check-In", `${stamp(detail.checked_in_at)} (Manila)`], ["Attendance Status", uiStatus(detail.attendance_status)], ["Churches (Saved)", names(detail.churches) || "Unassigned"], ["Ministries (Saved)", names(detail.ministries) || "None"], ["Email", detail.email || "Not Provided"], ["Mobile", detail.mobile || "Not Provided"], ["Member Group", detail.member_group || "None"], ["Snapshot", detail.snapshot_source === "captured_at_check_in" ? "Captured at Check-In" : "Backfilled from Current Data"], ["Snapshot Saved", stamp(detail.snapshot_captured_at)], ["Attendance ID", detail.id]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></div></ReportDialog>}
 
-    </section>);
+      <MotionPresence show={exportOpen}>{exportOpen && <section ref={exportPanel} id="records-export-center" className="lcr-export" aria-label="CSV Export">
+        <div className="lcr-export__heading"><div><p className="lcr-eyebrow">Export Records</p><h3>CSV Report</h3><p>{busy ? 'Updating…' : `${report.total.toLocaleString()} Matching Records`} · All Pages · Current Filters & Sort</p></div><button type="button" className="lcr-icon" aria-label="Close Export" disabled={exporting} onClick={() => setExportOpen(false)}><X size={18}/></button></div>
+        <div className="lcr-export__choices">
+          <button type="button" className="lcr-export__choice" disabled={busy || !!error || exporting || removing || !report.total} onClick={() => void exportCsv('quick')}><span><Download size={21} aria-hidden="true"/></span><div><strong>Quick CSV</strong><small>Member, community, service and check-in details.</small><em>8 Columns</em></div><ArrowUpRight size={16} aria-hidden="true"/></button>
+          <button type="button" className="lcr-export__choice" data-detailed disabled={busy || !!error || exporting || removing || !report.total} onClick={() => void exportCsv('detailed')}><span><FileSearch size={21} aria-hidden="true"/></span><div><strong>Detailed CSV</strong><small>Quick CSV plus saved contacts, IDs, notes and snapshot details.</small><em>32 Columns</em></div><ArrowUpRight size={16} aria-hidden="true"/></button>
+        </div>
+        {message && <p className="lcr-notice" role="status">{uiMessage(message)}</p>}
+        {exporting && <div className="lcr-export__progress" role="status"><progress max={report.total || 1} value={exportProgress}/><span>{exportProgress.toLocaleString()} / {report.total.toLocaleString()} Prepared</span><button type="button" className="lcr-button" onClick={() => { cancelExport.current = true; }}>Cancel Export</button></div>}
+      </section>}</MotionPresence>
+
+      <fieldset className="lcr-filters" disabled={exporting || removing}>
+        <div className="lcr-filters__heading"><span><SlidersHorizontal size={15} aria-hidden="true"/>Filters{activeCount > 0 && <small>{activeCount} Active</small>}</span><div>{activeCount > 0 && <button type="button" className="lcr-text-button" onClick={clearFilters}>Reset</button>}<label className="lcr-sunday lcr-sunday--toolbar"><input type="checkbox" aria-label="Sunday Services Only" checked={sundayOnly} onChange={event => setSundayOnly(event.target.checked)}/><span aria-hidden="true"><Check size={13}/></span>Sunday Only</label><button type="button" className="lcr-button lcr-more" aria-expanded={moreOpen} aria-controls="records-more-filters" onClick={() => setMoreOpen(!moreOpen)}><SlidersHorizontal size={14} aria-hidden="true"/>{moreOpen ? 'Fewer Filters' : 'More Filters'}<ChevronDown size={14} aria-hidden="true"/></button></div></div>
+        <div className="lcr-filters__primary">
+          <label className="lcr-field"><span>Service Status</span><ResponsiveSelect aria-label="Filter by Service Status" value={eventScope} onChange={e => { setEventScope(e.target.value as EventScope); setEventId(''); }}>{(Object.entries(scopeLabels) as [EventScope, string][]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</ResponsiveSelect></label>
+          <label className="lcr-field"><span>Service</span><ResponsiveSelect aria-label="Filter by Service" value={eventId} disabled={catalogLoading} onChange={event => setEventId(event.target.value)}><option value="">{catalogLoading ? 'Loading Services…' : 'All Matching Services'}</option>{services.map(event => <option key={event.id} value={event.id}>{event.name} · {manilaDate(event.service_date)}</option>)}</ResponsiveSelect></label>
+          <label className="lcr-field lcr-search-field"><span>Member</span><div className="lcr-search"><Search size={16} aria-hidden="true"/><input type="search" autoComplete="off" spellCheck={false} aria-label="Search Attendance by Member" value={memberQuery} onChange={event => setMemberQuery(event.target.value)} placeholder="Name, Member ID or Contact"/>{memberQuery && <button type="button" aria-label="Clear Member Search" onClick={() => setMemberQuery('')}><X size={14}/></button>}</div></label>
+        </div>
+        {moreOpen && <div id="records-more-filters" className="lcr-filters__more">
+          <label className="lcr-field"><span>Church</span><ResponsiveSelect aria-label="Filter by Church" value={churchId} onChange={event => setChurchId(event.target.value)}><option value="">All Churches</option>{churches.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</ResponsiveSelect></label>
+          <label className="lcr-field"><span>Ministry</span><ResponsiveSelect aria-label="Filter by Ministry" value={ministryId} onChange={event => setMinistryId(event.target.value)}><option value="">All Ministries</option>{ministries.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</ResponsiveSelect></label>
+          <label className="lcr-field"><span>Date Range</span><ResponsiveSelect aria-label="Filter by Date Range" value={dateRange} onChange={event => setDateRange(event.target.value as DateRange)}><option value="all">All Time</option><option value="today">Today</option><option value="week">Last 7 Days</option><option value="month">Last 30 Days</option><option value="custom">Custom Range</option></ResponsiveSelect></label>
+          {dateRange === 'custom' && <div className="lcr-custom-dates"><label className="lcr-field" role="group" aria-labelledby="lcr-from-label"><span id="lcr-from-label">From</span><ServiceDatePicker id="lcr-date-from" value={customStart} onChange={setCustomStart} disabled={exporting || removing}/></label><label className="lcr-field" role="group" aria-labelledby="lcr-to-label"><span id="lcr-to-label">To</span><ServiceDatePicker id="lcr-date-to" value={customEnd} onChange={setCustomEnd} disabled={exporting || removing}/></label></div>}
+        </div>}
+        {activeFilterChips.length > 0 && <div className="lcr-filter-chips" aria-label="Active Filters">{activeFilterChips.map(chip => <button key={chip.label} type="button" onClick={chip.clear} aria-label={`Remove ${chip.label} Filter`}>{chip.label}<X size={12} aria-hidden="true"/></button>)}</div>}
+      </fieldset>
+      {catalogError && <div className="lcr-notice is-error" role="alert"><p>{uiMessage(catalogError)}</p></div>}
+
+      <div className="lcr-table-toolbar" ref={tableTop}>
+        <div><strong>{blocking ? 'Loading Records…' : `${report.total.toLocaleString()} Matching Records`}</strong><span>Manila Time · Saved Member & Service Details</span></div>
+        <div className="lcr-table-toolbar__actions"><span className="lcr-sort-summary" aria-live="polite">{descending ? <ArrowDown size={13} aria-hidden="true"/> : <ArrowUp size={13} aria-hidden="true"/>}{sortLabel(sort, descending)}</span><label className="lcr-sort"><span>Sort</span><ResponsiveSelect aria-label="Sort Attendance Records" disabled={busy || exporting || removing} value={`${sort}:${descending ? 'desc' : 'asc'}`} onChange={event => selectSort(event.target.value)}>{sortChoices.flatMap(choice => [{value:`${choice.value}:desc`, label:choice.value === 'check_in' ? 'Check-In · Newest First' : `${choice.label} · Z–A`}, {value:`${choice.value}:asc`, label:choice.value === 'check_in' ? 'Check-In · Oldest First' : `${choice.label} · A–Z`}]).map(choice => <option key={choice.value} value={choice.value}>{choice.label}</option>)}</ResponsiveSelect></label><button type="button" className="lcr-refresh" aria-label="Refresh Attendance Records" disabled={loading || exporting || removing} onClick={() => { setCatalogError(''); setAsOf(new Date().toISOString()); }}><RotateCcw size={15} aria-hidden="true"/><span>{busy && hasSnapshot ? 'Refreshing…' : 'Refresh'}</span></button></div>
+      </div>
+      {error && hasSnapshot && <div className="lcr-notice is-error" role="alert"><p><strong>Records Could Not Be Updated</strong><br/>{uiMessage(error)}</p><button type="button" className="lcr-button" onClick={() => setAsOf(new Date().toISOString())}>Try Again</button></div>}
+      {error && !hasSnapshot ? <div className="lcr-notice is-error" role="alert"><p>{uiMessage(error)}</p><button type="button" className="lcr-button" onClick={() => setAsOf(new Date().toISOString())}>Try Again</button></div> : blocking ? <div className="lcr-loading" role="status" aria-label="Loading Attendance Records">{Array.from({length:5},(_,index) => <div key={index}><span/><span/><span/><span/></div>)}</div> : !report.rows.length ? <div className="lcr-empty"><span><FileSearch size={28} aria-hidden="true"/></span><h3>No Matching Check-Ins</h3><p>Adjust the filters to include other services or members.</p>{activeCount > 0 && <button type="button" className="lcr-button" onClick={clearFilters}>Reset Filters</button>}</div> : <div className="lcr-table-wrap"><table className="lcr-table" aria-label="Attendance Records"><thead><tr>
+        <th scope="col" aria-sort={sort === 'member' ? descending ? 'descending' : 'ascending' : 'none'}><SortColumn label="Member" fields={['member']} sort={sort} descending={descending} disabled={busy || exporting || removing} onChange={selectSort}/></th>
+        <th scope="col" aria-sort={['church','ministry'].includes(sort) ? descending ? 'descending' : 'ascending' : 'none'}><SortColumn label="Community" fields={['church','ministry']} sort={sort} descending={descending} disabled={busy || exporting || removing} onChange={selectSort}/></th>
+        <th scope="col" aria-sort={sort === 'service' ? descending ? 'descending' : 'ascending' : 'none'}><SortColumn label="Service" fields={['service']} sort={sort} descending={descending} disabled={busy || exporting || removing} onChange={selectSort}/></th>
+        <th scope="col" aria-sort={sort === 'check_in' ? descending ? 'descending' : 'ascending' : 'none'}><SortColumn label="Check-In" fields={['check_in']} sort={sort} descending={descending} disabled={busy || exporting || removing} onChange={selectSort}/></th>
+        <th scope="col"><span className="lcr-sr-only">Actions</span></th>
+      </tr></thead><tbody>{report.rows.map(row => <Fragment key={row.id}><tr className="lcr-row">
+        <td data-label="Member"><div className="lcr-member"><span className="lcr-avatar" aria-hidden="true">{row.first_name[0]}{row.last_name[0]}</span><div><button type="button" className="lcr-name" onClick={() => setDetail(row)}>{fullName(row)}</button><small><i data-inactive={row.member_status !== 'active' || undefined} title={`Saved Status: ${uiStatus(row.member_status)}`}/>{row.member_number}{row.snapshot_source === 'backfilled_current_data' && <span className="lcr-backfill" title="Historical details were backfilled from the profile when reports were updated.">Backfilled</span>}</small></div></div></td>
+        <td data-label="Community"><div className="lcr-community"><span>{names(row.churches) || 'No Church'}</span><div>{row.ministries.slice(0,2).map(item => <span className="lcr-pill" key={item.id}>{item.name}</span>)}{row.ministries.length > 2 && <button type="button" className="lcr-pill" onClick={() => setDetail(row)} aria-label={`View All ${row.ministries.length} Ministries for ${fullName(row)}`}>+{row.ministries.length-2}</button>}{!row.ministries.length && <small>No Ministry</small>}</div></div></td>
+        <td data-label="Service"><div className="lcr-service"><time dateTime={row.service_date} className="lcr-calendar" aria-label={shortDate(row.service_date)}><small>{calendarMonth(row.service_date)}</small><strong>{calendarDay(row.service_date)}</strong></time><div><strong>{row.service_name}</strong><span><i className="lcr-state" data-state={row.service_state}>{uiStatus(row.service_state)}</i>{row.sunday_service && <small>Sunday</small>}</span></div></div></td>
+        <td data-label="Check-In"><div className="lcr-checkin"><strong>{timeOnly(row.checked_in_at)}</strong><time dateTime={row.checked_in_at}>{shortDate(row.checked_in_at)}</time>{row.attendance_status !== 'present' && <span className="lcr-corrected">{uiStatus(row.attendance_status)}</span>}</div></td>
+        <td data-label="Actions"><div className="lcr-row-actions"><button type="button" className="lcr-icon" aria-label={`View Attendance for ${fullName(row)}`} title="View Details" onClick={() => setDetail(row)}><Eye size={17}/></button><button type="button" className="lcr-icon is-danger" title="Remove Check-In" aria-label={`Remove Check-In for ${fullName(row)}`} disabled={removing || exporting || busy || !!error} aria-expanded={removeTarget?.id === row.id} aria-controls={removeTarget?.id === row.id ? `lcr-remove-${row.id}` : undefined} onClick={() => { setMessage(''); setRemoveError(''); setRemoveTarget(removeTarget?.id === row.id ? null : row); }}><Trash2 size={16}/></button></div></td>
+      </tr>{removeTarget?.id === row.id && <tr className="lcr-confirm-row"><td colSpan={5}><section ref={confirmation} id={`lcr-remove-${row.id}`} className="lcr-confirm" aria-label="Confirm Check-In Removal" onKeyDown={event => { if(event.key === 'Escape' && !removing) setRemoveTarget(null); }}><div><strong>Remove Check-In?</strong><p><b>{fullName(row)}</b> · {row.service_name}</p><small>Hold to confirm. Undo is available after removal.</small>{removeError && <p className="lcr-confirm__error" role="alert">{uiMessage(removeError)}</p>}</div><div className="lcr-confirm__actions"><button type="button" data-confirm-cancel className="lcr-button" disabled={removing} onClick={() => setRemoveTarget(null)}>Cancel</button><HoldButton label="Hold to Remove" holdingLabel="Keep Holding…" doneLabel={removing ? 'Removing…' : 'Confirmed'} holdMs={1300} resetAfter={1200} size="md" icon={<Trash2 size={15}/>} disabled={removing || exporting} className="lcr-hold" onConfirm={removeCheckIn}/></div></section></td></tr>}</Fragment>)}</tbody></table></div>}
+
+      <footer className="lcr-pagination"><label><span>Rows per Page</span><ResponsiveSelect aria-label="Attendance Rows per Page" disabled={exporting || removing} value={size} onChange={event => setSize(Number(event.target.value))}>{[25,50,100].map(number => <option key={number} value={number}>{number}</option>)}</ResponsiveSelect></label><span aria-live="polite">{blocking ? 'Updating…' : report.total ? `${page*size+1}–${Math.min((page+1)*size,report.total)} of ${report.total.toLocaleString()}` : '0 Records'}</span><nav aria-label="Attendance Pages">{[{label:'First Page',index:0,Icon:ChevronsLeft,off:page===0},{label:'Previous Page',index:page-1,Icon:ChevronLeft,off:page===0},{label:'Next Page',index:page+1,Icon:ChevronRight,off:page>=pages-1},{label:'Last Page',index:pages-1,Icon:ChevronsRight,off:page>=pages-1}].map(({label,index,Icon,off}) => <Fragment key={label}>{label==='Next Page' && <span>Page {page+1} of {pages}</span>}<button type="button" className="lcr-icon" aria-label={label} disabled={exporting || busy || removing || !!error || off} onClick={() => goPage(index)}><Icon size={17}/></button></Fragment>)}</nav></footer>
+
+      {detail && <ReportDialog label="lcr-detail-heading" onClose={() => setDetail(null)}><header className="lcr-detail__header"><span className="lcr-avatar" aria-hidden="true">{detail.first_name[0]}{detail.last_name[0]}</span><div><p className="lcr-eyebrow">Attendance Details</p><h2 id="lcr-detail-heading">{fullName(detail)}</h2><span>{detail.member_number} · {uiStatus(detail.member_status)} Member</span></div><button type="button" autoFocus className="lcr-icon" aria-label="Close Attendance Details" onClick={() => setDetail(null)}><X size={19}/></button></header><div className="lcr-detail__body">
+        <section className="lcr-detail__checkin"><span><ScanLine size={20} aria-hidden="true"/>Check-In</span><strong>{timeOnly(detail.checked_in_at)}</strong><p>{shortDate(detail.checked_in_at)} · Manila Time</p><small>{uiStatus(detail.attendance_status)}</small></section>
+        <section className="lcr-detail__section"><h3><CalendarDays size={16} aria-hidden="true"/>Service</h3><strong className="lcr-detail__service">{detail.service_name}</strong><p><Clock3 size={14} aria-hidden="true"/>{stamp(detail.service_date)}</p>{detail.service_location && <p><MapPin size={14} aria-hidden="true"/>{detail.service_location}</p>}<span className="lcr-state" data-state={detail.service_state}>{uiStatus(detail.service_state)}</span>{detail.sunday_service && <span className="lcr-pill">Sunday Service</span>}</section>
+        <section className="lcr-detail__section"><h3><UsersRound size={16} aria-hidden="true"/>Saved Member Details</h3><dl>{[['Churches',names(detail.churches)||'Unassigned'],['Ministries',names(detail.ministries)||'None'],['Email',detail.email||'Not Provided'],['Mobile',detail.mobile||'Not Provided'],['Member Group',detail.member_group||'None']].map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></section>
+        {detail.notes && <section className="lcr-detail__section"><h3>Attendance Note</h3><p className="lcr-detail__note">{detail.notes}</p></section>}
+        <details className="lcr-detail__technical"><summary><ShieldCheck size={15} aria-hidden="true"/>Record Information<ChevronDown size={15} aria-hidden="true"/></summary><dl>{[['Snapshot',detail.snapshot_source === 'captured_at_check_in' ? 'Captured at Check-In' : 'Backfilled from Current Data'],['Snapshot Saved',stamp(detail.snapshot_captured_at)],['Attendance ID',detail.id]].map(([label,value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl></details>
+      </div></ReportDialog>}
+    </section>;
 }

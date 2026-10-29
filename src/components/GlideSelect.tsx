@@ -41,6 +41,7 @@ export default function GlideSelect({options=DEFAULT_OPTIONS,value,defaultValue=
  },[ariaLabel,labelledBy,current,options])
  const calculatePosition=useCallback(()=>{
   const node=trigger.current;if(!node?.isConnected)return
+  if(node.closest('[hidden],[aria-hidden="true"]')){close(true);return}
   const box=node.getBoundingClientRect(),viewport=window.visualViewport,leftEdge=viewport?.offsetLeft??0,topEdge=viewport?.offsetTop??0,viewportWidth=viewport?.width??innerWidth,viewportHeight=viewport?.height??innerHeight
   if(!box.width||!box.height||box.bottom<topEdge||box.top>topEdge+viewportHeight){close(true);return}
   const margin=10,gap=6,width=Math.min(Math.max(menuWidth,box.width),viewportWidth-margin*2),below=topEdge+viewportHeight-box.bottom-gap-margin,above=box.top-topEdge-gap-margin
@@ -51,7 +52,7 @@ export default function GlideSelect({options=DEFAULT_OPTIONS,value,defaultValue=
   const next={left:Math.round(left),top:Math.round(top),width:Math.round(width),maxHeight:Math.floor(maxHeight),side};setPosition(previous=>samePosition(previous,next)?previous:next)
  },[align,close,filtered.length,menuWidth,placement,S.row,showSearch])
  function open(viaKey=false,end=false){
-  if(latest.current.disabled||trigger.current?.matches(':disabled'))return
+  if(latest.current.disabled||trigger.current?.matches(':disabled')||trigger.current?.closest('[hidden],[aria-hidden="true"]'))return
   clearTimeout(closeTimer.current);typeahead.current={value:'',at:0};touch.current=null;setQuery('');setPosition(null);setMode('keyboard')
   const indexes=items.map((option,index)=>option.disabled?-1:index).filter(index=>index>=0)
   setActive(selected>=0&&!items[selected].disabled?selected:viaKey&&end?indexes.at(-1)??-1:indexes[0]??-1)
@@ -99,6 +100,19 @@ export default function GlideSelect({options=DEFAULT_OPTIONS,value,defaultValue=
  useEffect(()=>{if(isOpen&&!enabled.includes(active)){setMode('keyboard');setActive(enabled.includes(selected)?selected:enabled[0]??-1)}},[items,filtered,active,isOpen,selected])
  useEffect(()=>{if(isOpen){setMode('keyboard');setActive(selected)}},[current,selected])
  useEffect(()=>{if(disabled)close(true)},[disabled,close])
+ useLayoutEffect(()=>{
+  if(phase==='closed')return
+  // A portal is outside its trigger's hidden workspace. Remove it immediately
+  // when a retained route/tab closes, without focusing the hidden control.
+  const dismissHidden=()=>{if(!trigger.current?.isConnected||trigger.current.closest('[hidden],[aria-hidden="true"]'))close(true)}
+  const observer=new MutationObserver(dismissHidden)
+  let ancestor:HTMLElement|null=trigger.current?.parentElement??null
+  while(ancestor){observer.observe(ancestor,{attributes:true,attributeFilter:['hidden','aria-hidden']});ancestor=ancestor.parentElement}
+  window.addEventListener('lifecity-workspace-activate',dismissHidden)
+  window.addEventListener('lifecity-settings-activate',dismissHidden)
+  dismissHidden()
+  return()=>{observer.disconnect();window.removeEventListener('lifecity-workspace-activate',dismissHidden);window.removeEventListener('lifecity-settings-activate',dismissHidden)}
+ },[phase,close])
  useEffect(()=>{
   if(phase==='closed')return
   const outside=(event:PointerEvent)=>{const target=event.target as Node;if(!root.current?.contains(target)&&!menu.current?.contains(target))close()}

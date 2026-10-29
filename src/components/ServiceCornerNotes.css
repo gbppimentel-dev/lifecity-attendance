@@ -1,0 +1,92 @@
+/* v26: paper labels belong only to service cards, never profile chips. */
+html:root body :is(.lcg-workspace .lcg-card,.lmp-workspace .lmp-service-card) {
+  overflow: visible;
+}
+html:root body :is(.lcg-workspace .lcg-card,.lmp-workspace .lmp-service-card) :is(.lcg-pills,.lmp-pills) {
+  position: absolute;
+  z-index: 2;
+  top: -9px;
+  right: -5px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 7px;
+  max-width: calc(100% - 82px);
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+html:root body :is(.lcg-workspace .lcg-card,.lmp-workspace .lmp-service-card) :is(.lcg-pill,.lmp-pill) {
+  --note-ink: var(--lc-safe-secondary,var(--lc-secondary,#7964ad));
+  --note-paper: color-mix(in srgb,var(--lc-secondary,#7964ad) 18%,var(--lc-surface,#fff));
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 29px;
+  max-width: 100%;
+  margin: 0;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb,var(--note-ink) 16%,var(--note-paper));
+  border-radius: 2px 3px 5px 2px;
+  background: linear-gradient(145deg,var(--note-paper) 65%,color-mix(in srgb,var(--note-ink) 8%,var(--note-paper)));
+  color: var(--note-ink);
+  box-shadow: 0 3px 5px color-mix(in srgb,var(--lc-shadow,#315b53) 13%,transparent);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  rotate: -3deg;
+  transform-origin: 50% 0;
+}
+html:root body :is(.lcg-workspace .lcg-card,.lmp-workspace .lmp-service-card) :is(.lcg-pill,.lmp-pill)::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: calc(50% - 12px);
+  width: 24px;
+  height: 7px;
+  border: 1px solid color-mix(in srgb,var(--note-ink) 8%,transparent);
+  background: color-mix(in srgb,var(--lc-surface,#fff) 65%,transparent);
+  rotate: -6deg;
+  pointer-events: none;
+}
+html:root body :is(.lcg-workspace .lcg-card,.lmp-workspace .lmp-service-card) :is(.lcg-pill,.lmp-pill).sunday {
+  --note-ink: var(--lc-safe-highlight,var(--lc-warning,#85570f));
+  --note-paper: color-mix(in srgb,var(--lc-glowHighlight,#fff4dd) 87%,var(--lc-surface,#fff));
+  rotate: 3deg;
+}
+html:root body :is(.lcg-workspace .lcg-card,.lmp-workspace .lmp-service-card) :is(.lcg-pill,.lmp-pill).in-progress {
+  --note-ink: var(--lc-primary,#147d73);
+  --note-paper: color-mix(in srgb,var(--lc-glowPrimary,#e5f5ef) 88%,var(--lc-surface,#fff));
+}
+html:root body .lmp-workspace .lmp-service-card .lmp-service-copy { padding-top: 22px; }
+html:root body .lcg-workspace .lcg-grid { row-gap: 24px; }
+html:root body .lmp-workspace .lmp-service-grid { row-gap: 24px !important; }
+@media (prefers-reduced-motion:no-preference) {
+  html[data-lc-motion=on]:root body :is(.lcg-workspace .lcg-card,.lmp-workspace .lmp-service-card) :is(.lcg-pill,.lmp-pill) {
+    transition: rotate 180ms ease,box-shadow 180ms ease;
+  }
+  html[data-lc-motion=on]:root body :is(.lcg-workspace .lcg-card,.lmp-workspace .lmp-service-card):hover :is(.lcg-pill,.lmp-pill) {
+    rotate: -1deg;
+    box-shadow: 0 5px 8px color-mix(in srgb,var(--lc-shadow,#315b53) 16%,transparent);
+  }
+  html[data-lc-motion=on]:root body :is(.lcg-workspace .lcg-card,.lmp-workspace .lmp-service-card):hover :is(.lcg-pill,.lmp-pill).sunday { rotate: 1deg; }
+}
+@media (max-width:620px) {
+  html:root body :is(.lcg-workspace .lcg-card,.lmp-workspace .lmp-service-card) :is(.lcg-pills,.lmp-pills) {
+    top: -7px;
+    right: -3px;
+    gap: 6px;
+    max-width: calc(100% - 74px);
+  }
+  html:root body :is(.lcg-workspace .lcg-card,.lmp-workspace .lmp-service-card) :is(.lcg-pill,.lmp-pill) {
+    min-height: 27px;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  html:root body .lmp-workspace .lmp-service-card .lmp-service-copy { padding-top: 21px; }
+}

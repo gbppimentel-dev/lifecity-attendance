@@ -1,5 +1,4 @@
 import BorderGlow from './BorderGlow'
-import {MobileFold} from './CompactMobile'
 import { useNoticeToast } from '../lib/useNoticeToast'
 import type { ReleaseAudience } from '../lib/releaseNotes'
 import CommunityArt from './CommunityArt'
@@ -7,18 +6,22 @@ import WhatsNew from './WhatsNew'
 import MyFeedback from './MyFeedback'
 // Change ID: LC-UI-COPY-v2
 import { uiMessage } from '../lib/uiText'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { QRCodeSVG } from 'qrcode.react'
-import { Users, Heart, CalendarDays, MapPin, Download, RefreshCw, LogOut, QrCode, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Users, CalendarDays, MapPin, Download, RefreshCw, LogOut, QrCode, X, ChevronLeft, ChevronRight, UserRound, History, MessageSquare, Mail, Phone, Church, HandHeart, ShieldCheck, ChevronDown, Clock3 } from 'lucide-react'
 import MemberAttendanceHistory from './MemberAttendanceHistory'
 import { MemberProfileEditor } from './ProfileChanges'
 import { supabase } from '../lib/supabase'
+import { revealWorkspaceRegion } from '../lib/workspaceViewport'
+import './MemberPortal.css'
+import './ServiceCornerNotes.css'
 
 type Profile={id:string;member_number:string;first_name:string;last_name:string;email:string|null;mobile:string|null;status:'active'|'inactive';qr_token:string|null;churches:string[];ministries:string[]}
 type Service={id:string;name:string;starts_at:string;location:string|null;is_sunday_service:boolean;state:'upcoming'|'in-progress';available_until:string}
 type Portal={profile:Profile;services:Service[];service_total:number;service_page:number;server_time:string}
 const serviceDate=(value:string)=>new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',weekday:'short',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}).format(new Date(value))
+const calendarPart=(value:string,part:'month'|'day'|'weekday')=>new Intl.DateTimeFormat('en-PH',{timeZone:'Asia/Manila',...(part==='month'?{month:'short'}:part==='day'?{day:'numeric'}:{weekday:'short'})}).format(new Date(value))
 
 function renderMemberId(profile:Profile,qrImage:HTMLImageElement):HTMLCanvasElement {
  const canvas=document.createElement('canvas')
@@ -106,6 +109,7 @@ export default function MemberPortal({audience='user',embedded=false,onRefreshAc
  const [loading,setLoading]=useState(true)
  const [error,setError]=useState('')
  const [page,setPage]=useState(1)
+ const [scheduleOpen,setScheduleOpen]=useState(false)
  const [revision,setRevision]=useState(0)
  const [qrOpen,setQrOpen]=useState(false)
  const [downloading,setDownloading]=useState(false)
@@ -114,11 +118,14 @@ export default function MemberPortal({audience='user',embedded=false,onRefreshAc
  useNoticeToast(notice)
  const qrRef=useRef<HTMLDivElement>(null)
  const servicesRef=useRef<HTMLElement>(null)
+ const profileRef=useRef<HTMLElement>(null),historyRef=useRef<HTMLDivElement>(null),feedbackRef=useRef<HTMLDivElement>(null)
  const qrButtonRef=useRef<HTMLButtonElement>(null)
- const modalRef=useRef<HTMLDivElement>(null)
+ const modalRef=useRef<HTMLDialogElement>(null)
  const refreshing=useRef(false)
+ const alive=useRef(true),downloadGeneration=useRef(0)
  const currentData=useRef<Portal|null>(null)
  currentData.current=data
+ useEffect(()=>{alive.current=true;return()=>{alive.current=false;downloadGeneration.current++}},[])
 
  useEffect(()=>{
   let active=true,inFlight=false
@@ -130,7 +137,7 @@ export default function MemberPortal({audience='user',embedded=false,onRefreshAc
     if(failure)throw failure
     if(!result?.profile?.id || !Array.isArray(result.services))throw new Error('Invalid Portal Response')
     if(active){
-     if(currentData.current && (currentData.current.profile.id!==result.profile.id || currentData.current.profile.qr_token!==result.profile.qr_token))setQrOpen(false)
+     if(currentData.current && (currentData.current.profile.id!==result.profile.id || currentData.current.profile.qr_token!==result.profile.qr_token || currentData.current.profile.status!==result.profile.status))setQrOpen(false)
      setData(result as Portal);setError('')
     }
    } catch(e){
@@ -147,35 +154,30 @@ export default function MemberPortal({audience='user',embedded=false,onRefreshAc
   document.addEventListener('visibilitychange',visible)
   return ()=>{active=false;window.clearInterval(timer);document.removeEventListener('visibilitychange',visible)}
  },[page,revision])
- useEffect(()=>{
+ useLayoutEffect(()=>{
   if(!qrOpen)return
   const oldOverflow=document.body.style.overflow
+  const oldPadding=document.body.style.paddingRight
+  const scrollbar=Math.max(0,innerWidth-document.documentElement.clientWidth)
   document.body.style.overflow='hidden'
+  if(scrollbar)document.body.style.paddingRight=`${parseFloat(getComputedStyle(document.body).paddingRight)+scrollbar}px`
   const dialog=modalRef.current
+  dialog?.showModal()
   dialog?.querySelector<HTMLButtonElement>('button')?.focus()
-  const key=(e:KeyboardEvent)=>{
-   if(e.key==='Escape'){setQrOpen(false);return}
-   if(e.key==='Tab'){
-    const items=dialog?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')
-    if(!items?.length)return
-    const first=items[0],last=items[items.length-1]
-    if(e.shiftKey && document.activeElement===first){e.preventDefault();last.focus()}
-    else if(!e.shiftKey && document.activeElement===last){e.preventDefault();first.focus()}
-   }
-  }
-  document.addEventListener('keydown',key)
-  return ()=>{document.body.style.overflow=oldOverflow;document.removeEventListener('keydown',key);qrButtonRef.current?.focus()}
+  return ()=>{dialog?.close();document.body.style.overflow=oldOverflow;document.body.style.paddingRight=oldPadding;qrButtonRef.current?.focus({preventScroll:true})}
  },[qrOpen])
  async function downloadQr(kind:'qr'|'id'='qr'){
-  if(refreshing.current || !data?.profile.qr_token)return
+  if(refreshing.current || !data?.profile.qr_token || data.profile.status!=='active')return
   const svg=qrRef.current?.querySelector('svg')
   if(!svg)return
   refreshing.current=true;setDownloading(true);setDownloadError('');setNotice('')
+  const generation=downloadGeneration.current,profileId=data.profile.id,token=data.profile.qr_token
   let url=''
   try {
    // Recheck the signed-in member before producing an identifying download.
    const {data:latest,error:failure}=await supabase.rpc('lc_my_member_portal',{p_service_page:1})
-   if(failure || !latest?.profile?.qr_token || latest.profile.id!==data.profile.id || latest.profile.qr_token!==data.profile.qr_token) {
+   if(failure || !latest?.profile?.qr_token || latest.profile.status!=='active' || latest.profile.id!==profileId || latest.profile.qr_token!==token) {
+    if(alive.current){setQrOpen(false);setData(null);setError('Your member connection could not be confirmed. Refresh access before using your QR.')}
     throw new Error('Your member connection changed. Refresh access before downloading.')
    }
    const exportProfile=latest.profile as Profile
@@ -191,42 +193,45 @@ export default function MemberPortal({audience='user',embedded=false,onRefreshAc
     ctx.fillStyle='#ffffff';ctx.fillRect(0,0,1024,1024);ctx.drawImage(picture,0,0,1024,1024)
    }
    const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Export Failed')),'image/png'))
+   if(!alive.current||downloadGeneration.current!==generation||currentData.current?.profile.id!==profileId||currentData.current.profile.qr_token!==token||currentData.current.profile.status!=='active')return
    const output=URL.createObjectURL(blob),a=document.createElement('a')
    a.href=output;a.download=(kind==='id'?'LifeCity-Member-ID-':'LifeCity-QR-')+exportProfile.member_number.replace(/[^a-zA-Z0-9_-]/g,'')+'.png'
    document.body.appendChild(a);a.click();a.remove();window.setTimeout(()=>URL.revokeObjectURL(output),1000)
    setNotice(kind==='id'?'Your member ID download is ready.':'Your QR download is ready.')
-  } catch(e) {setDownloadError(e instanceof Error && e.message.startsWith('Your member connection')?e.message:'Could not prepare your download. Please try again.')}
-  finally {if(url)URL.revokeObjectURL(url);refreshing.current=false;setDownloading(false)}
+  } catch(e) {if(alive.current)setDownloadError(e instanceof Error && e.message.startsWith('Your member connection')?e.message:'Could not prepare your download. Please try again.')}
+  finally {if(url)URL.revokeObjectURL(url);refreshing.current=false;if(alive.current)setDownloading(false)}
  }
- function changePage(next:number){setPage(next);servicesRef.current?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
+ function changePage(next:number){setPage(next);revealWorkspaceRegion(servicesRef.current,'start')}
  const profile=data?.profile
+ const canUseQr=profile?.status==='active'&&!!profile.qr_token
  const pages=Math.max(1,Math.ceil((data?.service_total??0)/12))
+ const schedulePending=!!data&&data.service_page!==page
+ const visibleServices=data?.services.slice(0,scheduleOpen?12:3)??[]
  const Container=embedded?'div':'main'
- return <Container className={'lc-member-space'+(embedded?' is-embedded':'')} data-change-id="LC-UI-COPY-v2">
+ return <Container className={'lc-member-space lmp-workspace'+(embedded?' is-embedded':'')} data-change-id="LC-MEMBER-SPACE-v25">
   {!embedded && <header className="lmp-topbar"><div className="brand"><div className="brand-icon small"><Users size={20}/></div><span>LifeCity Attendance</span></div><button className="lmp-button lmp-signout" disabled={signingOut} onClick={onSignOut}><LogOut size={16}/>{signingOut?'Signing Out…':'Sign Out'}</button></header>}
   <div className="lmp-content">
    {authError && <p className="lmp-error" role="alert">{uiMessage(authError)}</p>}
-   <BorderGlow as="section" className="lmp-hero" borderRadius={18} animated><div><p className="eyebrow">Your LifeCity Space</p><h1>{profile?'Hi, '+profile.first_name+'.':'Welcome to Your Member Space.'}</h1><p>A little space for your profile, your QR, and your next gathering.</p><div className="lmp-welcome-tags"><span><Heart size={14}/>Belong</span><span><Users size={14}/>Connect</span><span><CalendarDays size={14}/>Gather</span></div></div><div className="lmp-hero-side"><CommunityArt compact/><button className="lmp-button lc-community-icon lc-refresh-icon" aria-label="Refresh Access" title="Refresh Access" aria-busy={loading} disabled={loading} onClick={()=>{setRevision(v=>v+1);onRefreshAccess()}}><RefreshCw size={17}/></button></div></BorderGlow>
-   {loading ? <div className="lmp-loading" role="status">Opening Your Member Profile…<div className="lmp-skeleton"/><div className="lmp-skeleton"/></div> : error ? <div className="lmp-error" role="alert">{uiMessage(error)}</div> : profile && data && <>
-    <div className="lmp-grid">
-     <section className="lmp-card"><div className="lmp-profile-heading"><p className="eyebrow">Your Directory Profile</p><div className="lmp-name-line"><h2>{profile.first_name} {profile.last_name}</h2><span className={'lmp-pill '+profile.status}>{profile.status === 'active' ? 'Active' : 'Inactive'}</span></div></div>
-      <MobileFold title="Profile Details"><dl className="lmp-profile"><div><dt>Member Number</dt><dd>{profile.member_number}</dd></div><div><dt>Email</dt><dd>{profile.email||'Not Provided'}</dd></div><div><dt>Mobile</dt><dd>{profile.mobile||'Not Provided'}</dd></div><div><dt>Churches</dt><dd className="lmp-pills lmp-equal-pills">{profile.churches.length?profile.churches.map(n=><span className="lmp-pill" key={n}>{n}</span>):'Not Assigned'}</dd></div><div><dt>Ministries</dt><dd className="lmp-pills lmp-equal-pills">{profile.ministries.length?profile.ministries.map(n=><span className="lmp-pill ministry" key={n}>{n}</span>):<span className="lmp-pill">None</span>}</dd></div></dl></MobileFold>
-      <MemberProfileEditor onProfileChanged={()=>{setRevision(v=>v+1);onRefreshAccess()}}/>
-     </section>
-     <section className="lmp-card lmp-qr-card"><span className="lmp-qr-mark"><QrCode size={34}/></span><p className="eyebrow">Ready When You Arrive</p><h2>Your Attendance QR</h2><p>Show your personal code to the check-in team when you attend a service.</p>
-      {profile.qr_token ? <button ref={qrButtonRef} className="lmp-button lmp-primary" onClick={()=>{setDownloadError('');setNotice('');setQrOpen(true)}}><QrCode size={18}/>Show My QR</button> : <p className="lmp-help">Your directory profile is inactive. Ask the registration team to review it before using an attendance QR.</p>}
-      <small>View your code or download your Member ID. Keep both private.</small>
-     </section>
-    </div>
-    <MobileFold title="My App Feedback"><MyFeedback key={profile.id}/></MobileFold>
-    <MobileFold title="My Attendance History"><MemberAttendanceHistory key={profile.id} memberId={profile.id}/></MobileFold>
-    <section className="lmp-services" ref={servicesRef}><div className="lmp-section-head"><div><p className="eyebrow">Gather with Us</p><h2>Coming Up at LifeCity</h2><p>Current and upcoming services · times in Manila</p></div><span className="lmp-pill">{data.service_total} Services</span></div>
-     {data.services.length===0 ? <div className="lmp-card lmp-empty"><CalendarDays size={28}/><h3>No services scheduled yet</h3><p>Check back here for the next gathering.</p></div> : <div className="lmp-service-grid lmp-balanced-services" data-count={data.services.length}>{data.services.map(event=><article className="lmp-service-card" key={event.id}><div className="lmp-pills"><span className={'lmp-pill '+event.state}>{event.state==='in-progress'?'In Progress':'Upcoming'}</span>{event.is_sunday_service && <span className="lmp-pill ministry">Sunday Service</span>}</div><h3>{event.name}</h3><p><CalendarDays size={16}/><span>{serviceDate(event.starts_at)}</span></p><p><MapPin size={16}/><span>{event.location||'Ask the church team for the venue'}</span></p></article>)}</div>}
-     {data.service_total>12 && <nav className="lmp-pagination" aria-label="Service Pages"><button className="lmp-button" disabled={data.service_page===1} onClick={()=>changePage(data.service_page-1)}><ChevronLeft size={16}/>Previous</button><span>{data.service_page} / {pages}</span><button className="lmp-button" disabled={data.service_page>=pages} onClick={()=>changePage(data.service_page+1)}>Next<ChevronRight size={16}/></button></nav>}
+   <BorderGlow as="section" className="lmp-hero" borderRadius={22} animated><div className="lmp-hero-copy"><p className="eyebrow">Member Space</p><h1>{profile?'Hi, '+profile.first_name+'.':'Your Member Space'}</h1><p>Your profile, attendance and upcoming services.</p><nav className="lmp-section-links" aria-label="Member Space Sections"><button type="button" disabled={!profile} onClick={()=>revealWorkspaceRegion(profileRef.current,'start')}><UserRound size={15}/>Profile</button><button type="button" disabled={!profile} onClick={()=>revealWorkspaceRegion(historyRef.current,'start')}><History size={15}/>Attendance</button><button type="button" disabled={!profile} onClick={()=>revealWorkspaceRegion(feedbackRef.current,'start')}><MessageSquare size={15}/>Feedback</button></nav></div><div className="lmp-hero-side"><CommunityArt compact/><button type="button" className="lmp-button lmp-refresh lc-refresh-icon" aria-label="Refresh Access" title="Refresh Member Space" aria-busy={loading} disabled={loading} onClick={()=>{setRevision(v=>v+1);onRefreshAccess()}}><RefreshCw size={17}/><span>{loading&&data?'Refreshing…':'Refresh'}</span></button></div></BorderGlow>
+   {loading&&!data ? <div className="lmp-loading" role="status"><span className="lmp-loading-label"><RefreshCw size={18}/>Loading Member Space…</span><div className="lmp-skeleton"/><div className="lmp-skeleton"/></div> : error ? <div className="lmp-error" role="alert"><strong>Member Space Unavailable</strong><p>{uiMessage(error)}</p><button type="button" className="lmp-button" disabled={loading} onClick={()=>{setRevision(v=>v+1);onRefreshAccess()}}><RefreshCw size={16}/>Try Again</button></div> : profile && data && <>
+    <section className="lmp-services lmp-upcoming" ref={servicesRef} aria-labelledby="lmp-services-title" aria-busy={loading}>
+     <header className="lmp-section-head"><div className="lmp-section-title"><span className="lmp-section-icon"><CalendarDays size={21}/></span><div><p className="eyebrow">LifeCity Schedule</p><h2 id="lmp-services-title">Coming Up at LifeCity</h2><p>Current and upcoming services · Manila Time</p></div></div><div className="lmp-schedule-tools"><span className="lmp-service-total">{data.service_total} {data.service_total===1?'Service':'Services'}</span>{data.service_total>3&&<button type="button" className="lmp-button lmp-schedule-toggle" aria-expanded={scheduleOpen} aria-controls="lmp-schedule-list" disabled={loading} onClick={()=>{if(scheduleOpen&&page!==1)setPage(1);setScheduleOpen(!scheduleOpen)}}>{scheduleOpen?'Show Less':'View All Services'}<ChevronDown size={15}/></button>}</div></header>
+     {schedulePending?<div className="lmp-service-loading" role="status"><RefreshCw size={17}/>Loading services…</div>:data.services.length===0 ? <div className="lmp-empty"><CalendarDays size={28}/><div><h3>No Services Scheduled</h3><p>Check here for the next service or ask the church team.</p></div></div> : <div id="lmp-schedule-list" className="lmp-service-grid" data-expanded={scheduleOpen||undefined}>{visibleServices.map(event=><article className={'lmp-service-card'+(event.state==='in-progress'?' is-current':'')} key={event.id}><div className="lmp-service-top"><time className="lmp-calendar" dateTime={event.starts_at}><span>{calendarPart(event.starts_at,'month')}</span><strong>{calendarPart(event.starts_at,'day')}</strong><small>{calendarPart(event.starts_at,'weekday')}</small></time><div className="lmp-service-copy"><div className="lmp-pills"><span className={'lmp-pill '+event.state}>{event.state==='in-progress'?'In Progress':'Upcoming'}</span>{event.is_sunday_service&&<span className="lmp-pill sunday">Sunday</span>}</div><h3>{event.name}</h3></div></div><div className="lmp-service-meta"><p><Clock3 size={14}/><time dateTime={event.starts_at}>{serviceDate(event.starts_at)}</time></p><p><MapPin size={14}/><span>{event.location||'Venue to Be Confirmed'}</span></p></div></article>)}</div>}
+     {scheduleOpen&&data.service_total>12&&<nav className="lmp-pagination" aria-label="Service Pages"><span>{(data.service_page-1)*12+1}–{Math.min(data.service_page*12,data.service_total)} of {data.service_total}</span><div><button type="button" className="lmp-button" aria-label="Previous Services" disabled={loading||data.service_page===1} onClick={()=>changePage(data.service_page-1)}><ChevronLeft size={16}/></button><span>Page {data.service_page} of {pages}</span><button type="button" className="lmp-button" aria-label="Next Services" disabled={loading||data.service_page>=pages} onClick={()=>changePage(data.service_page+1)}><ChevronRight size={16}/></button></div></nav>}
     </section>
+    <div className="lmp-grid">
+     <section className="lmp-card lmp-profile-card" ref={profileRef} aria-labelledby="lmp-profile-title"><header className="lmp-profile-heading"><span className="lmp-avatar" aria-hidden="true">{profile.first_name[0]}{profile.last_name[0]}</span><div><p className="eyebrow">Directory Profile</p><h2 id="lmp-profile-title">{profile.first_name} {profile.last_name}</h2><span className="lmp-member-number">{profile.member_number}</span></div><span className={'lmp-pill lmp-profile-status '+profile.status}><i/>{profile.status==='active'?'Active':'Inactive'}</span></header>
+      <dl className="lmp-contact-grid"><div><dt><Mail size={14}/>Email</dt><dd>{profile.email||'Not Provided'}</dd></div><div><dt><Phone size={14}/>Mobile</dt><dd>{profile.mobile||'Not Provided'}</dd></div></dl>
+      <div className="lmp-affiliations"><section><h3><Church size={16}/>Churches</h3><div className="lmp-pills">{profile.churches.length?profile.churches.map(name=><span className="lmp-pill" key={name}>{name}</span>):<span className="lmp-unassigned">Not Assigned</span>}</div></section><section><h3><HandHeart size={16}/>Ministries</h3><div className="lmp-pills">{profile.ministries.length?profile.ministries.map(name=><span className="lmp-pill ministry" key={name}>{name}</span>):<span className="lmp-unassigned">Not Assigned</span>}</div></section></div>
+      <div className="lmp-profile-action"><MemberProfileEditor key={profile.id} onProfileChanged={()=>{setRevision(v=>v+1);onRefreshAccess()}}/></div>
+     </section>
+     <section className="lmp-card lmp-qr-card" aria-labelledby="lmp-qr-card-title"><header className="lmp-qr-heading"><div><p className="eyebrow">Member Check-In</p><h2 id="lmp-qr-card-title">Your Attendance QR</h2></div><span className="lmp-qr-security"><ShieldCheck size={15}/>Private</span></header><div className="lmp-qr-body"><div className="lmp-qr-illustration" aria-hidden="true"><QrCode size={82} strokeWidth={1.4}/><span/><span/><span/><span/></div><p>Show your code to the check-in team when you attend a service.</p>{canUseQr?<button type="button" disabled={loading} ref={qrButtonRef} className="lmp-button lmp-primary lmp-qr-open" onClick={()=>{setDownloadError('');setNotice('');setQrOpen(true)}}><QrCode size={18}/>Show My QR</button>:<div className="lmp-qr-unavailable"><strong>QR Unavailable</strong><span>Ask the church team to review your member profile.</span></div>}</div><footer><ShieldCheck size={14}/><span>Keep your QR and Member ID private.</span></footer></section>
+    </div>
+    <div className="lmp-history-section" ref={historyRef}><MemberAttendanceHistory key={profile.id} memberId={profile.id}/></div>
+    <div className="lmp-feedback-section" ref={feedbackRef}><MyFeedback key={profile.id}/></div>
    </>}
   </div>
-  <MobileFold title="What’s New"><WhatsNew audience={audience}/></MobileFold>
-  {qrOpen && profile?.qr_token && createPortal(<div className="lmp-overlay" onClick={e=>{if(e.target===e.currentTarget)setQrOpen(false)}}><div className="lmp-dialog" role="dialog" aria-modal="true" aria-labelledby="lmp-qr-title" ref={modalRef}><button className="lmp-close lmp-button" aria-label="Close Attendance QR" onClick={()=>setQrOpen(false)}><X size={18}/></button><p className="eyebrow">Your Personal Check-In</p><h2 id="lmp-qr-title">Scan. Smile. You’re Here.</h2><p>{profile.first_name} {profile.last_name}</p><div className="lmp-code" ref={qrRef}><QRCodeSVG value={'att:'+profile.qr_token} size={240} level="M" marginSize={4} bgColor="#ffffff" fgColor="#123b32"/></div><p className="lmp-member-number">{profile.member_number}</p><div className="lmp-download-actions"><button className="lmp-button lmp-primary" disabled={downloading} onClick={()=>void downloadQr('id')}><Download size={17}/>{downloading?'Preparing…':'Download Member ID'}</button><button className="lmp-button" disabled={downloading} onClick={()=>void downloadQr('qr')}><Download size={16}/>Download QR Only</button></div>{downloadError && <p className="lmp-error" role="alert">{uiMessage(downloadError)}</p>}{notice && <p role="status">{notice}</p>}<small>Private member QR · Keep it safe</small></div></div>,document.body)}
+  <div className="lmp-release-section"><WhatsNew audience={audience}/></div>
+  {qrOpen&&canUseQr&&profile?.qr_token&&createPortal(<dialog ref={modalRef} className="lmp-qr-dialog" aria-labelledby="lmp-qr-title" onCancel={e=>{e.preventDefault();setQrOpen(false)}} onClick={e=>{if(e.target===e.currentTarget){const rect=e.currentTarget.getBoundingClientRect();if(e.clientX<rect.left||e.clientX>rect.right||e.clientY<rect.top||e.clientY>rect.bottom)setQrOpen(false)}}}><header className="lmp-qr-dialog-heading"><span className="lmp-qr-dialog-icon"><QrCode size={23}/></span><div><p className="eyebrow">Attendance QR</p><h2 id="lmp-qr-title">{profile.first_name} {profile.last_name}</h2><span>{profile.member_number}</span></div><button type="button" className="lmp-button lmp-close" aria-label="Close Attendance QR" onClick={()=>setQrOpen(false)}><X size={19}/></button></header><div className="lmp-qr-dialog-body"><div className="lmp-code" ref={qrRef}><QRCodeSVG value={'att:'+profile.qr_token} size={256} level="M" marginSize={4} bgColor="#ffffff" fgColor="#111111"/></div><p className="lmp-qr-instruction">Show this code to the check-in camera.</p><div className="lmp-qr-private"><ShieldCheck size={17}/><span>The QR contains a private token, not your personal details.</span></div><div className="lmp-download-actions"><button type="button" className="lmp-button lmp-primary" disabled={downloading} onClick={()=>void downloadQr('id')}><Download size={17}/>{downloading?'Preparing…':'Download Member ID'}</button><button type="button" className="lmp-button" disabled={downloading} onClick={()=>void downloadQr('qr')}><QrCode size={16}/>Download QR Only</button></div>{downloadError&&<p className="lmp-error" role="alert">{uiMessage(downloadError)}</p>}{notice&&<p className="lmp-qr-notice" role="status">{notice}</p>}</div><footer className="lmp-qr-dialog-footer"><ShieldCheck size={14}/>Keep your QR and downloaded ID private.</footer></dialog>,document.body)}
  </Container>
 }

@@ -1,3 +1,5 @@
+import './SettingsAccounts.css'
+import { revealWorkspaceRegion } from '../lib/workspaceViewport'
 import BorderGlow from './BorderGlow'
 import FoldText from './FoldText'
 import { useNoticeToast } from '../lib/useNoticeToast'
@@ -6,7 +8,7 @@ import {ResponsiveSelect} from './CompactMobile'
 // Change ID: LC-UI-COPY-v2
 import { uiMessage, uiStatus } from '../lib/uiText'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { Search, ShieldCheck, RefreshCw, ChevronDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
+import { Search, ShieldCheck, RefreshCw, UsersRound, Link2, Unlink, ShieldPlus, ShieldMinus, Pause, Play, Inbox, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 import { OwnerProfileRequests } from './ProfileChanges'
 import MemberLinkRequests from './MemberLinkRequests'
 import { supabase } from '../lib/supabase'
@@ -29,6 +31,8 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
  const [pageSize,setPageSize] = useState(25)
  const [refresh,setRefresh] = useState(0)
  const [data,setData] = useState<Result | null>(null)
+ const [loadedKey,setLoadedKey] = useState('')
+ const viewKey=JSON.stringify([query,page,filters.role,filters.status,filters.link,pageSize])
  const [loading,setLoading] = useState(true)
  const [error,setError] = useState('')
  const [notice,setNotice] = useState('')
@@ -36,6 +40,14 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
  const [pending,setPending] = useState<{account:Account;action:Action} | null>(null)
  const [saving,setSaving] = useState(false)
  const [linkTarget,setLinkTarget] = useState<Account | null>(null)
+ useEffect(()=>{
+  const leave=(event:Event)=>{
+   const detail=(event as CustomEvent<{tab?:string;page?:string}>).detail
+   if((event.type==='lifecity-settings-activate'&&detail?.tab!=='accounts')||(event.type==='lifecity-workspace-activate'&&detail?.page!=='settings')){setPending(null);setLinkTarget(null)}
+  }
+  window.addEventListener('lifecity-settings-activate',leave);window.addEventListener('lifecity-workspace-activate',leave)
+  return()=>{window.removeEventListener('lifecity-settings-activate',leave);window.removeEventListener('lifecity-workspace-activate',leave)}
+ },[])
  const listRef = useRef<HTMLElement>(null)
  const writeLock = useRef(false)
  const requestId = useRef(0)
@@ -53,15 +65,16 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
    try {
     const {data:result,error:failure}=await supabase.rpc('lc_owner_accounts_page',{p_search:query,p_page:page,p_role:filters.role,p_status:filters.status,p_link:filters.link,p_size:pageSize})
     if(failure) throw failure
-    if(active && id===requestId.current) setData(result as Result)
+    if(active && id===requestId.current) {setData(result as Result);setLoadedKey(viewKey)}
    } catch(failure) {
     if(active && id===requestId.current) {setData(null);setError((failure as {code?:string}).code==='PGRST202' ? 'Run LC-P08H-v1.sql in Supabase, then refresh Accounts.' : 'Could not load accounts. Check your Owner access and try Refresh.')}
    } finally {if(active && id===requestId.current) setLoading(false)}
   })()
   return ()=> {active=false}
- },[query,page,refresh,filters,pageSize])
+ },[query,page,refresh,filters,pageSize,viewKey])
  const searching=search.trim()!==query
  const busy=loading || saving || searching
+ const hasCurrentData=!!data && loadedKey===viewKey && !searching
  const currentPage=data?.page ?? page
  const pages=Math.max(1,Math.ceil((data?.total ?? 0)/(data?.page_size ?? pageSize)))
  const hasFilters=Boolean(search || filters.role!=='all' || filters.status!=='all' || filters.link!=='all')
@@ -73,7 +86,7 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
  }
  function go(next:number) {
   setPending(null);setLinkTarget(null);setPage(next)
-  listRef.current?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})
+  revealWorkspaceRegion(listRef.current,'start')
  }
  async function apply() {
   if(!pending || writeLock.current) return
@@ -97,40 +110,41 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
   if(pending.action==='grant_admin') return 'This gives access to members, services, the scanner, attendance records and CSV exports. Account management remains Owner-only.'
   if(pending.action==='revoke_admin') return 'This removes admin workspace access. The login and any linked member record remain.'
   if(pending.action==='suspend') return 'This pauses app access, including admin data access. It does not delete the login, member record or attendance.'
-  return 'This Restores App Access with the '+roleName(a.role)+' Role'+(a.role==='admin' ? ', including the admin workspace.' : '.')
+  return 'This restores app access with the '+roleName(a.role)+' role'+(a.role==='admin' ? ', including the admin workspace.' : '.')
  }
- return <div className="lc-accounts" data-change-id="LC-UI-COPY-v2">
-  <BorderGlow as="section" className="lca-hero" borderRadius={18} animated>
-   <div><p className="eyebrow">Settings · Owner Workspace</p><h1><FoldText text="Accounts & Access"/></h1><p>Manage who can use your admin workspace. Login accounts and church member records stay separate.</p></div>
-   <div className="lca-owner"><ShieldCheck size={26}/><strong>Owner Controls</strong><span>Your Account is Protected</span></div>
+ return <div className="lc-accounts lcsa-workspace" data-change-id="LC-SETTINGS-v24">
+  <BorderGlow as="section" className="lca-hero lcsa-hero" borderRadius={22} animated>
+   <div><p className="eyebrow">Settings · Access Management</p><h1><FoldText text="Accounts & Access"/></h1><p>Manage logins, member connections and profile requests.</p></div>
+   <div className="lca-owner"><span className="lcsa-owner-icon"><ShieldCheck size={23}/></span><span><strong>Owner Controls</strong><small>Your access is protected</small></span></div>
   </BorderGlow>
   <OwnerProfileRequests/>
   <MemberLinkRequests owner onChanged={()=>{setRefresh(v=>v+1);onLinkChanged()}}/>
   <section className="lca-panel" ref={listRef} aria-labelledby="lca-heading" aria-busy={busy}>
-   <header className="lca-heading"><div><p className="eyebrow">People Behind the Logins</p><h2 id="lca-heading">Accounts</h2><p>Access status is separate from a member’s Active / Inactive status.</p></div><button type="button" className="secondary-button lc-refresh-icon" aria-label="Refresh accounts" title="Refresh accounts" aria-busy={loading} disabled={saving || loading} onClick={()=>{setRefresh(v=>v+1);setNotice('')}}><RefreshCw size={17} aria-hidden="true"/></button></header>
+   <header className="lca-heading"><span className="lcsa-section-icon"><UsersRound size={21}/></span><div className="lcsa-heading-copy"><p className="eyebrow">Login Accounts</p><h2 id="lca-heading">Accounts <span className="lcsa-count">{data?.total ?? '—'}</span></h2><p>Access is separate from a member’s Active / Inactive status.</p></div><button type="button" className="secondary-button lc-refresh-icon" aria-label="Refresh accounts" title="Refresh accounts" aria-busy={loading} disabled={saving || loading} onClick={()=>{setRefresh(v=>v+1);setNotice('')}}><RefreshCw size={17} aria-hidden="true"/></button></header>
    <div className="lca-toolbar lca-filter-toolbar">
-    <div className="lca-filter-top"><label><span>Find an Account</span><div className="lca-search"><Search size={17}/><input type="search" value={search} onChange={e=>{setSearch(e.target.value);setPending(null);setLinkTarget(null)}} placeholder="Name, Email, Member ID or Account ID" disabled={saving}/></div></label>
-     <div className="lca-filter-tools"><span aria-live="polite">{busy ? 'Updating…' : (data?.total ?? 0)+' Accounts Found'}</span><button type="button" className="secondary-button" disabled={!hasFilters || saving} onClick={clearFilters}>Clear All</button></div>
+    <div className="lca-filter-top"><label><span>Search Accounts</span><div className="lca-search"><Search size={17}/><input type="search" aria-label="Search Accounts" value={search} onChange={e=>{setSearch(e.target.value);setPending(null);setLinkTarget(null)}} placeholder="Name, email, member or account ID" disabled={saving}/></div></label>
+     <div className="lca-filter-tools"><span aria-live="polite">{busy ? 'Updating…' : (data?.total ?? 0)+' '+((data?.total ?? 0)===1?'Account':'Accounts')}</span><button type="button" className="secondary-button" disabled={!hasFilters || saving} onClick={clearFilters}>Reset Filters</button></div>
     </div>
     <div className="lca-filter-fields">
      <label><span>Role</span><ResponsiveSelect value={filters.role} disabled={saving} onChange={e=>changeFilter('role',e.target.value)}><option value="all">All Roles</option><option value="owner">Owner</option><option value="admin">Admin</option><option value="user">User</option></ResponsiveSelect></label>
-     <label><span>Access</span><ResponsiveSelect value={filters.status} disabled={saving} onChange={e=>changeFilter('status',e.target.value)}><option value="all">Any Access Status</option><option value="active">Active</option><option value="suspended">Suspended</option></ResponsiveSelect></label>
-     <label><span>Member Link</span><ResponsiveSelect value={filters.link} disabled={saving} onChange={e=>changeFilter('link',e.target.value)}><option value="all">All Accounts</option><option value="linked">Linked Members</option><option value="unlinked">Not Linked Yet</option></ResponsiveSelect></label>
+     <label><span>Access</span><ResponsiveSelect value={filters.status} disabled={saving} onChange={e=>changeFilter('status',e.target.value)}><option value="all">All Access</option><option value="active">Active</option><option value="suspended">Suspended</option></ResponsiveSelect></label>
+     <label><span>Member Link</span><ResponsiveSelect value={filters.link} disabled={saving} onChange={e=>changeFilter('link',e.target.value)}><option value="all">All Accounts</option><option value="linked">Linked Members</option><option value="unlinked">Not Linked</option></ResponsiveSelect></label>
     </div>
    </div>
+   <div className="lcsa-update-line" data-loading={loading || searching} aria-hidden="true"/>
    {notice && <p className="lca-notice" role="status">{notice}</p>}
    {error && <p className="lca-error" role="alert">{uiMessage(error)}</p>}
-   {loading || searching ? <div className="lca-loading" role="status">Loading Accounts…</div> : data && <>
-    {data.rows.length===0 ? <div className="lca-empty"><h3>No Accounts Match</h3><p>Try another search or clear the filters.</p>{hasFilters && <button className="secondary-button" onClick={clearFilters}>Clear All</button>}</div> :
+   {!hasCurrentData && (loading || searching) ? <div className="lca-loading lcsa-loading" role="status"><span/>Loading accounts…</div> : data && hasCurrentData && <>
+    {data.rows.length===0 ? <div className="lca-empty lcsa-empty"><Inbox size={25} aria-hidden="true"/><div><h3>No Accounts Found</h3><p>Try another search or reset the filters.</p></div>{hasFilters && <button className="secondary-button" onClick={clearFilters}>Reset Filters</button>}</div> :
     <div className="lca-table-wrap"><table className="lca-table"><thead><tr><th>Account</th><th>Role</th><th>Access</th><th>Linked Member</th><th>Actions</th></tr></thead><tbody>
-     {data.rows.map(a=><Fragment key={a.user_id}><tr>
-      <td data-label="Account"><strong>{a.display_name}{a.user_id===currentUserId && <small> · You</small>}</strong><span>{a.email || 'No Email'}</span></td>
+     {data.rows.map(a=><Fragment key={a.user_id}><tr className={a.role==='owner'?'is-owner':''}>
+      <td data-label="Account"><div className="lcsa-account-identity"><span className={"lcsa-avatar "+a.role} aria-hidden="true">{a.display_name.trim().split(/\s+/).slice(0,2).map(part=>part[0]).join('').toUpperCase() || '?'}</span><div><strong>{a.display_name}{a.user_id===currentUserId && <small className="lcsa-you">You</small>}</strong><span>{a.email || 'No Email'}</span></div></div></td>
       <td data-label="Role"><span className={'lca-pill '+a.role}>{roleName(a.role)}</span></td>
-      <td data-label="Access"><span className={'lca-pill '+a.status}>{a.status==='active'?'Active':'Suspended'}</span></td>
+      <td data-label="Access"><span className={'lca-pill '+a.status}><i aria-hidden="true"/>{a.status==='active'?'Active':'Suspended'}</span></td>
       <td data-label="Linked Member"><div className="lcb-member-cell"><span>{a.member_name || 'Not Linked'}{a.member_number && <small className="lcah-member-number">{a.member_number}</small>}</span></div></td>
-      <td data-label="Actions"><div className="lca-actions lca-unified-actions"><button className={"lcb-link-trigger "+(a.member_id ? "is-unlink" : "is-link")} disabled={busy} onClick={()=>{setPending(null);setNotice('');setError('');setLinkTarget(a)}}>{a.member_id ? 'Unlink Member' : 'Link Member'}</button>{a.role==='owner' || a.user_id===currentUserId ? <span className="lca-protected"><ShieldCheck size={14}/>Protected</span> : <>
-       {(a.role==='admin' || a.status==='active') && <button className={a.role==='admin'?'lca-action-remove':'lca-action-grant'} disabled={busy} onClick={()=>{setError('');setLinkTarget(null);setPending({account:a,action:a.role==='admin'?'revoke_admin':'grant_admin'})}}>{a.role==='admin'?'Remove Admin':'Grant Admin'}</button>}
-       <button className={a.status==='active'?'lca-action-suspend':'lca-action-reactivate'} disabled={busy} onClick={()=>{setError('');setLinkTarget(null);setPending({account:a,action:a.status==='active'?'suspend':'reactivate'})}}>{a.status==='active'?'Suspend':'Reactivate'}</button>
+      <td data-label="Actions"><div className="lca-actions lca-unified-actions"><button className={"lcb-link-trigger "+(a.member_id ? "is-unlink" : "is-link")} disabled={busy} onClick={()=>{setPending(null);setNotice('');setError('');setLinkTarget(a);requestAnimationFrame(()=>revealWorkspaceRegion(listRef.current?.querySelector<HTMLElement>('.lcb-panel') ?? null))}}>{a.member_id ? <Unlink size={14}/> : <Link2 size={14}/>}<span>{a.member_id ? 'Unlink' : 'Link Member'}</span></button>{a.role==='owner' || a.user_id===currentUserId ? <span className="lca-protected"><ShieldCheck size={14}/>Protected</span> : <>
+       {(a.role==='admin' || a.status==='active') && <button className={a.role==='admin'?'lca-action-remove':'lca-action-grant'} disabled={busy} onClick={()=>{setError('');setLinkTarget(null);setPending({account:a,action:a.role==='admin'?'revoke_admin':'grant_admin'});requestAnimationFrame(()=>revealWorkspaceRegion(listRef.current?.querySelector<HTMLElement>('.lca-confirm') ?? null))}}>{a.role==='admin'?<ShieldMinus size={14}/>:<ShieldPlus size={14}/>}<span>{a.role==='admin'?'Remove Admin':'Grant Admin'}</span></button>}
+       <button className={a.status==='active'?'lca-action-suspend':'lca-action-reactivate'} disabled={busy} onClick={()=>{setError('');setLinkTarget(null);setPending({account:a,action:a.status==='active'?'suspend':'reactivate'});requestAnimationFrame(()=>revealWorkspaceRegion(listRef.current?.querySelector<HTMLElement>('.lca-confirm') ?? null))}}>{a.status==='active'?<Pause size={14}/>:<Play size={14}/>}<span>{a.status==='active'?'Suspend':'Reactivate'}</span></button>
       </>}</div></td>
      </tr>{linkTarget?.user_id===a.user_id && <tr className="lca-confirm-row"><td colSpan={5}><MemberLinkPanel key={a.user_id+ a.updated_at} account={linkTarget} onBusy={setSaving} onCancel={()=>setLinkTarget(null)} onDone={()=>{setLinkTarget(null);setNotice(a.member_id ? 'Member unlinked. Member data and attendance are preserved.' : 'Member linked successfully.');setRefresh(v=>v+1);onLinkChanged()}}/></td></tr>}{pending?.account.user_id===a.user_id && <tr className="lca-confirm-row"><td colSpan={5}><div className="lca-confirm" role="group" aria-label="Confirm Access Change"><div><strong>{labels[pending.action]} for {a.email || a.display_name}?</strong><p>{confirmation()}</p></div><div className="lca-actions"><button disabled={saving} onClick={()=>setPending(null)}>Cancel</button><button className="lca-confirm-button" disabled={saving} onClick={()=>void apply()}>{saving?'Saving…':'Confirm '+labels[pending.action]}</button></div></div></td></tr>}</Fragment>)}
     </tbody></table></div>}
@@ -138,7 +152,7 @@ export default function AccountsSettings({currentUserId,onLinkChanged}: {current
    </>}
     <footer className="lca-pagination lcah-pagination">
      <div className="lcah-page-summary"><span>{(data?.total ?? 0) ? ((currentPage-1)*(data?.page_size ?? pageSize)+1)+'–'+Math.min(currentPage*(data?.page_size ?? pageSize),(data?.total ?? 0))+' of '+(data?.total ?? 0)+' Accounts' : '0 Accounts'}</span>
-      <label className="lcah-page-size"><span>Per Page</span><span className="lcah-size-field"><ResponsiveSelect aria-label="Accounts per Page" value={pageSize} disabled={busy} onChange={e=>{setPageSize(Number(e.target.value));setPage(1);setPending(null);setLinkTarget(null);setNotice('')}}><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option></ResponsiveSelect><ChevronDown size={14} aria-hidden="true"/></span></label>
+      <label className="lcah-page-size"><span>Per Page</span><span className="lcah-size-field"><ResponsiveSelect aria-label="Accounts per Page" value={pageSize} disabled={busy} onChange={e=>{setPageSize(Number(e.target.value));setPage(1);setPending(null);setLinkTarget(null);setNotice('')}}><option value={25}>25</option><option value={50}>50</option><option value={100}>100</option></ResponsiveSelect></span></label>
      </div>
      <nav aria-label="Account Pages"><button aria-label="First Page" disabled={busy || !data || !!error || currentPage===1} onClick={()=>go(1)}><ChevronsLeft size={17}/></button><button aria-label="Previous Page" disabled={busy || !data || !!error || currentPage===1} onClick={()=>go(currentPage-1)}><ChevronLeft size={17}/></button><span>{currentPage} / {pages}</span><button aria-label="Next Page" disabled={busy || !data || !!error || currentPage>=pages} onClick={()=>go(currentPage+1)}><ChevronRight size={17}/></button><button aria-label="Last Page" disabled={busy || !data || !!error || currentPage>=pages} onClick={()=>go(pages)}><ChevronsRight size={17}/></button></nav>
     </footer>
@@ -194,7 +208,7 @@ function MemberLinkPanel({account,onBusy,onCancel,onDone}:{
   }finally{lock.current=false;onBusy(false);if(alive.current)setSaving(false)}
  }
  return <section className="lcb-panel" aria-label={account.member_id?'Unlink Member Confirmation':'Link a Member'}>
-  <header><div><p className="eyebrow">Verified Member Connection</p><h3>{account.member_id?'Unlink This Member?':'Find the Right Member'}</h3></div><button disabled={saving} onClick={onCancel}>Cancel</button></header>
+  <header><div><p className="eyebrow">Member Connection</p><h3>{account.member_id?'Unlink This Member?':'Link an Existing Member'}</h3></div><button disabled={saving} onClick={onCancel}>Cancel</button></header>
   <div className="lcb-identities"><div><small>Login Account</small><strong>{account.display_name}</strong><span>{account.email || 'No Email'}</span><span>{roleName(account.role)} · {uiStatus(account.status)}</span></div>
    <div><small>{account.member_id?'Currently Linked Member':'Selected Member'}</small><strong>{account.member_id ? account.member_name || 'Linked Member' : selected ? selected.first_name+' '+selected.last_name : 'Choose an Existing Profile Below'}</strong>{selected && <><span>{selected.member_number} · {uiStatus(selected.status)}</span><span>{selected.email || 'No Email'} · {selected.mobile || 'No Mobile'}</span></>}</div>
   </div>

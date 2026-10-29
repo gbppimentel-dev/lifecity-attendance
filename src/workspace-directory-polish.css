@@ -25,38 +25,106 @@ html:root body .members-editorial-hero .members-create-action:is(:hover,:focus-v
 }
 html:root body .members-editorial-hero .members-create-action:is(:hover,:focus-visible) .members-create-action-icon { background: color-mix(in srgb,var(--lc-onPrimary,#fff) 20%,transparent); color: inherit; }
 
-/* Tool icons stay still; tint and shadow provide the interaction feedback. */
+/* A shared interaction replaces the old directional icon loops. */
+html:root body .members-editorial-hero .member-hero-tool,
+html:root body .members-editorial-hero .member-hero-tool:is(:hover,:focus-visible,.is-open) {
+  transform: none; translate: none; rotate: none;
+}
 html:root body .members-editorial-hero .member-hero-tool svg,
 html:root body .members-editorial-hero .member-hero-tool:is(:hover,:focus-visible,.is-open) svg {
-  animation: none !important; transform: none !important; translate: none !important; rotate: none !important;
+  animation: none !important; transform: none; translate: none; rotate: none;
 }
 
-/* One shared toolbar aligns the workspace label and the import controls. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-lc-motion="on"] body .members-editorial-hero :is(.member-hero-tool,.members-create-action) {
+    transition: transform 220ms cubic-bezier(.2,.75,.25,1), box-shadow 220ms ease,
+      border-color 180ms ease, background-color 180ms ease, color 180ms ease;
+  }
+  html[data-lc-motion="on"] body .members-editorial-hero :is(.member-hero-tool > svg,.members-create-action-icon) {
+    transition: transform 240ms cubic-bezier(.2,.75,.25,1), background-color 180ms ease;
+    transform-origin: center;
+  }
+  html[data-lc-motion="on"] body .members-editorial-hero .members-create-action::after {
+    transition: transform 360ms cubic-bezier(.2,.75,.25,1), opacity 220ms ease;
+  }
+  html[data-lc-motion="on"] body .members-editorial-hero .member-hero-tool:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px color-mix(in srgb,var(--lc-primary,#147d73) 12%,transparent);
+  }
+  html[data-lc-motion="on"] body .members-editorial-hero .member-hero-tool:focus-visible > svg { transform: scale(1.1); }
+  html[data-lc-motion="on"] body .members-editorial-hero .members-create-action:focus-visible { transform: translateY(-3px); }
+  html[data-lc-motion="on"] body .members-editorial-hero .members-create-action:focus-visible .members-create-action-icon { transform: scale(1.08); }
+  html[data-lc-motion="on"] body .members-editorial-hero .members-create-action:focus-visible::after { transform: scale(1.18); }
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  html[data-lc-motion="on"] body .members-editorial-hero .member-hero-tool:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px color-mix(in srgb,var(--lc-primary,#147d73) 12%,transparent);
+  }
+  html[data-lc-motion="on"] body .members-editorial-hero .member-hero-tool:hover > svg { transform: scale(1.1); }
+  html[data-lc-motion="on"] body .members-editorial-hero .members-create-action:hover { transform: translateY(-3px); }
+  html[data-lc-motion="on"] body .members-editorial-hero .members-create-action:hover .members-create-action-icon { transform: scale(1.08); }
+  html[data-lc-motion="on"] body .members-editorial-hero .members-create-action:hover::after { transform: scale(1.18); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html[data-lc-motion="on"] body .members-editorial-hero :is(.member-hero-tool,.members-create-action):active {
+    transform: translateY(0) scale(.985);
+    transition-duration: 100ms;
+  }
+  html[data-lc-motion="on"] body .members-editorial-hero .member-hero-tool:active > svg,
+  html[data-lc-motion="on"] body .members-editorial-hero .members-create-action:active .members-create-action-icon { transform: scale(1.02); }
+}
+
+/* The original hanging tab keeps the tools compact, with import actions alongside it. */
 html:root body .directory-tools-workspace { padding: 0 20px 2px; overflow: visible; }
 html:root body .directory-tools-workspace-header {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px 20px;
-  min-height: 62px; margin: 0 -20px 18px; padding: 11px 20px;
-  border-bottom: 1px solid var(--lc-panel-border,#d6e7df);
-  background: color-mix(in srgb,var(--lc-glowPrimary,#e5f5ef) 42%,var(--lc-surface,#fff));
-  border-radius: 16px 16px 0 0;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px 20px;
+  min-height: 38px; margin: -1px 0 16px; padding: 0;
 }
 html:root body .directory-tools-workspace-header .directory-tools-workspace-label {
   position: static; display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px;
-  margin: 0; padding: 0; min-width: 0; border: 0; background: transparent;
+  box-sizing: border-box; min-height: 38px; margin: 0; padding: 9px 11px; min-width: 0;
+  border: 1px solid var(--lc-panel-border,#d6e7df); border-top: 0; border-radius: 0 0 11px 11px;
+  background: var(--lc-surfaceAlt,#f9fdfc);
   font-size: 10px; line-height: 1.5; letter-spacing: .07em;
 }
 html:root body .directory-tools-workspace-label strong { font-size: 11px; }
-html:root body .directory-tools-header-actions { flex: 0 0 auto; }
+html:root body .directory-tools-header-actions {
+  display: flex; flex: 0 0 auto; align-items: stretch; overflow: hidden;
+  border: 1px solid var(--lc-panel-border,#d6e7df); border-top: 0; border-radius: 0 0 11px 11px;
+  background: var(--lc-surfaceAlt,#f9fdfc);
+}
 html:root body .directory-tools-header-actions:empty { display: none; }
 html:root body .csv-import-actions {
   position: static; display: flex; align-items: center; flex-wrap: nowrap;
-  width: auto; margin: 0; gap: 8px; transform: none; align-self: center;
+  width: auto; margin: 0; gap: 0; transform: none; align-self: center;
 }
-html:root body .directory-tools-header-actions .csv-import-actions :is(.template-button,.csv-close-button) { min-height: 34px !important; height: 34px !important; }
-html:root body .directory-tools-header-actions .csv-import-actions .template-button { padding: 6px 11px; font-size: 11px; }
-html:root body .directory-tools-header-actions .csv-import-actions .csv-close-button { width: 34px !important; min-width: 34px !important; }
-html:root body .csv-import-actions :is(button,svg):is(:hover,:focus-visible),
-html:root body .csv-import-actions button:is(:hover,:focus-visible) svg { transform: none; animation: none; }
+html:root body .directory-tools-header-actions :is(.template-button,.directory-tools-close) {
+  display: inline-flex !important; align-items: center; justify-content: center; gap: 7px;
+  box-sizing: border-box; min-height: 37px !important; height: 37px !important; margin: 0 !important;
+  border: 0; border-radius: 0 !important; background: transparent;
+  color: var(--lc-primary,#147d73); box-shadow: none; font: inherit; font-size: 11px; font-weight: 600;
+  cursor: pointer; transform: none;
+}
+html:root body .directory-tools-header-actions .template-button { padding: 0 13px; }
+html:root body .directory-tools-header-actions .directory-tools-close { width: 39px !important; min-width: 39px !important; padding: 0 !important; color: var(--lc-muted,#71877f); }
+html:root body .directory-tools-header-actions .template-button + .directory-tools-close { border-left: 1px solid var(--lc-panel-border,#d6e7df); }
+html:root body .directory-tools-header-actions :is(.template-button,.directory-tools-close):is(:hover,:focus-visible) {
+  background: color-mix(in srgb,var(--lc-primary,#147d73) 8%,var(--lc-surface,#fff));
+  color: var(--lc-primary,#147d73); box-shadow: none; transform: none;
+}
+html:root body .directory-tools-header-actions .directory-tools-close:is(:hover,:focus-visible) { background: #fff0ed; color: #ad493f; }
+html:root body .directory-tools-header-actions button:focus-visible { outline: 2px solid var(--lc-primary,#147d73); outline-offset: -3px; }
+html:root body .directory-tools-header-actions button:disabled { opacity: .5; cursor: wait; }
+html:root body .directory-tools-header-actions svg { animation: none; transform: none; }
+@media (prefers-reduced-motion: no-preference) {
+  html[data-lc-motion="on"] body .directory-tools-header-actions button { transition: background-color 180ms ease,color 180ms ease; }
+  html[data-lc-motion="on"] body .directory-tools-header-actions svg { transition: transform 200ms cubic-bezier(.2,.75,.25,1); }
+  html[data-lc-motion="on"] body .directory-tools-header-actions button:is(:hover,:focus-visible):not(:disabled) svg { transform: scale(1.1); }
+  html[data-lc-motion="on"] body .directory-tools-header-actions button:active:not(:disabled) svg { transform: scale(.94); }
+}
 html:root body .directory-tools-workspace .csv-import-card { padding-top: 22px; }
 
 @media (max-width: 600px) {
@@ -64,6 +132,10 @@ html:root body .directory-tools-workspace .csv-import-card { padding-top: 22px; 
   html:root body .members-editorial-hero .members-create-action strong { font-size: 15px; }
   html:root body .members-editorial-hero .members-create-action-icon { top: 11px; right: 12px; }
   html:root body .directory-tools-workspace { padding-inline: 12px; }
-  html:root body .directory-tools-workspace-header { flex-wrap: wrap; margin-inline: -12px; padding-inline: 14px; }
+  html:root body .directory-tools-workspace-header { gap: 8px; }
+  html:root body .directory-tools-workspace-header .directory-tools-workspace-label { flex-direction: column; align-items: flex-start; gap: 1px; padding: 6px 8px; }
+  html:root body .directory-tools-workspace-label > span { font-size: 8px; }
+  html:root body .directory-tools-workspace-label > strong { font-size: 10px; }
+  html:root body .directory-tools-header-actions .template-button { padding-inline: 9px; font-size: 10px; }
   html:root body .directory-tools-header-actions { margin-left: auto; }
 }

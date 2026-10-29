@@ -157,7 +157,10 @@ export default function RubberSegment({
     const before = committed.current
     committed.current = target
     if (animateSelection && before !== target) travel(before, target)
-    if (item.value === current) return
+    if (item.value === current) {
+      if (variant === 'navigation') latest.current.onChange?.(item.value, target)
+      return
+    }
     if (latest.current.value === undefined) setInner(item.value)
     renderInteraction(n => n + 1)
     latest.current.onChange?.(item.value, target)

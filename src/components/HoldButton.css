@@ -52,8 +52,10 @@ html body button.hold-button.hold-button--sm {
 
 html body button.hold-button.hold-button--md {
   height: 44px;
-  padding: 0 22px;
-  font-size: 15px;
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: 11px;
+  font-weight: 600;
 }
 
 html body button.hold-button.hold-button--lg {
@@ -97,6 +99,13 @@ html body button.hold-button[data-phase]:focus-visible {
   outline-offset: 3px;
 }
 html body button.hold-button[data-phase]:disabled { cursor: default; opacity: .5; }
+
+/* Keep the paired confirmation actions on the same type and size scale. */
+html:root body .lcsp-directory .service-inline-confirmation-actions > button {
+  min-height: 44px; height: 44px; margin: 0; padding: 0 16px; border-radius: 11px;
+  font-family: inherit; font-size: 11px; font-weight: 600; line-height: 1.4; letter-spacing: 0;
+}
+html:root body .lcsp-directory .service-inline-confirmation-actions > button.hold-button { min-width: 134px; }
 
 @media (hover: hover) and (pointer: fine) {
   .hold-button:not(:disabled):hover {

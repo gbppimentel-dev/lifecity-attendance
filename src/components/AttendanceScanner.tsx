@@ -5,10 +5,11 @@
 // Change ID: LC-P08D-v1
 // Change ID: LC-UI-COPY-v2
 import { uiMessage } from '../lib/uiText'
-import { type FormEvent, useEffect, useRef, useState } from 'react'
-import { ChevronDown, CheckCircle2, Expand, Minimize, ScanLine, Search, SwitchCamera, TriangleAlert, X } from 'lucide-react'
+import { type FormEvent, useEffect, useId, useRef, useState } from 'react'
+import { ArrowRight, Check, ChevronDown, CheckCircle2, Clock3, Expand, LoaderCircle, Minimize, ScanLine, Search, SwitchCamera, TriangleAlert, UserRoundCheck, UsersRound, X } from 'lucide-react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../lib/supabase'
+import './AttendanceScanner.css'
 
 type AttendanceEvent = {
   id: string
@@ -25,6 +26,8 @@ type ScanResult = {
 
 type Props = {
   event: AttendanceEvent | null
+  onCheckIn?: (serviceId: string) => void
+  checkInCount?: number
 }
 
 type SearchMember = {
@@ -53,8 +56,19 @@ type RecentCheckIn = {
 */
 let scannerShutdown = Promise.resolve()
 
-export default function AttendanceScanner({ event }: Props) {
-  const [manualOpen,setManualOpen]=useState(false)
+export default function AttendanceScanner({ event, onCheckIn, checkInCount }: Props) {
+  const id = useId()
+  const checkInCallback = useRef(onCheckIn)
+  checkInCallback.current = onCheckIn
+  const manualInput = useRef<HTMLInputElement>(null)
+  const [manualOpen,setManualOpen]=useState(() => !matchMedia('(max-width:900px)').matches)
+  const [coolingDown,setCoolingDown]=useState(false)
+  useEffect(() => {
+    const media = matchMedia('(min-width:901px)')
+    const expand = () => { if (media.matches) setManualOpen(true) }
+    media.addEventListener('change', expand)
+    return () => media.removeEventListener('change', expand)
+  }, [])
   const [processing, setProcessing] = useState(false)
   const attemptSequence = useRef(0)
   const releaseTimer = useRef<number | null>(null)
@@ -128,7 +142,7 @@ export default function AttendanceScanner({ event }: Props) {
     setRecentCheckIns((current) => [
       { memberName, time },
       ...current,
-    ].slice(0, 2))
+    ].slice(0, 3))
   }
 
   function attemptIsCurrent(attempt: number, serviceId: string) {
@@ -147,9 +161,10 @@ export default function AttendanceScanner({ event }: Props) {
   function finishAttempt(attempt: number, serviceId: string) {
     if(!attemptIsCurrent(attempt,serviceId))return
     setProcessing(false)
+    setCoolingDown(true)
     // Keep a short cooldown so a QR held in the frame is not immediately read again.
     releaseTimer.current=window.setTimeout(()=>{
-      if(attemptIsCurrent(attempt,serviceId))processingRef.current=false
+      if(attemptIsCurrent(attempt,serviceId)){processingRef.current=false;setCoolingDown(false)}
     },1800)
   }
 
@@ -171,6 +186,8 @@ export default function AttendanceScanner({ event }: Props) {
       notifySuccessfulCheckIn()
       addRecentCheckIn(memberName,checkInTime)
       setResult({type:'success',memberName,message:'Attendance recorded successfully.',time:checkInTime})
+      // Summary refresh is an enhancement; callback failures must not contradict a confirmed insert.
+      try { checkInCallback.current?.(serviceId) } catch { /* Keep the confirmed check-in result. */ }
     }
   }
 
@@ -229,6 +246,7 @@ export default function AttendanceScanner({ event }: Props) {
     if(releaseTimer.current)clearTimeout(releaseTimer.current)
     processingRef.current=false
     setProcessing(false)
+    setCoolingDown(false)
     setResult(null)
     setRecentCheckIns([])
     setSelectedMember(null)
@@ -241,6 +259,9 @@ export default function AttendanceScanner({ event }: Props) {
     let disposed=false
     let scanner:Html5Qrcode|null=null
     let track:MediaStreamTrack|null=null
+    let sizeObserver:ResizeObserver|null=null
+    let resizeTimer:number|undefined
+    let removePreviewListeners = () => {}
     setCameraState('starting');setCameraError('')
     async function startCamera(){
       await scannerShutdown
@@ -255,11 +276,26 @@ export default function AttendanceScanner({ event }: Props) {
           : 'Camera access is not available in this browser. Open the app in a browser with camera support.')
         return
       }
+      // Preserve the camera's native aspect ratio. The larger video is clipped
+      // by the stage, giving a cover preview without stretching the decode canvas.
+      const fitPreview = () => {
+        const video = reader.querySelector('video')
+        const stage = reader.parentElement
+        if (!video || !stage || !video.videoWidth || !video.videoHeight) return
+        const box = stage.getBoundingClientRect()
+        const width = Math.ceil(Math.max(box.width, box.height * video.videoWidth / video.videoHeight))
+        video.style.setProperty('--scan-video-width', `${width}px`)
+        stage.style.setProperty('--scan-guide-size', `${Math.round(Math.min(260, box.width * .46, box.height * .54))}px`)
+      }
+      // Capture metadata before the library's playing handler measures its frame.
+      reader.addEventListener('loadedmetadata', fitPreview, true)
+      removePreviewListeners = () => reader.removeEventListener('loadedmetadata', fitPreview, true)
       try{
         scanner=new Html5Qrcode('attendance-reader',{verbose:false})
         await scanner.start(
           cameraId?{deviceId:{exact:cameraId}}:{facingMode},
-          {fps:10,qrbox:(width,height)=>{const size=Math.min(250,Math.floor(Math.min(width,height)*.8));return {width:size,height:size}},aspectRatio:1},
+          // With no qrbox or forced aspect ratio, the decoder uses the entire camera frame.
+          {fps:10},
           text=>{if(!disposed)void recordAttendance(text)},()=>{},
         )
       }catch(error){
@@ -289,8 +325,25 @@ export default function AttendanceScanner({ event }: Props) {
       const isMobile=mobileNavigator.userAgentData?.mobile===true
         || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
         || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1)
-      if(preview && !isMobile)preview.style.setProperty('transform','scaleX(-1)')
+      if(preview && !isMobile)preview.style.setProperty('--scan-mirror','-1')
+      fitPreview()
       setCameraState('ready');setCameraError('')
+      // html5-qrcode captures its decode region at startup. Rebuild it after a
+      // layout resize so native-to-rendered pixel ratios cannot use stale bounds.
+      const stage = reader.parentElement
+      if (stage) {
+        const initial = stage.getBoundingClientRect()
+        let width = Math.round(initial.width), height = Math.round(initial.height)
+        sizeObserver = new ResizeObserver(entries => {
+          const box = entries[0]?.contentRect
+          if (!box || disposed || (Math.abs(box.width - width) < 3 && Math.abs(box.height - height) < 3)) return
+          width = Math.round(box.width); height = Math.round(box.height)
+          fitPreview()
+          window.clearTimeout(resizeTimer)
+          resizeTimer = window.setTimeout(() => { if (!disposed) setCameraRetry(value => value + 1) }, 180)
+        })
+        sizeObserver.observe(stage)
+      }
       // Optional metadata must never turn a successful start into an access error.
       try{
         const video=reader.querySelector('video')
@@ -310,6 +363,7 @@ export default function AttendanceScanner({ event }: Props) {
     const startup=startCamera()
     return()=>{
       disposed=true
+      sizeObserver?.disconnect();window.clearTimeout(resizeTimer);removePreviewListeners()
       scannerShutdown=scannerShutdown.then(async()=>{
         await startup
         if(!scanner)return
@@ -409,182 +463,102 @@ export default function AttendanceScanner({ event }: Props) {
     })()
   }
 
-  if (!event) {
-    return (
-      <section className="scanner-empty lc-scanner-idle">
-        <div className="lc-scanner-idle-art" aria-hidden="true"><ScanLine size={36}/><span/></div>
-        <h2>Select an Event First</h2>
-        <p>Choose a service or gathering above before opening the scanner.</p>
-      </section>
-    )
+  function toggleManual() {
+    const next = !manualOpen
+    setManualOpen(next)
+    if (next) requestAnimationFrame(() => manualInput.current?.focus({preventScroll:true}))
   }
 
-  return (
-    <section ref={scannerLayoutRef} className={`scanner-layout${isKioskMode ? ' is-kiosk-mode' : ''}`}>
-      <div className="scanner-camera-heading">
-        <div>
-          <p className="card-kicker">{isKioskMode ? 'LifeCity · Self check-in' : 'Camera Scanner'}</p>
-          <h2>Scan Member QR</h2>
-          <p>Hold the QR code inside the frame to check in automatically.</p>
-        </div>
-        <div className="scanner-camera-actions">
-          <button
-            type="button"
-            ref={kioskButtonRef}
-            aria-pressed={isKioskMode}
-            className={`scanner-camera-switch lc-kiosk-toggle${isKioskMode ? ' is-active' : ''}`}
-            onClick={() => void toggleKioskMode()}
-            title={isKioskMode ? 'Exit Kiosk Mode' : 'Open Kiosk Mode'}
-          >
-            {isKioskMode ? <Minimize size={16} /> : <Expand size={16} />}
-            {isKioskMode ? 'Exit Kiosk' : 'Kiosk Mode'}
-          </button>
-          {(
-            <button
-              type="button"
-              className="scanner-camera-switch lc-camera-icon"
-              aria-label="Switch camera"
-              onClick={switchCamera}
-              disabled={cameraState==='starting'}
-              title="Switch Camera"
-            >
-              <SwitchCamera size={16} />
-            </button>
-          )}
-          {cameraState==='error' && <button type="button" className="scanner-camera-switch" onClick={()=>{setCameraState('starting');setCameraRetry(value=>value+1)}}>Retry Camera</button>}
-          <span className={cameraState==='ready'?'scanner-ready-status':'manual-member-search-help'} role="status">
-            {cameraState==='ready' && <i/>}{cameraState==='ready'?'Ready':cameraState==='starting'?'Starting Camera…':'Camera Unavailable'}
-          </span>
-        </div>
+  function clearSelectedMember() {
+    setSelectedMember(null)
+    setSelectedMemberEventId('')
+    setMemberSearch('')
+    manualInput.current?.focus({preventScroll:true})
+  }
+
+  function dismissResult() {
+    setResult(null)
+    if (!isKioskMode && manualOpen) manualInput.current?.focus({preventScroll:true})
+    else kioskButtonRef.current?.focus({preventScroll:true})
+  }
+
+  if (!event) return null
+
+  const feedbackState = processing ? 'processing' : result?.type ?? 'ready'
+  const FeedbackIcon = processing ? LoaderCircle : result?.type === 'success' ? CheckCircle2 : result?.type === 'duplicate' ? Clock3 : result?.type === 'error' ? TriangleAlert : ScanLine
+  const feedbackTitle = processing ? 'Checking In…' : result?.type === 'success' ? 'Checked In' : result?.type === 'duplicate' ? 'Already Checked In' : result?.type === 'error' ? 'Check-In Not Confirmed' : 'Scan a QR Code'
+  const kioskSchedule = new Intl.DateTimeFormat('en-PH', {timeZone:'Asia/Manila',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}).format(new Date(event.starts_at))
+
+  return <section ref={scannerLayoutRef} className={`scanner-layout lc-scan-station${isKioskMode ? ' is-kiosk-mode' : ''}`} data-camera-state={cameraState} aria-label="Member Check-In Workspace">
+    {isKioskMode && <header className="lc-scan-kiosk-service">
+      <div className="lc-scan-kiosk-service__details"><p className="lc-scan-eyebrow">LifeCity · Kiosk</p><h2 title={event.name}>{event.name}</h2><p>{kioskSchedule}</p></div>
+      <div className="lc-scan-kiosk-service__actions">{typeof checkInCount === 'number' && <div className="lc-scan-kiosk-total"><strong>{checkInCount.toLocaleString()}</strong><span>Check-Ins</span></div>}
+        <button type="button" ref={kioskButtonRef} className="lc-scan-tool" onClick={() => void toggleKioskMode()}><Minimize size={16} aria-hidden="true"/>Exit Kiosk</button>
       </div>
-
-      <div className="lc-scanner-workspace">
-      <div className="scanner-camera-stage">
-        <div id="attendance-reader" className="scanner-reader" />
-      </div>
-
-      <aside className="lc-scanner-feedback" aria-label="Check-in feedback">
-      {isKioskMode && <div className="lc-kiosk-service"><p className="card-kicker">You’re checking in to</p><h2 title={event.name}>{event.name}</h2><p>{new Date(event.starts_at).toLocaleString([], {dateStyle:'medium',timeStyle:'short'})}</p></div>}
-      {isKioskMode && !result && !processing && !cameraError && <div className="lc-kiosk-welcome"><ScanLine size={44} aria-hidden="true"/><h2>Ready when you are.</h2><p>Hold your member QR code in the camera frame. Your confirmation will appear here.</p></div>}
-      {recentCheckIns.length > 0 && (
-        <div className="scanner-recent-checkins" aria-live="polite">
-          <span>Last Checked in</span>
-          <div>
-            {recentCheckIns.map((checkIn, index) => (
-              <p key={`${checkIn.memberName}-${checkIn.time}-${index}`}>
-                <strong>{checkIn.memberName}</strong>
-                <small>{checkIn.time}</small>
-              </p>
-            ))}
-          </div>
+    </header>}
+    <div className="lc-scan-layout">
+      <section className="lc-scan-camera" aria-labelledby={`${id}-camera-title`}>
+        <header className="lc-scan-camera__header">
+          <div><h2 id={`${id}-camera-title`}>{isKioskMode ? 'Scan Your QR Code' : 'Scan a Member QR'}</h2></div>
+          <span className="lc-scan-camera__state" data-state={cameraState} role="status"><i aria-hidden="true"/>{cameraState === 'ready' ? 'Camera Ready' : cameraState === 'starting' ? 'Starting Camera…' : 'Camera Unavailable'}</span>
+        </header>
+        <div className="lc-scan-camera__stage" role="group" aria-label="Camera Preview">
+          <div id="attendance-reader" className="scanner-reader lc-scan-reader"/>
+          {cameraState === 'ready' && <div className="lc-scan-camera__guide" aria-hidden="true"><i/><i/><i/><i/><span>Place QR Here</span></div>}
+          {cameraState !== 'ready' && <div className="lc-scan-camera__placeholder" aria-hidden="true">{cameraState === 'starting' ? <LoaderCircle size={30} className="lc-scan-spinner"/> : <ScanLine size={33}/>}<strong>{cameraState === 'starting' ? 'Starting Camera…' : 'Camera Unavailable'}</strong><span>{cameraState === 'starting' ? 'Please wait.' : 'Retry the camera or use manual check-in.'}</span></div>}
+          {cameraState === 'ready' && (processing || coolingDown) && <span className="lc-scan-camera__stage-hint"><ScanLine size={14} aria-hidden="true"/>{processing ? 'Checking In…' : 'Hold a Moment'}</span>}
         </div>
-      )}
-
-      {cameraError && (
-        <div className="scan-result error">
-          <TriangleAlert size={28} />
-          <p>{uiMessage(cameraError)}</p>
+        <div className="lc-scan-camera__tools">
+          <div><button type="button" className="lc-scan-tool" onClick={switchCamera} disabled={cameraState === 'starting'}><SwitchCamera size={16} aria-hidden="true"/>Switch Camera</button>
+            {!isKioskMode && <button type="button" ref={kioskButtonRef} className="lc-scan-tool" aria-pressed={false} onClick={() => void toggleKioskMode()} title="Open Kiosk Mode"><Expand size={16} aria-hidden="true"/>Kiosk Mode</button>}</div>
         </div>
-      )}
-
-      {processing && <p className="manual-member-search-help" role="status" aria-live="polite">Checking in… Please wait.</p>}
-
-      {result && (
-        <div className={`scan-result ${result.type}`} role="status" aria-live="polite">
-          {result.type === 'success' ? (
-            <CheckCircle2 size={28} />
-          ) : (
-            <TriangleAlert size={28} />
-          )}
-
-          <div>
-            {result.memberName && <strong>{result.memberName}</strong>}
-            <p>{uiMessage(result.message)}</p>
-            {result.time && <span>{result.time}</span>}
-          </div>
-        </div>
-      )}
-
-      {isKioskMode && <p className="lc-kiosk-tip">Need help? Exit kiosk to search for a member.</p>}
-      </aside>
-      </div>
-      <section className={`manual-checkin-card${manualOpen?' lcs-manual-open':''}`} hidden={isKioskMode}>
-        <button type="button" className="lcs-manual-toggle" aria-expanded={manualOpen} aria-controls="lcs-manual-form" onClick={()=>setManualOpen(value=>!value)}><Search size={16}/><span>Find a Member Manually</span><ChevronDown size={16}/></button>
-        <div className="manual-checkin-heading">
-          <p>Manual Check-In</p>
-          <span>Use member search only when a QR code cannot be scanned.</span>
-        </div>
-
-        <form id="lcs-manual-form" className="manual-member-search" onSubmit={submitMemberSearch}>
-          <div className="manual-member-search-input">
-            <Search size={18} />
-            <input
-              value={memberSearch}
-              onChange={(event) => {
-                setMemberSearch(event.target.value)
-                setSelectedMember(null)
-              }}
-              placeholder="Search Members"
-              aria-label="Search for a Member to Check in"
-            />
-          </div>
-
-          <button className={`secondary-button manual-checkin-button${!selectedMember ? ' lcs-no-selection' : ''}`} disabled={!selectedMember || selectedMemberEventId!==event.id || processing}>
-            {processing ? 'Checking In…' : 'Check In'}
-          </button>
-
-          <p className="manual-member-search-help">
-            Search by first name, last name, full name, mobile number, member ID, or email.
-          </p>
-
-          {memberLoadError && !waitingForSearch && !selectedMember && <div role="alert"><p className="error-message">{memberLoadError}</p><button type="button" className="secondary-button" onClick={()=>setSearchRetry(value=>value+1)}>Try Again</button></div>}
-
-          {selectedMember && (
-            <div className="manual-member-selected">
-              <div>
-                <strong>{selectedMember.first_name} {selectedMember.last_name}</strong>
-                <span>{selectedMember.member_number}{selectedMember.email ? ` · ${selectedMember.email}` : ''}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedMember(null)
-                  setMemberSearch('')
-                }}
-                aria-label="Clear Selected Member"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          )}
-
-          {!selectedMember && memberSearch.trim() && (
-            <div className="manual-member-results">
-              {waitingForSearch ? (
-                <p role="status">Searching members…</p>
-              ) : memberLoadError ? null : matchedMembers.length === 0 ? (
-                <p role="status">No active members found.</p>
-              ) : (
-                matchedMembers.map((member) => (
-                  <button
-                    type="button"
-                    key={member.id}
-                    onClick={() => {
-                      setSelectedMember(member)
-                      setSelectedMemberEventId(event.id)
-                      setMemberSearch(`${member.first_name} ${member.last_name}`)
-                    }}
-                  >
-                    <strong>{member.first_name} {member.last_name}</strong>
-                    <span>{member.member_number}{member.email ? ` · ${member.email}` : ''}</span>
-                  </button>
-                ))
-              )}
-              {!waitingForSearch && !memberLoadError && matchTotal>matchedMembers.length && <p className="manual-member-search-help">Showing {matchedMembers.length} of {matchTotal} matches. Add a surname, member ID, email, or mobile number to narrow your search.</p>}
-            </div>
-          )}
-        </form>
+        {cameraError && <div className="lc-scan-camera__error" role="alert"><span aria-hidden="true"><TriangleAlert size={20}/></span><div><strong>Camera Unavailable</strong><p>{uiMessage(cameraError)}</p><button type="button" className="lc-scan-tool" onClick={() => {setCameraState('starting');setCameraError('');setCameraRetry(value=>value+1)}}>Retry Camera<ArrowRight size={13} aria-hidden="true"/></button></div></div>}
       </section>
-    </section>
-  )
+
+      <aside className="lc-scan-rail" aria-label="Check-In Feedback and Manual Entry">
+        <section className="lc-scan-feedback" data-state={feedbackState} aria-labelledby={`${id}-feedback-title`}>
+          <header><p className="lc-scan-eyebrow" id={`${id}-feedback-title`}>Check-In Status</p>{result && !processing && <button type="button" className="lc-scan-dismiss" aria-label="Dismiss Check-In Result" onClick={dismissResult}><X size={15}/></button>}</header>
+          <div className="lc-scan-feedback__body" role={result?.type === 'error' ? 'alert' : 'status'} aria-live={result?.type === 'error' ? 'assertive' : 'polite'} aria-atomic="true">
+            <div className="lc-scan-feedback__status"><FeedbackIcon size={21} className={processing ? 'lc-scan-spinner' : undefined} aria-hidden="true"/><h3>{feedbackTitle}</h3></div>
+            {result?.memberName && !processing && <strong className="lc-scan-feedback__member" data-long={result.memberName.length > 36 || undefined}>{result.memberName}</strong>}
+            {(processing || result?.type === 'error') && <p>{processing ? 'Please wait.' : uiMessage(result!.message)}</p>}
+            {result?.time && !processing && <span className="lc-scan-feedback__time"><Clock3 size={12} aria-hidden="true"/>{result.time} · Manila Time</span>}
+          </div>
+        </section>
+
+        <section className={`lc-scan-manual${manualOpen ? ' is-open' : ''}`} hidden={isKioskMode} aria-labelledby={`${id}-manual-title`}>
+          <button type="button" className="lc-scan-manual__heading" aria-expanded={manualOpen} aria-controls={`${id}-manual-form`} onClick={toggleManual}>
+            <span className="lc-scan-manual__symbol" aria-hidden="true"><Search size={18}/></span><span><strong id={`${id}-manual-title`}>Manual Check-In</strong><small>Find a member without a QR code.</small></span><ChevronDown size={17} aria-hidden="true"/>
+          </button>
+          <form id={`${id}-manual-form`} className="lc-scan-manual__form" onSubmit={submitMemberSearch} hidden={!manualOpen}>
+            <label className="lc-scan-manual__search"><Search size={16} aria-hidden="true"/><input ref={manualInput} type="search" value={memberSearch} disabled={processing}
+              autoComplete="off" spellCheck={false} placeholder="Name, Member ID or Contact" aria-label="Search for a Member to Check In" aria-describedby={`${id}-search-help`} aria-busy={waitingForSearch && !!memberSearch.trim()}
+              onChange={change => {setMemberSearch(change.target.value);setSelectedMember(null);setSelectedMemberEventId('')}}/>{memberSearch && !selectedMember && <button type="button" aria-label="Clear Member Search" disabled={processing} onClick={clearSelectedMember}><X size={14}/></button>}</label>
+            <p id={`${id}-search-help`} className="lc-scan-manual__help">Search by name, member ID, mobile number or email.</p>
+            {memberLoadError && !waitingForSearch && !selectedMember && <div className="lc-scan-manual__error" role="alert"><p>{memberLoadError}</p><button type="button" className="lc-scan-tool" onClick={() => setSearchRetry(value=>value+1)}>Try Again<ArrowRight size={13} aria-hidden="true"/></button></div>}
+            {selectedMember ? <div className="lc-scan-member-selected">
+              <span className="lc-scan-member-avatar" aria-hidden="true">{selectedMember.first_name[0]}{selectedMember.last_name[0]}</span>
+              <div><small>Ready to Check In</small><strong>{selectedMember.first_name} {selectedMember.last_name}</strong><span>{selectedMember.member_number}</span></div>
+              <button type="button" className="lc-scan-dismiss" disabled={processing} onClick={clearSelectedMember} aria-label="Clear Selected Member"><X size={16}/></button>
+            </div> : memberSearch.trim() ? <div className="lc-scan-manual__results" aria-label="Matching Members">
+              {waitingForSearch ? <p className="lc-scan-manual__message" role="status"><LoaderCircle size={15} className="lc-scan-spinner" aria-hidden="true"/>Searching Members…</p> : memberLoadError ? null : !matchedMembers.length ? <p className="lc-scan-manual__message" role="status">No Active Members Found. Try another name or member ID.</p> : <>
+                <p className="lc-scan-manual__count" role="status">{matchTotal} Matching Member{matchTotal === 1 ? '' : 's'}</p>
+                <ul role="list">{matchedMembers.map(member => <li key={member.id}><button type="button" disabled={member.status !== 'active'} onClick={() => {setSelectedMember(member);setSelectedMemberEventId(event.id);setMemberSearch(`${member.first_name} ${member.last_name}`)}}>
+                  <span className="lc-scan-member-avatar" aria-hidden="true">{member.first_name[0]}{member.last_name[0]}</span><span><strong>{member.first_name} {member.last_name}</strong><small>{member.member_number}{member.email || member.mobile ? ` · ${member.email || member.mobile}` : ''}</small></span>{member.status === 'active' ? <ArrowRight size={14} aria-hidden="true"/> : <small>Inactive</small>}
+                </button></li>)}</ul>
+                {matchTotal > matchedMembers.length && <p className="lc-scan-manual__help">Showing {matchedMembers.length} of {matchTotal}. Add more detail to narrow the results.</p>}
+              </>}
+            </div> : <div className="lc-scan-manual__empty"><UserRoundCheck size={20} aria-hidden="true"/><p>Search and select a member to check in.</p></div>}
+            <button type="submit" className="lc-scan-primary lc-scan-manual__submit" disabled={!selectedMember || selectedMemberEventId !== event.id || processing || coolingDown}>{processing ? <LoaderCircle size={16} className="lc-scan-spinner" aria-hidden="true"/> : <UserRoundCheck size={16} aria-hidden="true"/>}{processing ? 'Checking In…' : selectedMember ? `Check In ${selectedMember.first_name}` : 'Check In Member'}</button>
+          </form>
+        </section>
+
+        {recentCheckIns.length > 0 && <section className="lc-scan-recent" aria-labelledby={`${id}-recent-title`}>
+          <div className="lc-scan-recent__heading"><UsersRound size={15} aria-hidden="true"/><h3 id={`${id}-recent-title`}>Recent Check-Ins</h3><span>{recentCheckIns.length} Recent</span></div>
+          <ul role="list">{recentCheckIns.map((checkIn,index) => <li key={`${checkIn.memberName}-${checkIn.time}-${index}`}><span className="lc-scan-recent__check" aria-hidden="true"><Check size={12}/></span><strong>{checkIn.memberName}</strong><time>{checkIn.time}</time></li>)}</ul>
+        </section>}
+        {isKioskMode && <p className="lc-scan-kiosk-help">No QR? Ask a team member for help.</p>}
+      </aside>
+    </div>
+  </section>
 }

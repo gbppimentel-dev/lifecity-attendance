@@ -8,6 +8,8 @@ The tracked `supabase/schema.sql` and `supabase/add_sunday_service_to_events.sql
 | --- | --- |
 | `attendance_catalog_v4` | [src/components/AttendanceRecords.tsx](../src/components/AttendanceRecords.tsx) |
 | `attendance_report_v4` | [src/components/AttendanceRecords.tsx](../src/components/AttendanceRecords.tsx) |
+| `lc_remove_attendance_with_undo` | [src/lib/attendanceActions.ts](../src/lib/attendanceActions.ts) · [one-time installer](../supabase/install-attendance-delete-undo.sql) |
+| `lc_restore_attendance` | [src/lib/attendanceActions.ts](../src/lib/attendanceActions.ts) · [one-time installer](../supabase/install-attendance-delete-undo.sql) |
 | `lc_cancel_member_request` | [src/components/MemberLinkRequests.tsx](../src/components/MemberLinkRequests.tsx) |
 | `lc_cancel_profile_request` | [src/components/ProfileChanges.tsx](../src/components/ProfileChanges.tsx) |
 | `lc_dashboard_snapshot` | [src/components/Dashboard.tsx](../src/components/Dashboard.tsx) |

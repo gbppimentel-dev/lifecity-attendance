@@ -2,7 +2,7 @@
 // Async actions stay available when they fail; pointer cancellation never dismisses.
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { animate, motion, useMotionValue, useReducedMotion } from 'motion/react'
-import { X } from 'lucide-react'
+import { CircleAlert, LoaderCircle, Undo2, X } from 'lucide-react'
 import './SwipeToast.css'
 
 export type ToastCloseReason = 'timeout' | 'swipe' | 'action' | 'close' | 'escape' | 'programmatic'
@@ -183,13 +183,16 @@ export default function SwipeToast({
         onFocus={() => { flags.current.focus = true; syncFuse() }}
         onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) { flags.current.focus = false; syncFuse() } }}
         onKeyDown={event => { if (event.key === 'Escape' && dismissible && !busy) { event.preventDefault(); event.stopPropagation(); close('escape') } }}>
-        {icon && <span className="swipe-toast__icon" aria-hidden="true">{icon}</span>}
+        {(icon || actionError) && <span className="swipe-toast__icon" aria-hidden="true">{actionError ? <CircleAlert /> : icon}</span>}
         <span className="swipe-toast__body"><span className="swipe-toast__title">{title}</span>
           {(description || actionError) && <span className="swipe-toast__desc">{actionError || description}</span>}
         </span>
-        {actionLabel && onAction && <button type="button" className="swipe-toast__action" disabled={busy} onClick={() => void runAction()}>{busy ? 'Undoing…' : actionLabel}</button>}
+        {actionLabel && onAction && <button type="button" className="swipe-toast__action" disabled={busy} onClick={() => void runAction()}>
+          {busy ? <LoaderCircle size={15} className="swipe-toast__action-busy" aria-hidden="true" /> : actionLabel === 'Undo' ? <Undo2 size={15} aria-hidden="true" /> : null}
+          <span>{busy ? 'Undoing…' : actionLabel}</span>
+        </button>}
         {closeButton && <button type="button" className="swipe-toast__close" disabled={busy} aria-label="Dismiss notification" title="Dismiss notification" onClick={() => close('close')}><X size={16} aria-hidden="true" /></button>}
-        <i ref={fuseElement} className="swipe-toast__fuse" aria-hidden="true" />
+        <span className="swipe-toast__timer-track" aria-hidden="true"><i ref={fuseElement} className="swipe-toast__fuse" /></span>
       </motion.div>
     </div>
   </div>

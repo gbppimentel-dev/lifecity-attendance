@@ -42,8 +42,8 @@ export function MotionSettings() {
   }, [])
   return <section className="lc-motion-settings" aria-labelledby="lc-motion-title">
     <div><p className="eyebrow">Motion & Performance</p><h2 id="lc-motion-title">Interface Animations</h2>
-      <p>Smooth section reveals as you browse, gentle panel entrances, interactive Dashboard cards, and moving gradient borders. Navigation responds immediately and panels close instantly.</p>
-      <small>Applies immediately on this browser. Turn off for less motion and smoother performance.</small>
+      <p>Page transitions, hover effects, and animated borders.</p>
+      <small>Applies immediately to this browser.</small>
     </div>
     <label className="lc-motion-toggle"><input type="checkbox" checked={enabled} onChange={event => {
       const value = event.target.checked
@@ -125,7 +125,7 @@ export function MotionRuntime() {
       pendingRoots.clear()
       const visible: HTMLElement[] = [], belowFold: HTMLElement[] = []
       candidates.forEach(element => {
-        if (tracked.has(element) || element.closest('.lc-motion-presence,[data-animated-content]') || element.parentElement?.closest(selector)) return
+        if (tracked.has(element) || element.closest('.lc-motion-presence,[data-animated-content],[data-lc-workspace-surface]') || element.parentElement?.closest(selector)) return
         if (element.closest('[hidden],[aria-hidden="true"]')) { hidden.add(element); return }
         // Live camera/QR and fixed popups keep their existing exact geometry.
         if (element.querySelector('video,canvas,.scanner-reader,.lmp-code')) { tracked.add(element); return }

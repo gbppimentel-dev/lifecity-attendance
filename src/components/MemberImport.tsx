@@ -480,7 +480,7 @@ export default function MemberImport({ onImported, onClose, toolbarTarget }: Pro
     <button type="button" className="secondary-button template-button" onClick={downloadTemplate}>
       <Download size={17} /><span>Download Template</span>
     </button>
-    <button className="csv-close-button" type="button" disabled={importing||validating||!!pendingImport}
+    <button className="csv-close-button directory-tools-close" type="button" disabled={importing||validating||!!pendingImport}
       onClick={onClose} aria-label="Close Member Import" title="Close Import"><X size={18}/></button>
   </div>
 

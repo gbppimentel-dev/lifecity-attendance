@@ -15,9 +15,9 @@ html body .mcu-select-trigger{display:inline-flex;align-items:center;justify-con
 html body .mcu-fold{display:block;min-width:0;width:100%;border:1px solid var(--lc-border,#d6e7df);border-radius:12px;background:var(--lc-surface,#fff);margin:8px 0}
 html body .mcu-fold-toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:44px;padding:11px 12px;border:0;border-radius:12px;background:transparent;color:var(--lc-safe-text,#456d63);font:inherit;font-size:12px;font-weight:600;cursor:pointer;transform:none;box-shadow:none}
 html body .mcu-fold-body{display:block;padding:0 12px 12px}.mcu-fold[data-open=true]>.mcu-fold-toggle svg{rotate:180deg}html body .mcu-fold[data-open=false]>.mcu-fold-body{display:none}
-html body .lc-mobile-workspace:has(.member-toolbar,.records-card,.lct-tabs){min-height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
-html body .lc-mobile-workspace:has(.member-toolbar,.records-card,.lct-tabs)>.content{flex:1 0 auto;width:100%;padding-bottom:12px}
-html body .lc-mobile-workspace:has(.member-toolbar,.records-card,.lct-tabs)>.lc-app-footer{margin-top:auto;padding:16px 24px 10px}
+html body .lc-mobile-workspace:has(.lc-workspace-panel:not([hidden]) :is(.member-toolbar,.records-card,.lct-tabs)){min-height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+html body .lc-mobile-workspace:has(.lc-workspace-panel:not([hidden]) :is(.member-toolbar,.records-card,.lct-tabs))>.content{flex:1 0 auto;width:100%;padding-bottom:12px}
+html body .lc-mobile-workspace:has(.lc-workspace-panel:not([hidden]) :is(.member-toolbar,.records-card,.lct-tabs))>.lc-app-footer{margin-top:auto;padding:16px 24px 10px}
 /* Members */
 html body .members-editorial-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:14px;margin:0 0 12px;min-height:0;border-radius:15px}
 html body .members-hero-copy{display:contents}html body .members-editorial-hero h1{font-size:25px;margin:0;grid-column:1;grid-row:1}
