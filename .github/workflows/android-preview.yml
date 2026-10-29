@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     defaults:
       run:
@@ -24,15 +24,17 @@ jobs:
       CI: '1'
       EXPO_NO_TELEMETRY: '1'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
       - name: Verify public app configuration
         run: node scripts/check-config.cjs
       - name: Install native dependencies
@@ -57,14 +59,14 @@ jobs:
           ./gradlew :app:assembleRelease --no-daemon --max-workers=2
       - name: Preserve reviewed dependency lockfile
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-dependency-lock
           path: apps/mobile/package-lock.json
           if-no-files-found: ignore
           retention-days: 7
       - name: Downloadable test APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: LifeCity-Android-Internal-Test
           path: apps/mobile/android/app/build/outputs/apk/release/*.apk
