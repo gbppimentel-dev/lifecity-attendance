@@ -13,7 +13,7 @@
     "test": "node --experimental-strip-types --test tests/*.test.ts"
   },
   "dependencies": {
-    "expo": "~58.0.21",
+    "expo": "58.0.21",
     "expo-auth-session": "~58.0.16",
     "expo-camera": "~58.0.14",
     "expo-crypto": "~58.0.7",
@@ -35,7 +35,7 @@
     "@supabase/supabase-js": "^2.57.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "react-native": "0.88.1",
+    "react-native": "0.88.0",
     "react-native-qrcode-svg": "^6.3.15",
     "react-native-safe-area-context": "~5.10.1",
     "react-native-screens": "~4.30.0",
