@@ -37,6 +37,24 @@ html:root body .lc-auth-frame {
   --lc-character-hero-fill: linear-gradient(var(--lc-surface, #fff), var(--lc-surface, #fff));
 }
 
+/* The opaque story panel must not cover the welcome card's masked frame.
+   Keep the outside hover glow free to extend beyond the card. */
+html:root body .lc-auth-frame.lc-border-glow > :is(
+  .lc-border-glow__frame, .lc-border-glow__mesh, .lc-border-glow__edge
+) { z-index: 1; }
+
+html:root body .lc-auth-frame.lc-border-glow > .lc-auth-story {
+  border-start-start-radius: inherit;
+  border-end-start-radius: inherit;
+}
+
+@media (max-width: 900px) {
+  html:root body .lc-auth-frame.lc-border-glow > .lc-auth-story {
+    border-start-end-radius: inherit;
+    border-end-start-radius: 0;
+  }
+}
+
 /* Heroes not yet wrapped in BorderGlow receive the same signature frame.
    Component hosts keep only their own decorative frame, avoiding doubled borders. */
 html:root body :is(
