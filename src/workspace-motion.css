@@ -1,102 +1,187 @@
-/* LC-WORKSPACE-MOTION-v1: quiet feedback with no decorative animation loops. */
 html {
-  --lc-ui-ease: cubic-bezier(.2, .75, .25, 1);
+  --lc-ui-ease: cubic-bezier(0.2, 0.75, 0.25, 1);
   --lc-ui-quick: 160ms;
   --lc-ui-settle: 220ms;
 }
 
-/* Keep decoration still. Loading spinners and progress indicators remain useful. */
-html body :is(
-  .dashboard-editorial-hero, .members-editorial-hero, .services-editorial-hero,
-  .scanner-editorial-hero, .records-page-heading, .records-editorial-hero,
-  .lc-accounts .lca-hero, .lc-auth-frame, .lcg-hero, .lmp-hero, .member-editor-card,
-  .service-form-card, .member-details-modal, .qr-modal
-),
-html body :is(
-  .topbar, .brand-icon, .dashboard-hero-orbit, .dashboard-hero-spark,
-  .members-hero-orbit, .members-hero-spark, .services-hero-orbit,
-  .services-hero-spark, .scanner-hero-orbit, .scanner-hero-spark,
-  .event-postcard-spark, .event-postcard-date, .recent-checkin-avatar,
-  .lc-playful-art, .lc-playful-orbit, .lc-float-card, .lc-playful-spark,
-  .lc-playful-dot, .lc-google-arrow, .lc-scanner-idle-art > svg,
-  .lc-scanner-idle-art > span, .recent-checkin-row.is-fresh .avatar,
-  .recent-checkin-row.is-fresh .recent-checkin-rail-marker,
-  .lcd-header-art > svg, .lcf-header-art, .lcf-header-art > svg,
-  .lc-community-art .lc-art-sticker, .lc-art-spark, .lc-art-orbit,
-  .lc-tech-emblem > svg, .lc-kiosk-welcome svg, .lmp-qr-mark,
-  .lcp-hero:not([data-highlight="true"]), .lcp-orbit:not([data-highlight="true"])
-),
+html
+  body
+  :is(
+    .dashboard-editorial-hero,
+    .members-editorial-hero,
+    .services-editorial-hero,
+    .scanner-editorial-hero,
+    .records-page-heading,
+    .records-editorial-hero,
+    .lc-accounts .lca-hero,
+    .lc-auth-frame,
+    .lcg-hero,
+    .lmp-hero,
+    .member-editor-card,
+    .service-form-card,
+    .member-details-modal,
+    .qr-modal
+  ),
+html
+  body
+  :is(
+    .topbar,
+    .brand-icon,
+    .dashboard-hero-orbit,
+    .dashboard-hero-spark,
+    .members-hero-orbit,
+    .members-hero-spark,
+    .services-hero-orbit,
+    .services-hero-spark,
+    .scanner-hero-orbit,
+    .scanner-hero-spark,
+    .event-postcard-spark,
+    .event-postcard-date,
+    .recent-checkin-avatar,
+    .lc-playful-art,
+    .lc-playful-orbit,
+    .lc-float-card,
+    .lc-playful-spark,
+    .lc-playful-dot,
+    .lc-google-arrow,
+    .lc-scanner-idle-art > svg,
+    .lc-scanner-idle-art > span,
+    .recent-checkin-row.is-fresh .avatar,
+    .recent-checkin-row.is-fresh .recent-checkin-rail-marker,
+    .lcd-header-art > svg,
+    .lcf-header-art,
+    .lcf-header-art > svg,
+    .lc-community-art .lc-art-sticker,
+    .lc-art-spark,
+    .lc-art-orbit,
+    .lc-tech-emblem > svg,
+    .lc-kiosk-welcome svg,
+    .lmp-qr-mark,
+    .lcp-hero:not([data-highlight='true']),
+    .lcp-orbit:not([data-highlight='true'])
+  ),
 html body :is(.lc-auth-story, .details-qr-frame, .topbar)::before,
 html body :is(.lc-auth-story, .details-qr-frame, .topbar, .lc-auth-check-mark)::after {
   animation: none !important;
 }
 
-/* AnimatedContent owns section entrances; avoid legacy page/row cascades. */
-html[data-lc-motion="on"] body :is(
-  .dashboard-stat-card, .dashboard-card, .event-postcard, .member-management-row,
-  .service-list-item, .lcg-card, .rh-record-card, .lmp-service-card,
-  .lcd-metrics article, .lc-service-option, .directory-card,
-  .records-card, .lct-panel, .lca-panel, .lch-panel, .lcf-inbox, .lmp-content,
-  .lcd-mobile, .lc-guest, .lc-auth-story h1, .lc-google-welcome,
-  .form-card, .directory-tools-workspace, .ministry-manager-card, .csv-import-card,
-  .manual-checkin-card, .member-editor-card
-) {
+html[data-lc-motion='on']
+  body
+  :is(
+    .dashboard-stat-card,
+    .dashboard-card,
+    .event-postcard,
+    .member-management-row,
+    .service-list-item,
+    .lcg-card,
+    .rh-record-card,
+    .lmp-service-card,
+    .lcd-metrics article,
+    .lc-service-option,
+    .directory-card,
+    .records-card,
+    .lct-panel,
+    .lca-panel,
+    .lch-panel,
+    .lcf-inbox,
+    .lmp-content,
+    .lcd-mobile,
+    .lc-guest,
+    .lc-auth-story h1,
+    .lc-google-welcome,
+    .form-card,
+    .directory-tools-workspace,
+    .ministry-manager-card,
+    .csv-import-card,
+    .manual-checkin-card,
+    .member-editor-card
+  ) {
   animation: none !important;
   animation-delay: 0s !important;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  html[data-lc-motion="on"] body :is(.app-page, .lc-member-space, .lc-guest, .lc-auth-page)
-  :is(button, a, summary):not(:where(.hold-button, .lc-swipe-row__action, .lc-swipe-row__toggle, .swipe-toast__action, .swipe-toast__close)) {
-    transition: background-color var(--lc-ui-quick) var(--lc-ui-ease),
+  html[data-lc-motion='on']
+    body
+    :is(.app-page, .lc-member-space, .lc-guest, .lc-auth-page)
+    :is(button, a, summary):not(
+      :where(
+        .hold-button,
+        .lc-swipe-row__action,
+        .lc-swipe-row__toggle,
+        .swipe-toast__action,
+        .swipe-toast__close
+      )
+    ) {
+    transition:
+      background-color var(--lc-ui-quick) var(--lc-ui-ease),
       border-color var(--lc-ui-quick) var(--lc-ui-ease),
       color var(--lc-ui-quick) var(--lc-ui-ease),
       box-shadow var(--lc-ui-settle) var(--lc-ui-ease),
       opacity var(--lc-ui-quick) var(--lc-ui-ease);
   }
 
-  html[data-lc-motion="on"] body :is(.app-page, .lc-member-space, .lc-guest, .lc-auth-page)
-  :is(input, textarea, select) {
-    transition: background-color var(--lc-ui-quick) var(--lc-ui-ease),
+  html[data-lc-motion='on']
+    body
+    :is(.app-page, .lc-member-space, .lc-guest, .lc-auth-page)
+    :is(input, textarea, select) {
+    transition:
+      background-color var(--lc-ui-quick) var(--lc-ui-ease),
       border-color var(--lc-ui-quick) var(--lc-ui-ease),
       box-shadow var(--lc-ui-settle) var(--lc-ui-ease),
       color var(--lc-ui-quick) var(--lc-ui-ease);
   }
 
-  html[data-lc-motion="on"] body :is(.event-type-toggle, .ministry-option, .branch-option, .lcg-publish-option) {
-    transition: border-color var(--lc-ui-quick) var(--lc-ui-ease),
+  html[data-lc-motion='on']
+    body
+    :is(.event-type-toggle, .ministry-option, .branch-option, .lcg-publish-option) {
+    transition:
+      border-color var(--lc-ui-quick) var(--lc-ui-ease),
       background-color var(--lc-ui-quick) var(--lc-ui-ease),
       box-shadow var(--lc-ui-settle) var(--lc-ui-ease);
   }
 
-  html[data-lc-motion="on"] body :is(.lcsp-search, .lcq-search, .manual-member-search-input, .member-search-field, .lca-search) {
-    transition: border-color var(--lc-ui-quick) var(--lc-ui-ease),
+  html[data-lc-motion='on']
+    body
+    :is(.lcsp-search, .lcq-search, .manual-member-search-input, .member-search-field, .lca-search) {
+    transition:
+      border-color var(--lc-ui-quick) var(--lc-ui-ease),
       background-color var(--lc-ui-quick) var(--lc-ui-ease),
       box-shadow var(--lc-ui-settle) var(--lc-ui-ease);
   }
 
-  /* Native disclosure flow stays stable; the new content fades without resizing. */
-  html[data-lc-motion="on"] body :is(.lc-export-panel, .lc-service-export-v2, .lcmx-export, .lcsv-note-mobile)[open] > :not(summary) {
+  html[data-lc-motion='on']
+    body
+    :is(.lc-export-panel, .lc-service-export-v2, .lcmx-export, .lcsv-note-mobile)[open]
+    > :not(summary) {
     animation: lc-workspace-disclose 180ms var(--lc-ui-ease);
   }
 
-  html[data-lc-motion="on"] body dialog[open] {
+  html[data-lc-motion='on'] body dialog[open] {
     animation: lc-workspace-dialog 200ms var(--lc-ui-ease);
   }
 
-  html[data-lc-motion="on"] body dialog[open]::backdrop {
+  html[data-lc-motion='on'] body dialog[open]::backdrop {
     animation: lc-workspace-disclose 180ms ease-out;
   }
 }
 
 @media (hover: hover) and (pointer: fine) {
-  /* Hover feedback changes tint and shadow, without shifting rows or controls. */
-  html body :is(.app-page, .lc-member-space, .lc-guest, .lc-auth-page)
-  :is(.primary-button, .secondary-button, .lcse-choice, .lcse-close, .member-hero-tool, .lc-refresh-icon):not(:disabled):hover {
+  html
+    body
+    :is(.app-page, .lc-member-space, .lc-guest, .lc-auth-page)
+    :is(
+      .primary-button,
+      .secondary-button,
+      .lcse-choice,
+      .lcse-close,
+      .member-hero-tool,
+      .lc-refresh-icon
+    ):not(:disabled):hover {
     transform: none;
     translate: none;
   }
-  html body .lc-refresh-icon:not([aria-busy="true"]):hover svg {
+  html body .lc-refresh-icon:not([aria-busy='true']):hover svg {
     animation: none;
     transform: none;
   }
@@ -107,25 +192,36 @@ html[data-lc-motion="on"] body :is(
 }
 
 @keyframes lc-workspace-disclose {
-  from { opacity: .65; }
-  to { opacity: 1; }
+  from {
+    opacity: 0.65;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes lc-workspace-dialog {
-  from { opacity: .65; translate: 0 4px; }
-  to { opacity: 1; translate: 0 0; }
+  from {
+    opacity: 0.65;
+    translate: 0 4px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
 }
 
-/* These preferences also stop transitions introduced by later component CSS. */
-html[data-lc-motion="off"] *,
-html[data-lc-motion="off"] *::before,
-html[data-lc-motion="off"] *::after {
+html[data-lc-motion='off'] *,
+html[data-lc-motion='off'] *::before,
+html[data-lc-motion='off'] *::after {
   animation: none !important;
   transition: none !important;
   scroll-behavior: auto !important;
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;

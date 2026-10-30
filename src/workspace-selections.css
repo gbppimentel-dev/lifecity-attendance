@@ -1,36 +1,89 @@
-/* LC-SELECTIONS-v5: align the custom controls with existing workspace layouts. */
 html:root body .main-nav.rubber-segment button::before,
-html:root body .main-nav.rubber-segment button::after { content: none; }
-html:root body :is(.main-nav,.lct-tabs).rubber-segment button {
-  background: transparent; box-shadow: none; border: 0; transform: none; rotate: none;
+html:root body .main-nav.rubber-segment button::after {
+  content: none;
 }
-html:root body .dashboard-period-select > .lc-select-control { min-width: 126px; }
-html:root body .dashboard-period-select .glide-select__trigger { border: 0; box-shadow: none; background: transparent; }
+html:root body :is(.main-nav, .lct-tabs).rubber-segment button {
+  background: transparent;
+  box-shadow: none;
+  border: 0;
+  transform: none;
+  rotate: none;
+}
+html:root body .dashboard-period-select > .lc-select-control {
+  min-width: 126px;
+}
+html:root body .dashboard-period-select .glide-select__trigger {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
 html:root body .dashboard-hero-caption .dashboard-snapshot-updating {
-  display: inline-flex; margin-left: 8px; padding: 2px 7px; border-radius: 6px;
-  background: var(--lc-glowPrimary, #e5f5ef); color: var(--lc-primary, #147d73); font-size: 10px;
+  display: inline-flex;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--lc-glowPrimary, #e5f5ef);
+  color: var(--lc-primary, #147d73);
+  font-size: 10px;
 }
-html:root body .filter-select .glide-select { min-width: 0; width: 100%; }
-html:root body .member-directory-controls .filter-select > .lc-select-control { flex: 1; min-width: 0; }
-html:root body .member-directory-controls .filter-select .glide-select__trigger { border: 0; box-shadow: none; background: transparent; }
-html:root body :is(.lcsp-page-size > span,.lcah-size-field,.lcmp-size-field):has(.glide-select) > svg { display: none; }
-html:root body .lcsm-select > .glide-select { width: 100%; }
-html:root body .lcd-period-glide .glide-select__trigger { min-height: 32px; }
-html:root body .lcd-switch.rubber-segment { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); width: 100%; }
-html:root body .lcd-switch.rubber-segment button { border: 0; background: transparent; box-shadow: none; }
-html:root body .lct-tabs.rubber-segment { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); width: 100%; }
+html:root body .filter-select .glide-select {
+  min-width: 0;
+  width: 100%;
+}
+html:root body .member-directory-controls .filter-select > .lc-select-control {
+  flex: 1;
+  min-width: 0;
+}
+html:root body .member-directory-controls .filter-select .glide-select__trigger {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+html:root
+  body
+  :is(.lcsp-page-size > span, .lcah-size-field, .lcmp-size-field):has(.glide-select)
+  > svg {
+  display: none;
+}
+html:root body .lcsm-select > .glide-select {
+  width: 100%;
+}
+html:root body .lcd-period-glide .glide-select__trigger {
+  min-height: 32px;
+}
+html:root body .lcd-switch.rubber-segment {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+}
+html:root body .lcd-switch.rubber-segment button {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+html:root body .lct-tabs.rubber-segment {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+}
 @media (max-width: 600px) {
-  html:root body .lct-tabs.rubber-segment { --rs-font: 11px; --rs-pad: 7px; }
-  html:root body .lct-tabs.rubber-segment .rubber-segment__icon { display: none; }
-  html:root body .lct-tabs.rubber-segment .rubber-segment__item > span { overflow: hidden; text-overflow: ellipsis; }
+  html:root body .lct-tabs.rubber-segment {
+    --rs-font: 11px;
+    --rs-pad: 7px;
+  }
+  html:root body .lct-tabs.rubber-segment .rubber-segment__icon {
+    display: none;
+  }
+  html:root body .lct-tabs.rubber-segment .rubber-segment__item > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
-/* Reserve real space for the brand and account menu around the elastic nav.
-   Equal side columns keep the navigation centered within the shared page cap. */
 @media (min-width: 901px) {
   html:root body .app-page.lc-mobile-workspace > .topbar {
     display: grid;
-    grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     justify-content: normal;
     column-gap: 24px;
@@ -53,7 +106,9 @@ html:root body .lct-tabs.rubber-segment { display: grid; grid-template-columns: 
     white-space: nowrap;
     text-overflow: ellipsis;
   }
-  html:root body .app-page.lc-mobile-workspace > .topbar > .brand .brand-icon { flex: none; }
+  html:root body .app-page.lc-mobile-workspace > .topbar > .brand .brand-icon {
+    flex: none;
+  }
   html:root body .app-page.lc-mobile-workspace > .topbar > .main-nav.rubber-segment {
     grid-column: 2;
     grid-row: 1;
@@ -71,28 +126,84 @@ html:root body .lct-tabs.rubber-segment { display: grid; grid-template-columns: 
     max-width: 100%;
     margin: 0;
   }
-  html:root body .app-page.lc-mobile-workspace > .topbar > .lc-account-menu > summary { min-width: 0; max-width: 100%; }
-  html:root body .app-page.lc-mobile-workspace > .topbar > .lc-account-menu > summary > span:not(.lc-account-avatar) { min-width: 0; }
-  html:root body .app-page.lc-mobile-workspace > .topbar > .lc-account-menu > summary strong { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  html:root body .app-page.lc-mobile-workspace > .topbar > .lc-account-menu > summary {
+    min-width: 0;
+    max-width: 100%;
+  }
+  html:root
+    body
+    .app-page.lc-mobile-workspace
+    > .topbar
+    > .lc-account-menu
+    > summary
+    > span:not(.lc-account-avatar) {
+    min-width: 0;
+  }
+  html:root body .app-page.lc-mobile-workspace > .topbar > .lc-account-menu > summary strong {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
 }
 
-/* Smaller desktop windows give navigation its own row instead of squeezing
-   labels between two fixed-width identities. The phone header stays unchanged. */
 @media (min-width: 901px) and (max-width: 1279px) {
   html:root body .app-page.lc-mobile-workspace > .topbar {
-    grid-template-columns: minmax(0,1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     padding-block: 12px 14px;
   }
   html:root body .app-page.lc-mobile-workspace > .topbar > .main-nav.rubber-segment {
     grid-column: 1 / -1;
     grid-row: 2;
   }
-  html:root body .app-page.lc-mobile-workspace > .topbar > .lc-account-menu { grid-column: 2; }
+  html:root body .app-page.lc-mobile-workspace > .topbar > .lc-account-menu {
+    grid-column: 2;
+  }
 }
 
-/* A cold route keeps the previous screen in place while its module arrives. */
-html:root body .lc-route-progress { position: fixed; inset: 0 0 auto; height: 3px; z-index: 10000; pointer-events: none; overflow: hidden; animation: lc-route-progress-appear 120ms step-end both; }
-html:root body .lc-route-progress::before { content: ''; display: block; width: 35%; height: 100%; background: linear-gradient(90deg,transparent,var(--lc-primary,#147d73),var(--lc-secondary,#8d75c7),transparent); animation: lc-route-progress-glide 1s ease-in-out infinite; }
-html:root body .lc-route-progress-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-@keyframes lc-route-progress-appear { from { opacity: 0; } to { opacity: 1; } }
-@keyframes lc-route-progress-glide { from { transform: translateX(-100%); } to { transform: translateX(390%); } }
+html:root body .lc-route-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 3px;
+  z-index: 10000;
+  pointer-events: none;
+  overflow: hidden;
+  animation: lc-route-progress-appear 120ms step-end both;
+}
+html:root body .lc-route-progress::before {
+  content: '';
+  display: block;
+  width: 35%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--lc-primary, #147d73),
+    var(--lc-secondary, #8d75c7),
+    transparent
+  );
+  animation: lc-route-progress-glide 1s ease-in-out infinite;
+}
+html:root body .lc-route-progress-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@keyframes lc-route-progress-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes lc-route-progress-glide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(390%);
+  }
+}

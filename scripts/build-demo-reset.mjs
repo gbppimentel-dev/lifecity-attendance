@@ -1,19 +1,34 @@
-// Version: LC-DEMO-v1.2. Builds reviewable SQL locally; never connects to a database.
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GENERATED_DIR } from './generate-demo-data.mjs';
 
 export const EXPECTED_PUBLIC_TABLES = [
-  'app_accounts', 'attendance', 'branches', 'events', 'lc_account_access_log',
-  'lc_appearance', 'lc_appearance_log', 'lc_appearance_tokens_v2', 'lc_entity_activity',
-  'lc_feedback', 'lc_member_import_runs', 'lc_member_link_log', 'lc_member_requests',
-  'lc_profile_edit_log', 'lc_profile_requests', 'member_branches', 'member_ministries', 'members', 'ministries',
+  'app_accounts',
+  'attendance',
+  'branches',
+  'events',
+  'lc_account_access_log',
+  'lc_appearance',
+  'lc_appearance_log',
+  'lc_appearance_tokens_v2',
+  'lc_entity_activity',
+  'lc_feedback',
+  'lc_member_import_runs',
+  'lc_member_link_log',
+  'lc_member_requests',
+  'lc_profile_edit_log',
+  'lc_profile_requests',
+  'member_branches',
+  'member_ministries',
+  'members',
+  'ministries',
 ];
 export const RESET_SQL_PATH = path.join(GENERATED_DIR, '02-reset-and-seed.sql');
 
 export function sqlLiteral(value) {
-  if (typeof value !== 'string' || value.includes('\0')) throw new Error('SQL literal must be a string without NUL.');
+  if (typeof value !== 'string' || value.includes('\0'))
+    throw new Error('SQL literal must be a string without NUL.');
   return "'" + value.replaceAll("'", "''") + "'";
 }
 
@@ -27,13 +42,24 @@ export function dollarQuote(value, label = 'lc_demo_payload') {
 
 const TRANSPORT_KEY = '_lc_demo_attendance_transport';
 const LINKS_KEY = '_lc_demo_links_transport';
-const ATTENDANCE_FIELDS = ['id', 'member_id', 'event_id', 'checked_in_at', 'status', 'notes', 'scanned_by', 'created_at'];
-// Supabase Studio uses new Blob([sql]).size > 0.98 * (1024 * 1024).
-// Keep additional room for the editor's role/limit wrappers and line endings.
+const ATTENDANCE_FIELDS = [
+  'id',
+  'member_id',
+  'event_id',
+  'checked_in_at',
+  'status',
+  'notes',
+  'scanned_by',
+  'created_at',
+];
+
 export const SQL_EDITOR_SAFE_BYTES = 900_000;
 
 function encodedUuid(value) {
-  if (typeof value !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
+  if (
+    typeof value !== 'string' ||
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+  ) {
     throw new Error('Attendance IDs must be UUIDs.');
   }
   return Buffer.from(value.replaceAll('-', ''), 'hex').toString('base64');
@@ -44,57 +70,75 @@ function decodedUuid(value) {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-// Compact only the SQL transport. The database expands it once before any guards or writes.
 export function compactDatasetTransport(dataset) {
-  if (Object.hasOwn(dataset, TRANSPORT_KEY) || Object.hasOwn(dataset, LINKS_KEY)) throw new Error('Dataset contains a reserved SQL transport key.');
+  if (Object.hasOwn(dataset, TRANSPORT_KEY) || Object.hasOwn(dataset, LINKS_KEY))
+    throw new Error('Dataset contains a reserved SQL transport key.');
   const memberIndices = new Map(dataset.members.map((member, index) => [member.id, index]));
   const eventIndices = new Map(dataset.events.map((event, index) => [event.id, index]));
-  const notes = [], noteIndices = new Map();
+  const notes = [],
+    noteIndices = new Map();
   const noteCounts = new Map();
   for (const record of dataset.attendance) {
     const key = JSON.stringify(record.notes);
     noteCounts.set(key, (noteCounts.get(key) ?? 0) + 1);
   }
   const defaultNote = [...noteCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
-  if (defaultNote !== undefined) { notes.push(JSON.parse(defaultNote)); noteIndices.set(defaultNote, 0); }
+  if (defaultNote !== undefined) {
+    notes.push(JSON.parse(defaultNote));
+    noteIndices.set(defaultNote, 0);
+  }
   const rows = dataset.attendance.map((record, index) => {
-    if (ATTENDANCE_FIELDS.some(key => !Object.hasOwn(record, key) || record[key] === undefined)) {
+    if (ATTENDANCE_FIELDS.some((key) => !Object.hasOwn(record, key) || record[key] === undefined)) {
       throw new Error(`Attendance row ${index} must contain all eight base fields.`);
     }
-    const member = memberIndices.get(record.member_id), event = eventIndices.get(record.event_id);
-    if (!Number.isSafeInteger(member) || !Number.isSafeInteger(event)) throw new Error(`Attendance row ${index} has an unknown member or event reference.`);
+    const member = memberIndices.get(record.member_id),
+      event = eventIndices.get(record.event_id);
+    if (!Number.isSafeInteger(member) || !Number.isSafeInteger(event))
+      throw new Error(`Attendance row ${index} has an unknown member or event reference.`);
     const noteKey = JSON.stringify(record.notes);
-    if (!noteIndices.has(noteKey)) { noteIndices.set(noteKey, notes.length); notes.push(record.notes); }
+    if (!noteIndices.has(noteKey)) {
+      noteIndices.set(noteKey, notes.length);
+      notes.push(record.notes);
+    }
     const checkedAt = Date.parse(record.checked_in_at);
     const offset = checkedAt - Date.parse(dataset.events[event].starts_at);
-    if (!Number.isSafeInteger(offset)) throw new Error(`Attendance row ${index} has an invalid timestamp.`);
+    if (!Number.isSafeInteger(offset))
+      throw new Error(`Attendance row ${index} has an invalid timestamp.`);
     const id = encodedUuid(record.id);
     const row = [id, member, event, offset];
     const overrides = {};
     if (record.id !== decodedUuid(id)) overrides.i = record.id;
-    if (record.checked_in_at !== new Date(checkedAt).toISOString()) overrides.t = record.checked_in_at;
+    if (record.checked_in_at !== new Date(checkedAt).toISOString())
+      overrides.t = record.checked_in_at;
     if (record.status !== 'present') overrides.s = record.status;
     if (noteIndices.get(noteKey) !== 0) overrides.n = noteIndices.get(noteKey);
     if (record.scanned_by !== null) overrides.b = record.scanned_by;
     if (record.created_at !== record.checked_in_at) overrides.c = record.created_at;
-    const extra = Object.fromEntries(Object.entries(record).filter(([key]) => !ATTENDANCE_FIELDS.includes(key)));
+    const extra = Object.fromEntries(
+      Object.entries(record).filter(([key]) => !ATTENDANCE_FIELDS.includes(key)),
+    );
     if (Object.keys(extra).length) overrides.x = extra;
     if (Object.keys(overrides).length) row.push(overrides);
     return row;
   });
   const packLinks = (records, key, targets) => {
     const indices = new Map(targets.map((record, index) => [record.id, index]));
-    return records.map(record => {
-      const member = memberIndices.get(record.member_id), target = indices.get(record[key]);
-      if (!Number.isSafeInteger(member) || !Number.isSafeInteger(target)) throw new Error(`Unknown ${key} affiliation reference.`);
+    return records.map((record) => {
+      const member = memberIndices.get(record.member_id),
+        target = indices.get(record[key]);
+      if (!Number.isSafeInteger(member) || !Number.isSafeInteger(target))
+        throw new Error(`Unknown ${key} affiliation reference.`);
       const row = [member, target];
-      const extra = Object.fromEntries(Object.entries(record).filter(([field]) => !['member_id', key].includes(field)));
+      const extra = Object.fromEntries(
+        Object.entries(record).filter(([field]) => !['member_id', key].includes(field)),
+      );
       if (Object.keys(extra).length) row.push(extra);
       return row;
     });
   };
   const { attendance, member_branches, member_ministries, ...rest } = dataset;
-  return { ...rest,
+  return {
+    ...rest,
     [TRANSPORT_KEY]: { version: 2, notes, rows },
     [LINKS_KEY]: {
       member_branches: packLinks(member_branches, 'branch_id', dataset.branches),
@@ -106,55 +150,144 @@ export function compactDatasetTransport(dataset) {
 export function expandDatasetTransport(transport) {
   const { [TRANSPORT_KEY]: packed, [LINKS_KEY]: links, ...rest } = transport;
   if (packed?.version !== 2) throw new Error('Unsupported attendance transport version.');
-  const expandLinks = (rows, key, targets) => rows.map(row => ({
-    member_id: rest.members[row[0]].id, [key]: targets[row[1]].id, ...(row[2] ?? {}),
-  }));
-  return { ...rest,
+  const expandLinks = (rows, key, targets) =>
+    rows.map((row) => ({
+      member_id: rest.members[row[0]].id,
+      [key]: targets[row[1]].id,
+      ...(row[2] ?? {}),
+    }));
+  return {
+    ...rest,
     member_branches: expandLinks(links.member_branches, 'branch_id', rest.branches),
     member_ministries: expandLinks(links.member_ministries, 'ministry_id', rest.ministries),
-    attendance: packed.rows.map(row => {
+    attendance: packed.rows.map((row) => {
       const overrides = row[4] ?? {};
-      const checkedAt = overrides.t ?? new Date(Date.parse(rest.events[row[2]].starts_at) + row[3]).toISOString();
+      const checkedAt =
+        overrides.t ?? new Date(Date.parse(rest.events[row[2]].starts_at) + row[3]).toISOString();
       return {
-        id: overrides.i ?? decodedUuid(row[0]), member_id: rest.members[row[1]].id, event_id: rest.events[row[2]].id,
-        checked_in_at: checkedAt, status: overrides.s ?? 'present',
-        notes: packed.notes[overrides.n ?? 0], scanned_by: overrides.b ?? null,
-        created_at: overrides.c ?? checkedAt, ...(overrides.x ?? {}),
+        id: overrides.i ?? decodedUuid(row[0]),
+        member_id: rest.members[row[1]].id,
+        event_id: rest.events[row[2]].id,
+        checked_in_at: checkedAt,
+        status: overrides.s ?? 'present',
+        notes: packed.notes[overrides.n ?? 0],
+        scanned_by: overrides.b ?? null,
+        created_at: overrides.c ?? checkedAt,
+        ...(overrides.x ?? {}),
       };
     }),
   };
 }
 
 const REQUIRED_COLUMNS = {
-  app_accounts: { user_id: 'uuid', role: 'text', status: 'text', member_id: 'uuid', created_at: 'timestamptz', updated_at: 'timestamptz' },
+  app_accounts: {
+    user_id: 'uuid',
+    role: 'text',
+    status: 'text',
+    member_id: 'uuid',
+    created_at: 'timestamptz',
+    updated_at: 'timestamptz',
+  },
   branches: { id: 'uuid', name: 'text', created_at: 'timestamptz' },
   ministries: { id: 'uuid', name: 'text', created_at: 'timestamptz' },
   member_branches: { member_id: 'uuid', branch_id: 'uuid' },
   member_ministries: { member_id: 'uuid', ministry_id: 'uuid', created_at: 'timestamptz' },
-  members: { id: 'uuid', member_number: 'text', first_name: 'text', last_name: 'text', email: 'text', mobile: 'text', member_group: 'text', status: 'public.member_status', qr_token: 'uuid', created_at: 'timestamptz', updated_at: 'timestamptz', is_starred: 'boolean', admin_note: 'text' },
-  events: { id: 'uuid', name: 'text', starts_at: 'timestamptz', ends_at: 'timestamptz', location: 'text', is_sunday_service: 'boolean', created_at: 'timestamptz', admin_note: 'text', archived_at: 'timestamptz', is_public: 'boolean' },
-  attendance: { id: 'uuid', member_id: 'uuid', event_id: 'uuid', checked_in_at: 'timestamptz', status: 'public.attendance_status', scanned_by: 'uuid', notes: 'text', created_at: 'timestamptz', report_snapshot: 'jsonb' },
-  lc_appearance: { id: 'boolean', use_default: 'boolean', primary_color: 'text', secondary_color: 'text', highlight_color: 'text', revision: 'integer', updated_at: 'timestamptz' },
+  members: {
+    id: 'uuid',
+    member_number: 'text',
+    first_name: 'text',
+    last_name: 'text',
+    email: 'text',
+    mobile: 'text',
+    member_group: 'text',
+    status: 'public.member_status',
+    qr_token: 'uuid',
+    created_at: 'timestamptz',
+    updated_at: 'timestamptz',
+    is_starred: 'boolean',
+    admin_note: 'text',
+  },
+  events: {
+    id: 'uuid',
+    name: 'text',
+    starts_at: 'timestamptz',
+    ends_at: 'timestamptz',
+    location: 'text',
+    is_sunday_service: 'boolean',
+    created_at: 'timestamptz',
+    admin_note: 'text',
+    archived_at: 'timestamptz',
+    is_public: 'boolean',
+  },
+  attendance: {
+    id: 'uuid',
+    member_id: 'uuid',
+    event_id: 'uuid',
+    checked_in_at: 'timestamptz',
+    status: 'public.attendance_status',
+    scanned_by: 'uuid',
+    notes: 'text',
+    created_at: 'timestamptz',
+    report_snapshot: 'jsonb',
+  },
+  lc_appearance: {
+    id: 'boolean',
+    use_default: 'boolean',
+    primary_color: 'text',
+    secondary_color: 'text',
+    highlight_color: 'text',
+    revision: 'integer',
+    updated_at: 'timestamptz',
+  },
   lc_appearance_tokens_v2: { singleton: 'boolean', tokens: 'jsonb', revision: 'bigint' },
 };
 
 export function buildResetSql(dataset, { ownerEmail } = {}) {
-  if (typeof ownerEmail !== 'string' || !/^[^\s@\u0000-\u001f]+@[^\s@\u0000-\u001f]+\.[^\s@\u0000-\u001f]+$/.test(ownerEmail.trim())) {
-    throw new Error('A valid --owner-email is required; it must match the one active Owner account to preserve.');
+  if (
+    typeof ownerEmail !== 'string' ||
+    !/^[^\s@\u0000-\u001f]+@[^\s@\u0000-\u001f]+\.[^\s@\u0000-\u001f]+$/.test(ownerEmail.trim())
+  ) {
+    throw new Error(
+      'A valid --owner-email is required; it must match the one active Owner account to preserve.',
+    );
   }
   ownerEmail = ownerEmail.trim().toLowerCase();
-  if (!dataset?.metadata?.fictional || dataset.metadata.version !== 'LC-DEMO-v1' || !Number.isFinite(Date.parse(dataset.metadata.as_of))) {
-    throw new Error('Expected a generated LC-DEMO-v1 fictional dataset with a valid as_of timestamp.');
+  if (
+    !dataset?.metadata?.fictional ||
+    dataset.metadata.version !== 'LC-DEMO-v1' ||
+    !Number.isFinite(Date.parse(dataset.metadata.as_of))
+  ) {
+    throw new Error(
+      'Expected a generated LC-DEMO-v1 fictional dataset with a valid as_of timestamp.',
+    );
   }
-  for (const key of ['branches', 'ministries', 'members', 'member_branches', 'member_ministries', 'events', 'attendance']) {
-    if (!Array.isArray(dataset[key]) || dataset[key].length === 0) throw new Error(`Dataset ${key} must be a non-empty array.`);
+  for (const key of [
+    'branches',
+    'ministries',
+    'members',
+    'member_branches',
+    'member_ministries',
+    'events',
+    'attendance',
+  ]) {
+    if (!Array.isArray(dataset[key]) || dataset[key].length === 0)
+      throw new Error(`Dataset ${key} must be a non-empty array.`);
   }
-  if (!dataset.members.some(member => member.member_number === 'DEMO-0001') || !dataset.scenarios?.live_event?.event_id) {
+  if (
+    !dataset.members.some((member) => member.member_number === 'DEMO-0001') ||
+    !dataset.scenarios?.live_event?.event_id
+  ) {
     throw new Error('Dataset must include DEMO-0001 and a reserved live presentation event.');
   }
   const expected = EXPECTED_PUBLIC_TABLES.map(sqlLiteral).join(',');
-  const allTables = EXPECTED_PUBLIC_TABLES.map(name => `public.${name}`).join(',\n  ');
-  const required = Object.entries(REQUIRED_COLUMNS).flatMap(([table, columns]) => Object.entries(columns).map(([column, type]) => `(${sqlLiteral(table)},${sqlLiteral(column)},${sqlLiteral(type)})`)).join(',\n    ');
+  const allTables = EXPECTED_PUBLIC_TABLES.map((name) => `public.${name}`).join(',\n  ');
+  const required = Object.entries(REQUIRED_COLUMNS)
+    .flatMap(([table, columns]) =>
+      Object.entries(columns).map(
+        ([column, type]) => `(${sqlLiteral(table)},${sqlLiteral(column)},${sqlLiteral(type)})`,
+      ),
+    )
+    .join(',\n    ');
   const payload = dollarQuote(JSON.stringify(compactDatasetTransport(dataset)));
   const body = `DECLARE
   demo_payload jsonb := ${payload}::jsonb;
@@ -358,14 +491,13 @@ BEGIN
 END;
 END;
 `;
-  const sql = `-- Version: LC-DEMO-v1.2. One atomic reset statement; no temporary helper tables.
--- Retained Owner login: ${ownerEmail}
+  const sql = `-- Retained Owner login: ${ownerEmail}
 -- DESTRUCTIVE: clears the 19 application tables and removes every other Auth user.
 -- Preserves the Owner login and links its application account to fictional DEMO-0001.
 -- Run the complete file as the database owner. Any failing guard rolls back the reset statement.
 DO ${dollarQuote(body, 'lc_demo_reset')};
 
-SELECT 'LC-DEMO-v1.2 reset complete' AS result,
+SELECT 'Demo reset complete' AS result,
   (SELECT count(*) FROM auth.users) AS retained_auth_users,
   (SELECT count(*) FROM public.app_accounts) AS retained_app_accounts,
   (SELECT count(*) FROM public.members) AS members,
@@ -376,7 +508,9 @@ SELECT 'LC-DEMO-v1.2 reset complete' AS result,
   (SELECT count(*) FROM public.lc_entity_activity) AS seed_activity_records;
 `;
   if (Buffer.byteLength(sql, 'utf8') > SQL_EDITOR_SAFE_BYTES) {
-    throw new Error(`Generated SQL exceeds the ${SQL_EDITOR_SAFE_BYTES}-byte editor safety budget. Reduce the batch before writing; no replacement SQL was saved.`);
+    throw new Error(
+      `Generated SQL exceeds the ${SQL_EDITOR_SAFE_BYTES}-byte editor safety budget. Reduce the batch before writing; no replacement SQL was saved.`,
+    );
   }
   return sql;
 }
@@ -386,14 +520,22 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const args = process.argv.slice(2);
     if (args.length === 1 && args[0] === '--help') {
       console.log('Usage: node scripts/build-demo-reset.mjs --owner-email owner@example.com');
-      console.log(`Reads ${path.join(GENERATED_DIR, 'dataset.json')} and writes ${RESET_SQL_PATH}. Never connects to Supabase.`);
+      console.log(
+        `Reads ${path.join(GENERATED_DIR, 'dataset.json')} and writes ${RESET_SQL_PATH}. Never connects to Supabase.`,
+      );
     } else {
-      if (args.length !== 2 || args[0] !== '--owner-email') throw new Error('Use --owner-email EMAIL. No input/output path overrides are supported.');
+      if (args.length !== 2 || args[0] !== '--owner-email')
+        throw new Error('Use --owner-email EMAIL. No input/output path overrides are supported.');
       const dataset = JSON.parse(await readFile(path.join(GENERATED_DIR, 'dataset.json'), 'utf8'));
       const sql = buildResetSql(dataset, { ownerEmail: args[1] });
       await writeFile(RESET_SQL_PATH, sql, { encoding: 'utf8', mode: 0o600 });
-      console.log(`Created ${RESET_SQL_PATH}. Review and back up before executing this destructive reset in Supabase SQL Editor.`);
+      console.log(
+        `Created ${RESET_SQL_PATH}. Review and back up before executing this destructive reset in Supabase SQL Editor.`,
+      );
       console.log('No database was contacted or changed.');
     }
-  } catch (error) { console.error(error.message); process.exitCode = 1; }
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
 }

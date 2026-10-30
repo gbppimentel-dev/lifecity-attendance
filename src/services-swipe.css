@@ -1,72 +1,264 @@
-/* LC-SERVICES-SWIPE-v1: scoped to the Services directory. */
 html body .lcsp-directory .lcsv-hint {
-  display: flex; align-items: center; justify-self: end; justify-content: flex-end; gap: 7px; margin: 0; padding: 0;
-  font-size: 10px; font-weight: 400; line-height: 1.5; color: var(--lc-muted, #71877f); text-transform: none; letter-spacing: normal;
+  display: flex;
+  align-items: center;
+  justify-self: end;
+  justify-content: flex-end;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--lc-muted, #71877f);
+  text-transform: none;
+  letter-spacing: normal;
 }
-html body .lcsp-directory .lcsv-hint > span { font-size: 15px; opacity: .7; }
-html body .lcsp-directory .services-recovered-list.lcsv-list { min-width: 0; width: 100%; overflow: visible; }
+html body .lcsp-directory .lcsv-hint > span {
+  font-size: 15px;
+  opacity: 0.7;
+}
+html body .lcsp-directory .services-recovered-list.lcsv-list {
+  min-width: 0;
+  width: 100%;
+  overflow: visible;
+}
 html body .lcsp-directory .lcsv-list .lcsv-heading {
-  display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 20px; padding: 13px 24px;
-  background: var(--lc-surfaceAlt, #f5faf9); border-block: 1px solid var(--lc-border, #e3eeea);
-  color: var(--lc-muted, #71877f); font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  padding: 13px 24px;
+  background: var(--lc-surfaceAlt, #f5faf9);
+  border-block: 1px solid var(--lc-border, #e3eeea);
+  color: var(--lc-muted, #71877f);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
-html body .lcsp-directory .lcsv-heading > span:first-child { text-align: center; }
+html body .lcsp-directory .lcsv-heading > span:first-child {
+  text-align: center;
+}
 html body .lcsp-directory .lcsv-list > .service-list-item {
-  min-width: 0; width: 100%; margin: 0; padding: 0; border: 0; border-bottom: 1px solid var(--lc-border, #e3eeea);
-  border-radius: 0; background: var(--lc-surface, #fff); box-shadow: none;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--lc-border, #e3eeea);
+  border-radius: 0;
+  background: var(--lc-surface, #fff);
+  box-shadow: none;
 }
-html body .lcsp-directory .lcsv-list .lcsv-swipe { --sr-row: var(--lc-surface, #fff); --sr-text: var(--lc-heading, #173e37); }
+html body .lcsp-directory .lcsv-list .lcsv-swipe {
+  --sr-row: var(--lc-surface, #fff);
+  --sr-text: var(--lc-heading, #173e37);
+}
 html body .lcsp-directory .lcsv-service-content {
-  display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 20px;
-  width: 100%; min-width: 0; margin: 0; padding: 20px 14px 20px 24px; box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 20px 14px 20px 24px;
+  box-sizing: border-box;
 }
 html body .lcsp-directory .lcsv-date {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; justify-self: center;
-  width: 46px; min-height: 62px; padding: 6px 3px; box-sizing: border-box; border: 1px solid var(--lc-border, #c9e6df);
-  border-radius: 13px; background: var(--lc-glowPrimary, #edf8f5); color: var(--lc-primary, #147d73); line-height: 1.25;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  width: 46px;
+  min-height: 62px;
+  padding: 6px 3px;
+  box-sizing: border-box;
+  border: 1px solid var(--lc-border, #c9e6df);
+  border-radius: 13px;
+  background: var(--lc-glowPrimary, #edf8f5);
+  color: var(--lc-primary, #147d73);
+  line-height: 1.25;
 }
-html body .lcsp-directory .lcsv-date > span { font-size: 10px; font-weight: 500; }
-html body .lcsp-directory .lcsv-date > strong { font-size: 17px; font-weight: 700; }
-html body .lcsp-directory .lcsv-main { display: grid; gap: 5px; min-width: 0; }
-html body .lcsp-directory .lcsv-badges { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-html body .lcsp-directory .lcsv-badges > span { width: fit-content; padding: 3px 7px; border-radius: 6px; font-size: 9px; font-weight: 700; line-height: 1.2; }
-html body .lcsp-directory .lcsv-state { letter-spacing: .06em; text-transform: uppercase; }
-html body .lcsp-directory .lcsv-state-upcoming { background: var(--lc-glowSecondary, #f0edfc); color: var(--lc-secondary, #7061b6); }
-html body .lcsp-directory .lcsv-state-in-progress { background: var(--lc-successBg, #e8f6ec); color: var(--lc-success, #287b48); }
+html body .lcsp-directory .lcsv-date > span {
+  font-size: 10px;
+  font-weight: 500;
+}
+html body .lcsp-directory .lcsv-date > strong {
+  font-size: 17px;
+  font-weight: 700;
+}
+html body .lcsp-directory .lcsv-main {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+html body .lcsp-directory .lcsv-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+html body .lcsp-directory .lcsv-badges > span {
+  width: fit-content;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+html body .lcsp-directory .lcsv-state {
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+html body .lcsp-directory .lcsv-state-upcoming {
+  background: var(--lc-glowSecondary, #f0edfc);
+  color: var(--lc-secondary, #7061b6);
+}
+html body .lcsp-directory .lcsv-state-in-progress {
+  background: var(--lc-successBg, #e8f6ec);
+  color: var(--lc-success, #287b48);
+}
 html body .lcsp-directory .lcsv-state-completed,
-html body .lcsp-directory .lcsv-state-archived { background: var(--lc-surfaceAlt, #eff4f2); color: var(--lc-muted, #71877f); }
-html body .lcsp-directory .lcsv-sunday-badge { color: var(--lc-warning, #8d6a24); background: var(--lc-warningBg, #fff5dd); }
-html body .lcsp-directory .lcsv-selected-badge { color: var(--lc-primary, #147d73); background: var(--lc-glowPrimary, #edf8f5); }
-html body .lcsp-directory .lcsv-title { margin: 0; font-size: 15px; font-weight: 700; line-height: 1.5; color: var(--lc-heading, #173e37); overflow-wrap: anywhere; }
+html body .lcsp-directory .lcsv-state-archived {
+  background: var(--lc-surfaceAlt, #eff4f2);
+  color: var(--lc-muted, #71877f);
+}
+html body .lcsp-directory .lcsv-sunday-badge {
+  color: var(--lc-warning, #8d6a24);
+  background: var(--lc-warningBg, #fff5dd);
+}
+html body .lcsp-directory .lcsv-selected-badge {
+  color: var(--lc-primary, #147d73);
+  background: var(--lc-glowPrimary, #edf8f5);
+}
+html body .lcsp-directory .lcsv-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--lc-heading, #173e37);
+  overflow-wrap: anywhere;
+}
 html body .lcsp-directory .lcsv-meta,
-html body .lcsp-directory .lcsv-attendance { margin: 0; font-size: 11px; line-height: 1.5; color: var(--lc-muted, #71877f); overflow-wrap: anywhere; }
-html body .lcsp-directory .lcsv-attendance { color: var(--lc-text, #547369); }
-html body .lcsp-directory .lcsv-note { margin: 0; font-size: 11px; font-weight: 400; line-height: 1.6; color: var(--lc-muted, #71877f); overflow-wrap: anywhere; }
-html body .lcsp-directory .lcsv-note > span { margin-right: 5px; font-weight: 700; text-transform: uppercase; color: var(--lc-text, #547369); }
-html body .lcsp-directory .lcsv-note-mobile { display: none; }
-html body .lcsp-directory .lcsv-swipe [data-action-id="scanner"] { background: var(--lc-glowPrimary, #e4f4ee); color: var(--lc-primary, #147d73); }
-html body .lcsp-directory .lcsv-swipe [data-action-id="scanner"]:disabled { background: var(--lc-surfaceAlt, #edf3f1); color: var(--lc-muted, #71877f); opacity: 1; }
-html body .lcsp-directory .lcsv-swipe [data-action-id="sunday"] { background: var(--lc-warningBg, #fff5dd); color: var(--lc-warning, #8d6a24); }
-html body .lcsp-directory .lcsv-swipe [data-action-id="sunday"][aria-pressed="true"] { box-shadow: inset 0 -3px 0 currentColor; }
-html body .lcsp-directory .lcsv-swipe [data-action-id="edit"] { background: var(--lc-glowSecondary, #efebfa); color: var(--lc-secondary, #8064b1); }
-html body .lcsp-directory .lcsv-swipe [data-action-id="archive"],
-html body .lcsp-directory .lcsv-swipe [data-action-id="restore"] { background: var(--lc-surfaceAlt, #edf3f1); color: var(--lc-text, #547369); }
-html body .lcsp-directory .lcsv-swipe [data-action-id="delete"] { background: var(--lc-dangerBg, #fceceb); color: var(--lc-danger, #b94444); }
+html body .lcsp-directory .lcsv-attendance {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--lc-muted, #71877f);
+  overflow-wrap: anywhere;
+}
+html body .lcsp-directory .lcsv-attendance {
+  color: var(--lc-text, #547369);
+}
+html body .lcsp-directory .lcsv-note {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--lc-muted, #71877f);
+  overflow-wrap: anywhere;
+}
+html body .lcsp-directory .lcsv-note > span {
+  margin-right: 5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--lc-text, #547369);
+}
+html body .lcsp-directory .lcsv-note-mobile {
+  display: none;
+}
+html body .lcsp-directory .lcsv-swipe [data-action-id='scanner'] {
+  background: var(--lc-glowPrimary, #e4f4ee);
+  color: var(--lc-primary, #147d73);
+}
+html body .lcsp-directory .lcsv-swipe [data-action-id='scanner']:disabled {
+  background: var(--lc-surfaceAlt, #edf3f1);
+  color: var(--lc-muted, #71877f);
+  opacity: 1;
+}
+html body .lcsp-directory .lcsv-swipe [data-action-id='sunday'] {
+  background: var(--lc-warningBg, #fff5dd);
+  color: var(--lc-warning, #8d6a24);
+}
+html body .lcsp-directory .lcsv-swipe [data-action-id='sunday'][aria-pressed='true'] {
+  box-shadow: inset 0 -3px 0 currentColor;
+}
+html body .lcsp-directory .lcsv-swipe [data-action-id='edit'] {
+  background: var(--lc-glowSecondary, #efebfa);
+  color: var(--lc-secondary, #8064b1);
+}
+html body .lcsp-directory .lcsv-swipe [data-action-id='archive'],
+html body .lcsp-directory .lcsv-swipe [data-action-id='restore'] {
+  background: var(--lc-surfaceAlt, #edf3f1);
+  color: var(--lc-text, #547369);
+}
+html body .lcsp-directory .lcsv-swipe [data-action-id='delete'] {
+  background: var(--lc-dangerBg, #fceceb);
+  color: var(--lc-danger, #b94444);
+}
 
 @media (max-width: 900px) {
-  html body .lcsp-directory .lcsv-hint { font-size: 10px; }
-  html body .lcsp-directory .services-recovered-list.lcsv-list { gap: 8px; }
-  html body .lcsp-directory .lcsv-list .lcsv-heading { display: none; }
-  html body .lcsp-directory .lcsv-list > .service-list-item { border: 1px solid var(--lc-border, #d6e7df); border-radius: 12px; overflow: hidden; }
-  html body .lcsp-directory .lcsv-service-content { grid-template-columns: 40px minmax(0, 1fr); gap: 10px; padding: 14px 4px 14px 10px; }
-  html body .lcsp-directory .lcsv-date { width: 38px; min-height: 56px; border-radius: 10px; }
-  html body .lcsp-directory .lcsv-date > strong { font-size: 15px; }
-  html body .lcsp-directory .lcsv-title { font-size: 13px; }
-  html body .lcsp-directory .lcsv-meta { font-size: 10px; }
-  html body .lcsp-directory .lcsv-note-desktop { display: none; }
-  html body .lcsp-directory .lcsv-note-mobile { display: block; min-width: 0; }
-  html body .lcsp-directory .lcsv-note-mobile > summary { display: flex; align-items: center; gap: 4px; width: fit-content; min-height: 30px; padding: 3px 0; list-style: none; cursor: pointer; font-size: 10px; color: var(--lc-muted, #71877f); }
-  html body .lcsp-directory .lcsv-note-mobile > summary::-webkit-details-marker { display: none; }
-  html body .lcsp-directory .lcsv-note-mobile[open] > summary svg { transform: rotate(180deg); }
-  html body .lcsp-directory .lcsv-note-mobile .lcsv-note { margin: 3px 0 0; }
+  html body .lcsp-directory .lcsv-hint {
+    font-size: 10px;
+  }
+  html body .lcsp-directory .services-recovered-list.lcsv-list {
+    gap: 8px;
+  }
+  html body .lcsp-directory .lcsv-list .lcsv-heading {
+    display: none;
+  }
+  html body .lcsp-directory .lcsv-list > .service-list-item {
+    border: 1px solid var(--lc-border, #d6e7df);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  html body .lcsp-directory .lcsv-service-content {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px;
+    padding: 14px 4px 14px 10px;
+  }
+  html body .lcsp-directory .lcsv-date {
+    width: 38px;
+    min-height: 56px;
+    border-radius: 10px;
+  }
+  html body .lcsp-directory .lcsv-date > strong {
+    font-size: 15px;
+  }
+  html body .lcsp-directory .lcsv-title {
+    font-size: 13px;
+  }
+  html body .lcsp-directory .lcsv-meta {
+    font-size: 10px;
+  }
+  html body .lcsp-directory .lcsv-note-desktop {
+    display: none;
+  }
+  html body .lcsp-directory .lcsv-note-mobile {
+    display: block;
+    min-width: 0;
+  }
+  html body .lcsp-directory .lcsv-note-mobile > summary {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: fit-content;
+    min-height: 30px;
+    padding: 3px 0;
+    list-style: none;
+    cursor: pointer;
+    font-size: 10px;
+    color: var(--lc-muted, #71877f);
+  }
+  html body .lcsp-directory .lcsv-note-mobile > summary::-webkit-details-marker {
+    display: none;
+  }
+  html body .lcsp-directory .lcsv-note-mobile[open] > summary svg {
+    transform: rotate(180deg);
+  }
+  html body .lcsp-directory .lcsv-note-mobile .lcsv-note {
+    margin: 3px 0 0;
+  }
 }

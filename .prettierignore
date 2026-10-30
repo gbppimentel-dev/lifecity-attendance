@@ -1,0 +1,6 @@
+node_modules/
+dist/
+coverage/
+demo-data/generated/
+apps/
+package-lock.json

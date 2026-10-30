@@ -1,10 +1,15 @@
-/* LC-DESKTOP-WORKSPACE-v2: comfortable shared desktop measure. */
 @media (min-width: 901px) {
   html body {
     --lc-desktop-gutter: clamp(28px, 4vw, 64px);
     --lc-desktop-max-width: 1400px;
-    --lc-desktop-content-width: min(calc(100% - var(--lc-desktop-gutter) * 2), var(--lc-desktop-max-width));
-    --lc-desktop-inset: max(var(--lc-desktop-gutter), calc((100% - var(--lc-desktop-max-width)) / 2));
+    --lc-desktop-content-width: min(
+      calc(100% - var(--lc-desktop-gutter) * 2),
+      var(--lc-desktop-max-width)
+    );
+    --lc-desktop-inset: max(
+      var(--lc-desktop-gutter),
+      calc((100% - var(--lc-desktop-max-width)) / 2)
+    );
   }
 
   html body .app-page > .content,

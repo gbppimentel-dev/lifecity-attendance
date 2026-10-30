@@ -13,6 +13,11 @@
   "icons": [
     { "src": "/icons/lifecity-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/lifecity-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/lifecity-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icons/lifecity-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

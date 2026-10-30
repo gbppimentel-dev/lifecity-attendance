@@ -1,0 +1,62 @@
+.fold-text {
+  display: inline;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+.fold-text-word {
+  display: inline-block;
+  white-space: nowrap;
+}
+.fold-text-segment {
+  display: inline-block;
+  perspective: 700px;
+  vertical-align: baseline;
+}
+.fold-text-piece {
+  position: relative;
+  display: inline-block;
+  transform-origin: 50% 0%;
+  backface-visibility: hidden;
+}
+.fold-text-piece::after {
+  content: attr(data-fold-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.58),
+    rgba(0, 0, 0, 0.22) 42%,
+    rgba(255, 255, 255, 0.26)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  opacity: var(--fold-crease, 0);
+}
+.fold-text-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fold-text-piece {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .fold-text-piece::after {
+    opacity: 0 !important;
+  }
+}
+html[data-lc-motion='off'] .fold-text-piece {
+  transform: none !important;
+  opacity: 1 !important;
+}

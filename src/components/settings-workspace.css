@@ -1,0 +1,110 @@
+html:root body .lc-settings-workspace {
+  min-width: 0;
+}
+html:root body .lc-settings-workspace > .lc-settings-tabs.rubber-segment {
+  --rs-track: var(--lc-surface, #fff);
+  --rs-thumb: linear-gradient(
+    115deg,
+    var(--lc-glowPrimary, #e5f5ef),
+    color-mix(in srgb, var(--lc-glowSecondary, #f0eafa) 45%, var(--lc-glowPrimary, #e5f5ef))
+  );
+  --rs-h: 56px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0 0 22px;
+  padding: 5px;
+  border-radius: 18px;
+  border-color: var(--lc-border, #d6e7df);
+  box-shadow: 0 5px 18px color-mix(in srgb, var(--lc-primary, #147d73) 4%, transparent);
+}
+html:root body .lc-settings-workspace > .lc-settings-tabs.rubber-segment .rubber-segment__item {
+  min-height: 46px;
+  height: 46px;
+  padding: 0 16px;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 600;
+}
+html:root body .lc-settings-workspace > .lc-settings-tabs.rubber-segment .rubber-segment__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 29px;
+  width: 29px;
+  height: 29px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--lc-primary, #147d73) 6%, transparent);
+}
+html:root body .lc-settings-workspace > .lc-settings-tabs.rubber-segment .rubber-segment__icon svg {
+  width: 18px;
+  height: 18px;
+}
+html:root body .lc-settings-workspace > .lc-settings-tabs.rubber-segment .rubber-segment__thumb {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lc-primary, #147d73) 12%, transparent);
+}
+html:root
+  body
+  .lc-settings-workspace
+  > .lc-settings-tabs.rubber-segment
+  .rubber-segment__item.is-current {
+  font-weight: 700;
+}
+html:root body .lc-settings-workspace > .lc-workspace-panel > :first-child {
+  margin-top: 0;
+}
+html:root body .lc-settings-workspace .lc-motion-settings {
+  padding: 22px 26px;
+  gap: 18px 28px;
+  border-radius: 20px;
+}
+html:root body .lc-settings-workspace .lc-motion-settings h2 {
+  font-size: 20px;
+}
+html:root body .lc-settings-workspace .lc-motion-settings p {
+  max-width: 700px;
+  margin-bottom: 4px;
+}
+html:root body .lc-settings-workspace .lc-motion-toggle {
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: var(--lc-surface, #fff);
+  border: 1px solid var(--lc-border, #d6e7df);
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--lc-primary, #147d73) 4%, transparent);
+}
+html:root body .lc-settings-workspace .lc-motion-toggle:has(input:checked) {
+  background: color-mix(in srgb, var(--lc-primary, #147d73) 7%, var(--lc-surface, #fff));
+  border-color: color-mix(in srgb, var(--lc-primary, #147d73) 35%, var(--lc-border, #d6e7df));
+}
+html:root body .lc-settings-workspace .lc-motion-toggle input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--lc-primary, #147d73);
+}
+@media (max-width: 700px) {
+  html:root body .lc-settings-workspace > .lc-settings-tabs.rubber-segment {
+    margin-bottom: 16px;
+    --rs-h: 48px;
+  }
+  html:root body .lc-settings-workspace > .lc-settings-tabs.rubber-segment .rubber-segment__item {
+    min-height: 38px;
+    height: 38px;
+    padding: 0 6px !important;
+    gap: 5px;
+    font-size: 12px !important;
+  }
+  html:root body .lc-settings-workspace > .lc-settings-tabs.rubber-segment .rubber-segment__icon {
+    display: none;
+  }
+  html:root body .lc-settings-workspace .lc-motion-settings {
+    padding: 20px;
+  }
+}
+@media (max-width: 420px) {
+  html:root body .lc-settings-workspace > .lc-settings-tabs.rubber-segment .rubber-segment__item {
+    font-size: 11px !important;
+  }
+}

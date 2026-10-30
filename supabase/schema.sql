@@ -1,4 +1,3 @@
--- Attendance Monitoring: initial database schema
 create extension if not exists pgcrypto;
 
 create type public.member_status as enum ('active', 'inactive');
@@ -44,7 +43,6 @@ create index attendance_event_id_idx on public.attendance(event_id);
 create index attendance_member_id_idx on public.attendance(member_id);
 create index members_qr_token_idx on public.members(qr_token);
 
--- Enable Row Level Security now; add admin policies once authentication is built.
 alter table public.members enable row level security;
 alter table public.events enable row level security;
 alter table public.attendance enable row level security;

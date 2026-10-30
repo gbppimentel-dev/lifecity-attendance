@@ -1,0 +1,169 @@
+.lc-service-time-picker__preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: 0 0 18px;
+  padding: 13px;
+  border: 1px solid
+    color-mix(in srgb, var(--lc-secondary, #8a70be) 15%, var(--lc-panel-border, #dce9e4));
+  border-radius: 12px;
+  background: linear-gradient(
+    110deg,
+    color-mix(in srgb, var(--lc-primary, #147d73) 4%, var(--lc-surface, #fff)),
+    color-mix(in srgb, var(--lc-secondary, #8a70be) 6%, var(--lc-surface, #fff))
+  );
+}
+.lc-service-time-picker__preview > strong {
+  color: var(--lc-heading, #193f38);
+  font-size: 34px;
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+}
+.lc-service-time-picker__preview > strong > span {
+  margin-inline: 2px;
+  opacity: 0.4;
+}
+.lc-service-time-picker__preview > span {
+  align-self: center;
+  padding: 4px 7px;
+  border-radius: 6px;
+  background: var(--lc-surface, #fff);
+  color: var(--lc-primary, #147d73);
+  font-size: 11px;
+  font-weight: 600;
+}
+.lc-service-time-picker__section {
+  margin-top: 14px;
+}
+html:root body .lc-service-time-picker__section > p {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 8px;
+  color: var(--lc-heading, #193f38);
+  font-size: 11px;
+  font-weight: 600;
+}
+.lc-service-time-picker__section > p > span {
+  color: var(--lc-muted, #6d857d);
+  font-size: 9px;
+  font-weight: 400;
+}
+.lc-service-time-picker__hours,
+.lc-service-time-picker__minutes {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+.lc-service-time-picker__minutes {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+html:root
+  body
+  .lc-service-time-picker
+  :is(.lc-service-time-picker__hours, .lc-service-time-picker__minutes)
+  > button {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 36px;
+  margin: 0;
+  padding: 6px 3px;
+  border: 1px solid var(--lc-panel-border, #dce9e4);
+  border-radius: 9px;
+  background: var(--lc-surface, #fff);
+  color: var(--lc-heading, #193f38);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  box-shadow: none;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+html:root body .lc-service-time-picker .lc-service-time-picker__minutes > button {
+  min-height: 40px;
+  font-size: 16px;
+  font-weight: 550;
+}
+html:root
+  body
+  .lc-service-time-picker
+  :is(.lc-service-time-picker__hours, .lc-service-time-picker__minutes)
+  > button:hover {
+  background: var(--lc-glowPrimary, #e8f5ef);
+  border-color: color-mix(in srgb, var(--lc-primary, #147d73) 30%, var(--lc-panel-border, #dce9e4));
+}
+html:root
+  body
+  .lc-service-time-picker
+  :is(.lc-service-time-picker__hours, .lc-service-time-picker__minutes)
+  > button[aria-pressed='true'] {
+  background: var(--lc-primary, #147d73);
+  border-color: var(--lc-primary, #147d73);
+  color: var(--lc-onPrimary, #fff);
+  box-shadow: 0 3px 8px color-mix(in srgb, var(--lc-primary, #147d73) 15%, transparent);
+}
+.lc-service-time-picker__period {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 17px;
+}
+html:root body .lc-service-time-picker__period > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  margin: 0;
+  padding: 8px 6px;
+  border: 1px solid var(--lc-panel-border, #dce9e4);
+  border-radius: 9px;
+  background: var(--lc-surfaceAlt, #f5f8f6);
+  color: var(--lc-heading, #193f38);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: none;
+  cursor: pointer;
+}
+.lc-service-time-picker__period small {
+  color: var(--lc-muted, #6d857d);
+  font-size: 8px;
+  font-weight: 400;
+}
+html:root body .lc-service-time-picker__period > button[aria-pressed='true'] {
+  border-color: color-mix(
+    in srgb,
+    var(--lc-secondary, #8a70be) 40%,
+    var(--lc-panel-border, #dce9e4)
+  );
+  background: color-mix(in srgb, var(--lc-secondary, #8a70be) 8%, var(--lc-surface, #fff));
+  color: var(--lc-secondary, #8a70be);
+}
+.lc-service-time-picker__legacy {
+  margin: 12px 0 0;
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: var(--lc-warningBg, #fff5dd);
+  color: var(--lc-warning, #94713a);
+  font-size: 10px;
+  line-height: 1.6;
+}
+.lc-service-time-picker .lc-service-picker__footer > div {
+  display: flex;
+  gap: 6px;
+}
+@media (pointer: coarse) {
+  html:root
+    body
+    .lc-service-time-picker
+    :is(.lc-service-time-picker__hours, .lc-service-time-picker__minutes)
+    > button {
+    min-height: 44px;
+  }
+}

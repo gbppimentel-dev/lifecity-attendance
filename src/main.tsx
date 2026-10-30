@@ -1,41 +1,52 @@
-import './fonts.css'
-import './mobile-keyboard'
-import './mobile-workspaces.css'
-import './styles.css'
-import './landing.css'
-import './ui-polish.css'
-import './motion.css'
-import './appearance-kiosk.css'
-import './feedback.css'
-import './tech-stack.css'
-import './mobile-dashboard.css'
-import './mobile-scanner.css'
-import './mobile-motion-polish.css'
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App'
-import DemoExperience from './demo/DemoExperience'
-import { isDemoMode, prepareDemoDocument } from './demo/mode'
-import { MotionRuntime } from './lib/motion'
-import { ToastProvider } from './lib/toasts'
-import './desktop-workspace.css'
-import './workspace-surfaces.css'
-import './workspace-controls.css'
-import './workspace-motion.css'
-import './workspace-character.css'
-import './workspace-selections.css'
-import './workspace-dashboard-polish.css'
-import './workspace-directory-polish.css'
-import './services-workspace-polish.css'
-import './scanner-workspace-polish.css'
-import './records-workspace-polish.css'
-import './mobile-phone-shell.css'
-import './mobile-dashboard-phone.css'
-import './mobile-services-phone.css'
-import './mobile-scanner-phone.css'
+import './fonts.css';
+import './mobile-keyboard';
+import './mobile-workspaces.css';
+import './styles.css';
+import './landing.css';
+import './ui-polish.css';
+import './motion.css';
+import './appearance-kiosk.css';
+import './feedback.css';
+import './tech-stack.css';
+import './mobile-dashboard.css';
+import './mobile-scanner.css';
+import './mobile-motion-polish.css';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import DemoExperience from './demo/DemoExperience';
+import { isDemoMode, prepareDemoDocument } from './demo/mode';
+import { MotionRuntime } from './lib/motion';
+import { ToastProvider } from './lib/toasts';
+import './desktop-workspace.css';
+import './workspace-surfaces.css';
+import './workspace-controls.css';
+import './workspace-motion.css';
+import './workspace-character.css';
+import './workspace-selections.css';
+import './workspace-dashboard-polish.css';
+import './workspace-directory-polish.css';
+import './services-workspace-polish.css';
+import './scanner-workspace-polish.css';
+import './records-workspace-polish.css';
+import './mobile-phone-shell.css';
+import './mobile-dashboard-phone.css';
+import './mobile-services-phone.css';
+import './mobile-scanner-phone.css';
 
-prepareDemoDocument()
+prepareDemoDocument();
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode><MotionRuntime /><ToastProvider>{isDemoMode() ? <DemoExperience><App /></DemoExperience> : <App />}</ToastProvider></StrictMode>,
-)
+  <StrictMode>
+    <MotionRuntime />
+    <ToastProvider>
+      {isDemoMode() ? (
+        <DemoExperience>
+          <App />
+        </DemoExperience>
+      ) : (
+        <App />
+      )}
+    </ToastProvider>
+  </StrictMode>,
+);

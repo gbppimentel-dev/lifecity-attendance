@@ -1,27 +1,48 @@
-// Isolated PostgreSQL checks for the real installer. No live Supabase project,
-// credentials, member records or camera is accessed by this suite.
-import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
-import test from 'node:test'
-import { PGlite } from '@electric-sql/pglite'
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+import { PGlite } from '@electric-sql/pglite';
 
-const id = number => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`
-const ids = { owner: id(1), admin: id(2), user: id(3), suspended: id(4), scanner: id(5), member: id(10), otherMember: id(11), event: id(20), otherEvent: id(21), attendance: id(30), otherAttendance: id(31) }
+const id = (number) => `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
+const ids = {
+  owner: id(1),
+  admin: id(2),
+  user: id(3),
+  suspended: id(4),
+  scanner: id(5),
+  member: id(10),
+  otherMember: id(11),
+  event: id(20),
+  otherEvent: id(21),
+  attendance: id(30),
+  otherAttendance: id(31),
+};
 
-test('attendance Undo installer preserves exact historical records and guards receipts', async t => {
-  const db = new PGlite()
-  const installer = await readFile(new URL('../supabase/install-attendance-delete-undo.sql', import.meta.url), 'utf8')
+test('attendance Undo installer preserves exact historical records and guards receipts', async (t) => {
+  const db = new PGlite();
+  const installer = await readFile(
+    new URL('../supabase/install-attendance-delete-undo.sql', import.meta.url),
+    'utf8',
+  );
   const account = async (actor = ids.owner, role = 'authenticated') => {
-    await db.exec('reset role')
-    await db.query("select set_config('request.jwt.claim.sub', $1, false)", [actor ?? ''])
-    await db.query("select set_config('lifecity.attendance_undo_token', '', false)")
-    await db.exec(`set role ${role}`)
-  }
-  const removed = async () => (await db.query('select public.lc_remove_attendance_with_undo($1) result', [ids.attendance])).rows[0].result
-  const restore = async token => (await db.query('select public.lc_restore_attendance($1) result', [token])).rows[0].result
-  const stored = async () => (await db.query('select to_jsonb(a) result from public.attendance a where id=$1', [ids.attendance])).rows[0]?.result
+    await db.exec('reset role');
+    await db.query("select set_config('request.jwt.claim.sub', $1, false)", [actor ?? '']);
+    await db.query("select set_config('lifecity.attendance_undo_token', '', false)");
+    await db.exec(`set role ${role}`);
+  };
+  const removed = async () =>
+    (await db.query('select public.lc_remove_attendance_with_undo($1) result', [ids.attendance]))
+      .rows[0].result;
+  const restore = async (token) =>
+    (await db.query('select public.lc_restore_attendance($1) result', [token])).rows[0].result;
+  const stored = async () =>
+    (
+      await db.query('select to_jsonb(a) result from public.attendance a where id=$1', [
+        ids.attendance,
+      ])
+    ).rows[0]?.result;
   const reset = async () => {
-    await db.exec('reset role')
+    await db.exec('reset role');
     await db.exec(`
       delete from public.lc_attendance_undo_receipts; delete from public.attendance;
       delete from public.member_branches; delete from public.member_ministries;
@@ -37,13 +58,15 @@ test('attendance Undo installer preserves exact historical records and guards re
       insert into public.member_branches values('${ids.member}','${id(40)}');
       insert into public.member_ministries values('${ids.member}','${id(50)}');
       delete from public.test_attendance_activity;
-    `)
-    await account()
-    await db.query(`insert into public.attendance(id,member_id,event_id,checked_in_at,status,scanned_by,notes,created_at)
+    `);
+    await account();
+    await db.query(
+      `insert into public.attendance(id,member_id,event_id,checked_in_at,status,scanned_by,notes,created_at)
       values($1,$2,$3,'2025-01-05T01:12:13Z','corrected',$4,'Original private note','2025-01-05T01:12:14Z')`,
-    [ids.attendance, ids.member, ids.event, ids.scanner])
-    return await stored()
-  }
+      [ids.attendance, ids.member, ids.event, ids.scanner],
+    );
+    return await stored();
+  };
   try {
     await db.exec(`
       create role anon; create role authenticated;
@@ -115,183 +138,345 @@ test('attendance Undo installer preserves exact historical records and guards re
       insert into public.app_accounts values('${ids.owner}','owner','active'),('${ids.admin}','admin','active'),('${ids.user}','user','active'),('${ids.suspended}','admin','suspended');
       insert into public.branches values('${id(40)}','Historic Church');
       insert into public.ministries values('${id(50)}','Historic Ministry');
-    `)
-    const beforePolicy = (await db.query("select policyname,permissive,roles,cmd,qual,with_check from pg_policies where tablename='attendance' order by policyname")).rows
-    const beforeCapture = (await db.query("select pg_get_functiondef('public.capture_attendance_snapshot_v3()'::regprocedure) definition")).rows[0].definition
-    await db.exec(installer)
-    await db.exec(installer)
+    `);
+    const beforePolicy = (
+      await db.query(
+        "select policyname,permissive,roles,cmd,qual,with_check from pg_policies where tablename='attendance' order by policyname",
+      )
+    ).rows;
+    const beforeCapture = (
+      await db.query(
+        "select pg_get_functiondef('public.capture_attendance_snapshot_v3()'::regprocedure) definition",
+      )
+    ).rows[0].definition;
+    await db.exec(installer);
+    await db.exec(installer);
 
-    await t.test('removal returns every original column and captures a private server receipt', async () => {
-      const original = await reset()
-      const change = await removed()
-      assert.deepEqual(change.attendance, original)
-      assert.match(change.undo_token, /^[0-9a-f-]{36}$/)
-      assert.equal(await stored(), undefined)
-      await db.exec('reset role')
-      const receipt = (await db.query('select *,extract(epoch from(expires_at-created_at))::integer lifetime from public.lc_attendance_undo_receipts')).rows[0]
-      assert.deepEqual(receipt.row_data, original)
-      assert.equal(receipt.actor_id, ids.owner)
-      assert.equal(receipt.lifetime, 86400)
-      assert.equal(receipt.restoring, false)
-    })
+    await t.test(
+      'removal returns every original column and captures a private server receipt',
+      async () => {
+        const original = await reset();
+        const change = await removed();
+        assert.deepEqual(change.attendance, original);
+        assert.match(change.undo_token, /^[0-9a-f-]{36}$/);
+        assert.equal(await stored(), undefined);
+        await db.exec('reset role');
+        const receipt = (
+          await db.query(
+            'select *,extract(epoch from(expires_at-created_at))::integer lifetime from public.lc_attendance_undo_receipts',
+          )
+        ).rows[0];
+        assert.deepEqual(receipt.row_data, original);
+        assert.equal(receipt.actor_id, ids.owner);
+        assert.equal(receipt.lifetime, 86400);
+        assert.equal(receipt.restoring, false);
+      },
+    );
 
-    await t.test('Undo preserves historical snapshot, original IDs, timestamps, scanner and note after profiles change', async () => {
-      const original = await reset()
-      const change = await removed()
-      await db.exec('reset role')
-      await db.exec(`update public.members set first_name='Changed',email='changed@example.invalid',status='inactive' where id='${ids.member}';
+    await t.test(
+      'Undo preserves historical snapshot, original IDs, timestamps, scanner and note after profiles change',
+      async () => {
+        const original = await reset();
+        const change = await removed();
+        await db.exec('reset role');
+        await db.exec(`update public.members set first_name='Changed',email='changed@example.invalid',status='inactive' where id='${ids.member}';
         update public.events set name='Renamed Service',location='New Venue',is_sunday_service=false where id='${ids.event}';
-        delete from public.member_branches; delete from public.member_ministries;`)
-      await account()
-      assert.deepEqual(await restore(change.undo_token), original)
-      assert.deepEqual(await stored(), original)
-      assert.equal((await db.query("select current_setting('lifecity.attendance_undo_token',true) value")).rows[0].value, '')
-      await db.exec('reset role')
-      const activity = (await db.query('select operation,row_data from public.test_attendance_activity order by id')).rows
-      assert.deepEqual(activity.map(row => row.operation), ['INSERT','DELETE','INSERT'])
-      assert.deepEqual(activity.at(-1).row_data, original, 'existing AFTER activity sees the exact restored historical snapshot')
-    })
+        delete from public.member_branches; delete from public.member_ministries;`);
+        await account();
+        assert.deepEqual(await restore(change.undo_token), original);
+        assert.deepEqual(await stored(), original);
+        assert.equal(
+          (await db.query("select current_setting('lifecity.attendance_undo_token',true) value"))
+            .rows[0].value,
+          '',
+        );
+        await db.exec('reset role');
+        const activity = (
+          await db.query(
+            'select operation,row_data from public.test_attendance_activity order by id',
+          )
+        ).rows;
+        assert.deepEqual(
+          activity.map((row) => row.operation),
+          ['INSERT', 'DELETE', 'INSERT'],
+        );
+        assert.deepEqual(
+          activity.at(-1).row_data,
+          original,
+          'existing AFTER activity sees the exact restored historical snapshot',
+        );
+      },
+    );
 
-    await t.test('retry after a confirmed restoration is idempotent with no second insert', async () => {
-      const original = await reset(); const change = await removed()
-      assert.deepEqual(await restore(change.undo_token), original)
-      assert.deepEqual(await restore(change.undo_token), original)
-      await db.exec('reset role')
-      assert.equal((await db.query("select count(*)::integer count from public.test_attendance_activity where operation='INSERT'")).rows[0].count, 2)
-    })
+    await t.test(
+      'retry after a confirmed restoration is idempotent with no second insert',
+      async () => {
+        const original = await reset();
+        const change = await removed();
+        assert.deepEqual(await restore(change.undo_token), original);
+        assert.deepEqual(await restore(change.undo_token), original);
+        await db.exec('reset role');
+        assert.equal(
+          (
+            await db.query(
+              "select count(*)::integer count from public.test_attendance_activity where operation='INSERT'",
+            )
+          ).rows[0].count,
+          2,
+        );
+      },
+    );
 
     await t.test('a newer check-in for the same member/service is never overwritten', async () => {
-      await reset(); const change = await removed()
-      await db.query('insert into public.attendance(id,member_id,event_id) values($1,$2,$3)', [ids.otherAttendance,ids.member,ids.event])
-      const replacement = (await db.query('select to_jsonb(a) result from public.attendance a')).rows[0].result
-      await assert.rejects(restore(change.undo_token), error => error.code === '23505')
-      assert.deepEqual((await db.query('select to_jsonb(a) result from public.attendance a')).rows[0].result, replacement)
-      await db.exec('reset role')
-      assert.equal((await db.query('select restoring from public.lc_attendance_undo_receipts')).rows[0].restoring, false)
-    })
+      await reset();
+      const change = await removed();
+      await db.query('insert into public.attendance(id,member_id,event_id) values($1,$2,$3)', [
+        ids.otherAttendance,
+        ids.member,
+        ids.event,
+      ]);
+      const replacement = (await db.query('select to_jsonb(a) result from public.attendance a'))
+        .rows[0].result;
+      await assert.rejects(restore(change.undo_token), (error) => error.code === '23505');
+      assert.deepEqual(
+        (await db.query('select to_jsonb(a) result from public.attendance a')).rows[0].result,
+        replacement,
+      );
+      await db.exec('reset role');
+      assert.equal(
+        (await db.query('select restoring from public.lc_attendance_undo_receipts')).rows[0]
+          .restoring,
+        false,
+      );
+    });
 
     await t.test('a conflicting reused attendance ID is never changed', async () => {
-      await reset(); const change = await removed()
-      await db.query('insert into public.attendance(id,member_id,event_id,notes) values($1,$2,$3,$4)', [ids.attendance,ids.otherMember,ids.otherEvent,'New record'])
-      const replacement = await stored()
-      await assert.rejects(restore(change.undo_token), error => error.code === '40001')
-      assert.deepEqual(await stored(), replacement)
-    })
+      await reset();
+      const change = await removed();
+      await db.query(
+        'insert into public.attendance(id,member_id,event_id,notes) values($1,$2,$3,$4)',
+        [ids.attendance, ids.otherMember, ids.otherEvent, 'New record'],
+      );
+      const replacement = await stored();
+      await assert.rejects(restore(change.undo_token), (error) => error.code === '40001');
+      assert.deepEqual(await stored(), replacement);
+    });
 
-    await t.test('an old receipt cannot recreate a subsequently removed or changed restoration', async () => {
-      await reset(); const change = await removed(); await restore(change.undo_token)
-      await db.query('update public.attendance set notes=$1 where id=$2', ['Later correction',ids.attendance])
-      await assert.rejects(restore(change.undo_token), error => error.code === '40001')
-      await db.query('delete from public.attendance where id=$1', [ids.attendance])
-      await assert.rejects(restore(change.undo_token), error => error.code === '40001')
-      assert.equal(await stored(), undefined)
-    })
+    await t.test(
+      'an old receipt cannot recreate a subsequently removed or changed restoration',
+      async () => {
+        await reset();
+        const change = await removed();
+        await restore(change.undo_token);
+        await db.query('update public.attendance set notes=$1 where id=$2', [
+          'Later correction',
+          ids.attendance,
+        ]);
+        await assert.rejects(restore(change.undo_token), (error) => error.code === '40001');
+        await db.query('delete from public.attendance where id=$1', [ids.attendance]);
+        await assert.rejects(restore(change.undo_token), (error) => error.code === '40001');
+        assert.equal(await stored(), undefined);
+      },
+    );
 
     await t.test('only the original active staff actor may use a receipt', async () => {
-      await reset(); const change = await removed()
-      await account(ids.admin)
-      await assert.rejects(restore(change.undo_token), error => error.code === 'P0002')
-      for (const actor of [ids.user,ids.suspended,null]) {
-        await account(actor)
-        await assert.rejects(restore(change.undo_token), error => error.code === '42501')
-        await assert.rejects(removed(), error => error.code === '42501')
+      await reset();
+      const change = await removed();
+      await account(ids.admin);
+      await assert.rejects(restore(change.undo_token), (error) => error.code === 'P0002');
+      for (const actor of [ids.user, ids.suspended, null]) {
+        await account(actor);
+        await assert.rejects(restore(change.undo_token), (error) => error.code === '42501');
+        await assert.rejects(removed(), (error) => error.code === '42501');
       }
-      await account(ids.owner)
-      assert.ok(await restore(change.undo_token))
-      await account(ids.owner,'anon')
-      await assert.rejects(restore(change.undo_token), error => error.code === '42501')
-    })
+      await account(ids.owner);
+      assert.ok(await restore(change.undo_token));
+      await account(ids.owner, 'anon');
+      await assert.rejects(restore(change.undo_token), (error) => error.code === '42501');
+    });
 
     await t.test('Administrator removals and restoration use their own receipts', async () => {
-      const original = await reset(); await account(ids.admin)
-      const change = await removed()
-      assert.deepEqual(await restore(change.undo_token), original)
-    })
+      const original = await reset();
+      await account(ids.admin);
+      const change = await removed();
+      assert.deepEqual(await restore(change.undo_token), original);
+    });
 
-    await t.test('expired receipts, null IDs and unknown tokens fail without creating attendance', async () => {
-      await reset(); const change = await removed()
-      await db.exec('reset role')
-      await db.query("update public.lc_attendance_undo_receipts set expires_at=clock_timestamp()-interval '1 second' where token=$1", [change.undo_token])
-      await account()
-      await assert.rejects(restore(change.undo_token), error => error.code === 'P0001')
-      await assert.rejects(restore(id(99)), error => error.code === 'P0002')
-      await assert.rejects(restore(null), error => error.code === '22023')
-      await assert.rejects(db.query('select public.lc_remove_attendance_with_undo(null)'), error => error.code === '22023')
-      assert.equal(await removed(), null)
-      assert.equal(await stored(), undefined)
-      await db.exec('reset role')
-      assert.equal((await db.query('select count(*)::integer count from public.lc_attendance_undo_receipts')).rows[0].count, 0, 'next removal prunes expired receipts')
-    })
+    await t.test(
+      'expired receipts, null IDs and unknown tokens fail without creating attendance',
+      async () => {
+        await reset();
+        const change = await removed();
+        await db.exec('reset role');
+        await db.query(
+          "update public.lc_attendance_undo_receipts set expires_at=clock_timestamp()-interval '1 second' where token=$1",
+          [change.undo_token],
+        );
+        await account();
+        await assert.rejects(restore(change.undo_token), (error) => error.code === 'P0001');
+        await assert.rejects(restore(id(99)), (error) => error.code === 'P0002');
+        await assert.rejects(restore(null), (error) => error.code === '22023');
+        await assert.rejects(
+          db.query('select public.lc_remove_attendance_with_undo(null)'),
+          (error) => error.code === '22023',
+        );
+        assert.equal(await removed(), null);
+        assert.equal(await stored(), undefined);
+        await db.exec('reset role');
+        assert.equal(
+          (await db.query('select count(*)::integer count from public.lc_attendance_undo_receipts'))
+            .rows[0].count,
+          0,
+          'next removal prunes expired receipts',
+        );
+      },
+    );
 
-    await t.test('receipt data and restoration state cannot be read or written directly by staff', async () => {
-      await reset(); await removed()
-      for (const statement of [
-        'select * from public.lc_attendance_undo_receipts',
-        'delete from public.lc_attendance_undo_receipts',
-        'update public.lc_attendance_undo_receipts set restoring=true',
-      ]) await assert.rejects(db.exec(statement), error => error.code === '42501')
-    })
+    await t.test(
+      'receipt data and restoration state cannot be read or written directly by staff',
+      async () => {
+        await reset();
+        await removed();
+        for (const statement of [
+          'select * from public.lc_attendance_undo_receipts',
+          'delete from public.lc_attendance_undo_receipts',
+          'update public.lc_attendance_undo_receipts set restoring=true',
+        ])
+          await assert.rejects(db.exec(statement), (error) => error.code === '42501');
+      },
+    );
 
-    await t.test('a copied receipt token alone cannot bypass normal snapshot capture or authorize an insert', async () => {
-      await reset(); const change = await removed()
-      await db.query("select set_config('lifecity.attendance_undo_token',$1,false)", [change.undo_token])
-      await assert.rejects(db.query('insert into public.attendance(id,member_id,event_id) values($1,$2,$3)', [ids.attendance,ids.member,ids.event]), error => error.code === '42501')
-      assert.equal(await stored(), undefined)
-      await db.query("select set_config('lifecity.attendance_undo_token','',false)")
-      await db.query('insert into public.attendance(id,member_id,event_id,report_snapshot) values($1,$2,$3,$4)', [ids.attendance,ids.member,ids.event,{forged:'Historical snapshot'}])
-      assert.equal((await stored()).report_snapshot.forged, undefined)
-      assert.equal((await stored()).report_snapshot.first_name, 'Historical')
-    })
+    await t.test(
+      'a copied receipt token alone cannot bypass normal snapshot capture or authorize an insert',
+      async () => {
+        await reset();
+        const change = await removed();
+        await db.query("select set_config('lifecity.attendance_undo_token',$1,false)", [
+          change.undo_token,
+        ]);
+        await assert.rejects(
+          db.query('insert into public.attendance(id,member_id,event_id) values($1,$2,$3)', [
+            ids.attendance,
+            ids.member,
+            ids.event,
+          ]),
+          (error) => error.code === '42501',
+        );
+        assert.equal(await stored(), undefined);
+        await db.query("select set_config('lifecity.attendance_undo_token','',false)");
+        await db.query(
+          'insert into public.attendance(id,member_id,event_id,report_snapshot) values($1,$2,$3,$4)',
+          [ids.attendance, ids.member, ids.event, { forged: 'Historical snapshot' }],
+        );
+        assert.equal((await stored()).report_snapshot.forged, undefined);
+        assert.equal((await stored()).report_snapshot.first_name, 'Historical');
+      },
+    );
 
-    await t.test('deleted member/service/scanner foreign keys cannot be fabricated during Undo', async () => {
-      for (const relation of ['members','events','auth.users']) {
-        await db.exec('reset role')
-        await db.query('insert into auth.users(id) values($1) on conflict do nothing', [ids.scanner])
-        await reset(); const change = await removed()
-        await db.exec('reset role')
-        const target = relation === 'members' ? ids.member : relation === 'events' ? ids.event : ids.scanner
-        await db.query(`delete from ${relation === 'auth.users' ? relation : 'public.'+relation} where id=$1`, [target])
-        await account()
-        await assert.rejects(restore(change.undo_token))
-        assert.equal(await stored(), undefined)
-      }
-    })
+    await t.test(
+      'deleted member/service/scanner foreign keys cannot be fabricated during Undo',
+      async () => {
+        for (const relation of ['members', 'events', 'auth.users']) {
+          await db.exec('reset role');
+          await db.query('insert into auth.users(id) values($1) on conflict do nothing', [
+            ids.scanner,
+          ]);
+          await reset();
+          const change = await removed();
+          await db.exec('reset role');
+          const target =
+            relation === 'members' ? ids.member : relation === 'events' ? ids.event : ids.scanner;
+          await db.query(
+            `delete from ${relation === 'auth.users' ? relation : 'public.' + relation} where id=$1`,
+            [target],
+          );
+          await account();
+          await assert.rejects(restore(change.undo_token));
+          assert.equal(await stored(), undefined);
+        }
+      },
+    );
 
-    await t.test('other before-insert guards are never bypassed and a later snapshot rewrite rolls back', async () => {
-      for (const phase of ['before_restore','after_restore']) {
-        await reset(); const change = await removed()
-        await db.exec('reset role')
-        const trigger = phase === 'before_restore' ? 'y_test_attendance_guard' : 'zzz_test_attendance_guard'
-        await db.exec(`create function public.test_attendance_guard() returns trigger language plpgsql as $$
+    await t.test(
+      'other before-insert guards are never bypassed and a later snapshot rewrite rolls back',
+      async () => {
+        for (const phase of ['before_restore', 'after_restore']) {
+          await reset();
+          const change = await removed();
+          await db.exec('reset role');
+          const trigger =
+            phase === 'before_restore' ? 'y_test_attendance_guard' : 'zzz_test_attendance_guard';
+          await db.exec(`create function public.test_attendance_guard() returns trigger language plpgsql as $$
           begin
             if nullif(current_setting('lifecity.attendance_undo_token',true),'') is not null then
-              ${phase === 'before_restore' ? "new.notes:='Another guard changed notes';" : "new.report_snapshot:='{\"changed\":true}'::jsonb;"}
+              ${phase === 'before_restore' ? "new.notes:='Another guard changed notes';" : 'new.report_snapshot:=\'{"changed":true}\'::jsonb;'}
             end if;
             return new;
           end $$;
-          create trigger ${trigger} before insert on public.attendance for each row execute function public.test_attendance_guard();`)
-        await account()
-        await assert.rejects(restore(change.undo_token), error => error.code === '40001')
-        assert.equal(await stored(), undefined)
-        assert.equal((await db.query("select current_setting('lifecity.attendance_undo_token',true) value")).rows[0].value,'')
-        await db.exec('reset role')
-        const receipt = (await db.query('select restoring,restored_at from public.lc_attendance_undo_receipts')).rows[0]
-        assert.equal(receipt.restoring,false)
-        assert.equal(receipt.restored_at,null)
-        assert.equal((await db.query("select count(*)::integer count from public.test_attendance_activity where operation='INSERT'")).rows[0].count,1)
-        await db.exec(`drop trigger ${trigger} on public.attendance; drop function public.test_attendance_guard()`)
-      }
-    })
+          create trigger ${trigger} before insert on public.attendance for each row execute function public.test_attendance_guard();`);
+          await account();
+          await assert.rejects(restore(change.undo_token), (error) => error.code === '40001');
+          assert.equal(await stored(), undefined);
+          assert.equal(
+            (await db.query("select current_setting('lifecity.attendance_undo_token',true) value"))
+              .rows[0].value,
+            '',
+          );
+          await db.exec('reset role');
+          const receipt = (
+            await db.query('select restoring,restored_at from public.lc_attendance_undo_receipts')
+          ).rows[0];
+          assert.equal(receipt.restoring, false);
+          assert.equal(receipt.restored_at, null);
+          assert.equal(
+            (
+              await db.query(
+                "select count(*)::integer count from public.test_attendance_activity where operation='INSERT'",
+              )
+            ).rows[0].count,
+            1,
+          );
+          await db.exec(
+            `drop trigger ${trigger} on public.attendance; drop function public.test_attendance_guard()`,
+          );
+        }
+      },
+    );
 
-    await t.test('existing snapshot guards and RLS definitions are unchanged by installation', async () => {
-      await db.exec('reset role')
-      assert.deepEqual((await db.query("select policyname,permissive,roles,cmd,qual,with_check from pg_policies where tablename='attendance' order by policyname")).rows, beforePolicy)
-      assert.equal((await db.query("select pg_get_functiondef('public.capture_attendance_snapshot_v3()'::regprocedure) definition")).rows[0].definition, beforeCapture)
-      const receiptPolicies = (await db.query("select * from pg_policies where tablename='lc_attendance_undo_receipts'")).rows
-      assert.equal(receiptPolicies.length, 0)
-      const triggerFunction = (await db.query("select prosecdef,proconfig from pg_proc where oid='public.lc_apply_attendance_undo_snapshot()'::regprocedure")).rows[0]
-      assert.equal(triggerFunction.prosecdef,true)
-      assert.deepEqual(triggerFunction.proconfig,['search_path=""'])
-    })
-  } finally { await db.close() }
-})
+    await t.test(
+      'existing snapshot guards and RLS definitions are unchanged by installation',
+      async () => {
+        await db.exec('reset role');
+        assert.deepEqual(
+          (
+            await db.query(
+              "select policyname,permissive,roles,cmd,qual,with_check from pg_policies where tablename='attendance' order by policyname",
+            )
+          ).rows,
+          beforePolicy,
+        );
+        assert.equal(
+          (
+            await db.query(
+              "select pg_get_functiondef('public.capture_attendance_snapshot_v3()'::regprocedure) definition",
+            )
+          ).rows[0].definition,
+          beforeCapture,
+        );
+        const receiptPolicies = (
+          await db.query("select * from pg_policies where tablename='lc_attendance_undo_receipts'")
+        ).rows;
+        assert.equal(receiptPolicies.length, 0);
+        const triggerFunction = (
+          await db.query(
+            "select prosecdef,proconfig from pg_proc where oid='public.lc_apply_attendance_undo_snapshot()'::regprocedure",
+          )
+        ).rows[0];
+        assert.equal(triggerFunction.prosecdef, true);
+        assert.deepEqual(triggerFunction.proconfig, ['search_path=""']);
+      },
+    );
+  } finally {
+    await db.close();
+  }
+});

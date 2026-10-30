@@ -1,9 +1,12 @@
-/* LC-DASHBOARD-POLISH: useful color, compact calendars, and clear event details. */
 html:root body .dashboard-editorial-hero .dashboard-period-select {
   gap: 9px;
   padding-inline: 13px 4px;
   border: 1px solid color-mix(in srgb, var(--lc-primary, #147d73) 23%, var(--lc-surface, #fff));
-  background: linear-gradient(115deg, var(--lc-glowPrimary, #e5f5ef), color-mix(in srgb, var(--lc-glowPrimary, #e5f5ef) 38%, var(--lc-surface, #fff)));
+  background: linear-gradient(
+    115deg,
+    var(--lc-glowPrimary, #e5f5ef),
+    color-mix(in srgb, var(--lc-glowPrimary, #e5f5ef) 38%, var(--lc-surface, #fff))
+  );
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--lc-surface, #fff) 80%, transparent);
 }
 html:root body .dashboard-editorial-hero .dashboard-period-select > span {
@@ -28,44 +31,78 @@ html:root body .dashboard-editorial-hero .dashboard-refresh {
   gap: 8px;
   white-space: nowrap;
   border: 1px solid color-mix(in srgb, var(--lc-secondary, #7964ad) 24%, var(--lc-surface, #fff));
-  background: linear-gradient(125deg, var(--lc-glowSecondary, #f1edfa), color-mix(in srgb, var(--lc-glowSecondary, #f1edfa) 72%, var(--lc-surface, #fff)));
+  background: linear-gradient(
+    125deg,
+    var(--lc-glowSecondary, #f1edfa),
+    color-mix(in srgb, var(--lc-glowSecondary, #f1edfa) 72%, var(--lc-surface, #fff))
+  );
   color: var(--lc-safe-secondary, var(--lc-secondary, #7964ad));
   box-shadow: 0 2px 5px color-mix(in srgb, var(--lc-secondary, #7964ad) 8%, transparent);
   font-weight: 600;
 }
-/* Both labels reserve the longer width, even while their opacity changes. */
+
 html:root body .dashboard-refresh :is(.dashboard-refresh-icons, .dashboard-refresh-labels) {
   display: grid;
   align-items: center;
   justify-items: center;
   min-width: 0;
 }
-html:root body .dashboard-refresh-icons { width: 16px; height: 16px; }
+html:root body .dashboard-refresh-icons {
+  width: 16px;
+  height: 16px;
+}
 html:root body .dashboard-refresh :is(.dashboard-refresh-ready, .dashboard-refresh-busy) {
   grid-area: 1 / 1;
   transition: opacity 180ms ease;
 }
-html:root body .dashboard-refresh .dashboard-refresh-ready { opacity: 1; }
-html:root body .dashboard-refresh .dashboard-refresh-busy { opacity: 0; }
-html:root body .dashboard-refresh[data-refreshing="true"] .dashboard-refresh-ready { opacity: 0; }
-html:root body .dashboard-refresh[data-refreshing="true"] .dashboard-refresh-busy { opacity: 1; }
-html:root body .dashboard-refresh[data-refreshing="true"] .dashboard-refresh-icons > .dashboard-refresh-busy {
+html:root body .dashboard-refresh .dashboard-refresh-ready {
+  opacity: 1;
+}
+html:root body .dashboard-refresh .dashboard-refresh-busy {
+  opacity: 0;
+}
+html:root body .dashboard-refresh[data-refreshing='true'] .dashboard-refresh-ready {
+  opacity: 0;
+}
+html:root body .dashboard-refresh[data-refreshing='true'] .dashboard-refresh-busy {
+  opacity: 1;
+}
+html:root
+  body
+  .dashboard-refresh[data-refreshing='true']
+  .dashboard-refresh-icons
+  > .dashboard-refresh-busy {
   animation: dashboard-snapshot-spin 900ms linear infinite;
 }
-html:root body .dashboard-editorial-hero .dashboard-refresh:disabled { opacity: 1; cursor: progress; }
-@keyframes dashboard-snapshot-spin { to { transform: rotate(360deg); } }
+html:root body .dashboard-editorial-hero .dashboard-refresh:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+@keyframes dashboard-snapshot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 html:root body .dashboard-editorial-hero .dashboard-refresh:not(:disabled):hover {
   border-color: color-mix(in srgb, var(--lc-secondary, #7964ad) 45%, var(--lc-surface, #fff));
   background: color-mix(in srgb, var(--lc-secondary, #7964ad) 14%, var(--lc-surface, #fff));
   box-shadow: 0 3px 9px color-mix(in srgb, var(--lc-secondary, #7964ad) 12%, transparent);
 }
 
-/* This is shared by guest, member, and staff versions of What's New. */
 html:root body .lc-whats-new {
   border-color: color-mix(in srgb, var(--lc-framePrimary, #8ac7b5) 68%, var(--lc-surface, #fff));
   background:
-    radial-gradient(ellipse at 100% 0, color-mix(in srgb, var(--lc-glowHighlight, #fff4dd) 34%, transparent), transparent 52%),
-    linear-gradient(118deg, var(--lc-glowPrimary, #e5f5ef), color-mix(in srgb, var(--lc-glowPrimary, #e5f5ef) 55%, var(--lc-surface, #fff)) 58%, var(--lc-surface, #fff));
+    radial-gradient(
+      ellipse at 100% 0,
+      color-mix(in srgb, var(--lc-glowHighlight, #fff4dd) 34%, transparent),
+      transparent 52%
+    ),
+    linear-gradient(
+      118deg,
+      var(--lc-glowPrimary, #e5f5ef),
+      color-mix(in srgb, var(--lc-glowPrimary, #e5f5ef) 55%, var(--lc-surface, #fff)) 58%,
+      var(--lc-surface, #fff)
+    );
   box-shadow: 0 4px 20px color-mix(in srgb, var(--lc-primary, #147d73) 5%, transparent);
 }
 html:root body .lc-whats-new > header h2 > svg {
@@ -87,7 +124,6 @@ html:root body .lc-whats-new > article > small {
   font-weight: 600;
 }
 
-/* Month header, binding rings, and a perforated edge give the dates a calendar shape. */
 html:root body .dashboard-calendar {
   --calendar-accent: var(--lc-primary, #147d73);
   --calendar-wash: var(--lc-glowPrimary, #e5f5ef);
@@ -101,7 +137,9 @@ html:root body .dashboard-calendar {
   border: 1px solid color-mix(in srgb, var(--calendar-accent) 24%, var(--lc-surface, #fff));
   border-radius: 10px;
   background: var(--lc-surface, #fff);
-  box-shadow: 0 3px 0 color-mix(in srgb, var(--calendar-accent) 9%, var(--lc-surface, #fff)), 0 5px 12px color-mix(in srgb, var(--calendar-accent) 5%, transparent);
+  box-shadow:
+    0 3px 0 color-mix(in srgb, var(--calendar-accent) 9%, var(--lc-surface, #fff)),
+    0 5px 12px color-mix(in srgb, var(--calendar-accent) 5%, transparent);
   color: var(--lc-heading, #173e37);
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -110,7 +148,7 @@ html:root body .dashboard-calendar-upcoming {
   --calendar-accent: var(--lc-safe-secondary, var(--lc-secondary, #7964ad));
   --calendar-wash: var(--lc-glowSecondary, #f1edfa);
 }
-/* Keep the original red pushpin above the calendar's bound top edge. */
+
 html:root body .dashboard-calendar::before {
   position: absolute;
   z-index: 2;
@@ -120,8 +158,14 @@ html:root body .dashboard-calendar::before {
   height: 14px;
   border: 1px solid var(--lc-shade-danger-paint-b7474c, #b7474c);
   border-radius: 50%;
-  background: radial-gradient(circle at 34% 30%, var(--lc-shade-dangerBg-paint-ffb0a9, #ffb0a9) 0 15%, var(--lc-shade-danger-paint-df5d5d, #df5d5d) 19% 62%, var(--lc-shade-danger-paint-b74349, #b74349) 100%);
-  box-shadow: 1px 2px 0 color-mix(in srgb, var(--lc-shade-shadow-paint-772a2f, #772a2f) 20%, transparent);
+  background: radial-gradient(
+    circle at 34% 30%,
+    var(--lc-shade-dangerBg-paint-ffb0a9, #ffb0a9) 0 15%,
+    var(--lc-shade-danger-paint-df5d5d, #df5d5d) 19% 62%,
+    var(--lc-shade-danger-paint-b74349, #b74349) 100%
+  );
+  box-shadow: 1px 2px 0
+    color-mix(in srgb, var(--lc-shade-shadow-paint-772a2f, #772a2f) 20%, transparent);
   pointer-events: none;
   content: '';
 }
@@ -134,7 +178,8 @@ html:root body .dashboard-calendar::after {
   height: 18px;
   border-radius: 999px;
   background: var(--lc-shade-danger-paint-a33d44, #a33d44);
-  box-shadow: 1px 1px 0 color-mix(in srgb, var(--lc-shade-shadow-paint-772a2f, #772a2f) 14%, transparent);
+  box-shadow: 1px 1px 0
+    color-mix(in srgb, var(--lc-shade-shadow-paint-772a2f, #772a2f) 14%, transparent);
   transform: rotate(-14deg);
   transform-origin: top center;
   pointer-events: none;
@@ -169,7 +214,7 @@ html:root body .dashboard-calendar .dashboard-calendar-month {
   color: var(--lc-safe-text, #456d63);
   font-size: 10px;
   font-weight: 750;
-  letter-spacing: .055em;
+  letter-spacing: 0.055em;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -183,7 +228,7 @@ html:root body .dashboard-calendar .dashboard-calendar-day {
   color: var(--lc-heading, #173e37);
   font-size: 28px;
   font-weight: 650;
-  letter-spacing: -.055em;
+  letter-spacing: -0.055em;
   line-height: 1;
 }
 html:root body .dashboard-calendar .dashboard-calendar-weekday {
@@ -191,7 +236,7 @@ html:root body .dashboard-calendar .dashboard-calendar-weekday {
   color: var(--lc-safe-muted, #60796f);
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: .06em;
+  letter-spacing: 0.06em;
   line-height: 1.3;
   text-transform: uppercase;
 }
@@ -207,7 +252,10 @@ html:root body .dashboard-event-heading {
   min-width: 0;
   margin: 2px 0 17px;
 }
-html:root body .dashboard-event-heading-copy { min-width: 0; padding-top: 1px; }
+html:root body .dashboard-event-heading-copy {
+  min-width: 0;
+  padding-top: 1px;
+}
 html:root body .dashboard-event-heading-copy h2 {
   margin: 5px 0 0;
   font-size: clamp(17px, 1.45vw, 20px);
@@ -216,8 +264,17 @@ html:root body .dashboard-event-heading-copy h2 {
   text-wrap: pretty;
   overflow-wrap: anywhere;
 }
-html:root body .dashboard-event-eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 10px; }
-html:root body .dashboard-event-heading .card-kicker { margin: 0; font-size: 9.5px; line-height: 1.6; }
+html:root body .dashboard-event-eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px 10px;
+}
+html:root body .dashboard-event-heading .card-kicker {
+  margin: 0;
+  font-size: 9.5px;
+  line-height: 1.6;
+}
 html:root body .dashboard-event-heading .status.active {
   padding: 3px 7px;
   border: 1px solid color-mix(in srgb, var(--lc-success, #18764e) 12%, transparent);
@@ -229,7 +286,11 @@ html:root body .dashboard-event-heading .status.active {
   line-height: 1.4;
   white-space: nowrap;
 }
-html:root body .dashboard-event-details { display: grid; gap: 7px; margin: 0 0 16px; }
+html:root body .dashboard-event-details {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 16px;
+}
 html:root body .dashboard-event-details p {
   display: flex;
   align-items: flex-start;
@@ -241,7 +302,11 @@ html:root body .dashboard-event-details p {
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
-html:root body .dashboard-event-details svg { flex: 0 0 auto; margin-top: 2px; opacity: .85; }
+html:root body .dashboard-event-details svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  opacity: 0.85;
+}
 html:root body .event-postcard .dashboard-service-note {
   margin: 0 0 17px;
   padding: 12px 14px;
@@ -263,13 +328,31 @@ html:root body .event-postcard .dashboard-service-note > span {
   color: var(--lc-safe-muted, #60796f);
   font-size: 10px;
   font-weight: 650;
-  letter-spacing: .045em;
+  letter-spacing: 0.045em;
   text-transform: uppercase;
 }
-html:root body .dashboard-attendance-summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 12px; margin-top: auto; }
-html:root body .dashboard-attendance-summary .latest-event-summary { margin: 0; color: var(--lc-safe-muted, #60796f); font-size: 11px; line-height: 1.5; }
-html:root body .latest-event-summary strong { color: var(--lc-heading, #173e37); font-weight: 650; }
-html:root body .dashboard-attendance-rate { color: var(--lc-primary, #147d73); font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
+html:root body .dashboard-attendance-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 12px;
+  margin-top: auto;
+}
+html:root body .dashboard-attendance-summary .latest-event-summary {
+  margin: 0;
+  color: var(--lc-safe-muted, #60796f);
+  font-size: 11px;
+  line-height: 1.5;
+}
+html:root body .latest-event-summary strong {
+  color: var(--lc-heading, #173e37);
+  font-weight: 650;
+}
+html:root body .dashboard-attendance-rate {
+  color: var(--lc-primary, #147d73);
+  font-size: 12px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
 html:root body .dashboard-attendance-summary .attendance-progress {
   grid-column: 1 / -1;
   height: 7px;
@@ -280,25 +363,73 @@ html:root body .dashboard-attendance-summary .attendance-progress > span {
   background: linear-gradient(90deg, var(--lc-framePrimary, #8ac7b5), var(--lc-primary, #147d73));
 }
 
-html:root body .active-checkin-panel { grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 20px; padding: 20px 22px; }
-html:root body .active-checkin-panel .active-checkin-copy { padding-left: 0; border-left: 0; }
-html:root body .active-checkin-copy h2 { font-size: 17px; line-height: 1.45; overflow-wrap: anywhere; }
-html:root body .active-checkin-copy .dashboard-event-details { display: flex; flex-wrap: wrap; gap: 4px 17px; margin: 7px 0 0; }
-html:root body .active-checkin-copy .dashboard-event-details p { font-size: 11px; }
+html:root body .active-checkin-panel {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 20px;
+  padding: 20px 22px;
+}
+html:root body .active-checkin-panel .active-checkin-copy {
+  padding-left: 0;
+  border-left: 0;
+}
+html:root body .active-checkin-copy h2 {
+  font-size: 17px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+html:root body .active-checkin-copy .dashboard-event-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 17px;
+  margin: 7px 0 0;
+}
+html:root body .active-checkin-copy .dashboard-event-details p {
+  font-size: 11px;
+}
 
 @media (min-width: 901px) and (max-width: 1120px) {
-  html:root body .active-checkin-panel { grid-template-columns: auto minmax(0, 1fr) auto; gap: 17px; }
-  html:root body .active-checkin-panel .active-checkin-button { grid-column: 2 / -1; justify-self: end; }
-  html:root body .lc-dashboard-bento .dashboard-card.event-postcard { padding: 20px; padding-inline-start: 20px; }
-  html:root body .dashboard-event-heading { gap: 14px; }
+  html:root body .active-checkin-panel {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 17px;
+  }
+  html:root body .active-checkin-panel .active-checkin-button {
+    grid-column: 2 / -1;
+    justify-self: end;
+  }
+  html:root body .lc-dashboard-bento .dashboard-card.event-postcard {
+    padding: 20px;
+    padding-inline-start: 20px;
+  }
+  html:root body .dashboard-event-heading {
+    gap: 14px;
+  }
 }
 @media (max-width: 600px) {
-  html:root body .lc-whats-new { padding: 19px 17px; }
-  html:root body .lc-whats-new > header { gap: 10px; }
-  html:root body .lc-whats-new h2 { font-size: 21px; }
-  html:root body .lc-whats-new .lcf-ticket-status { font-size: 10px; }
+  html:root body .lc-whats-new {
+    padding: 19px 17px;
+  }
+  html:root body .lc-whats-new > header {
+    gap: 10px;
+  }
+  html:root body .lc-whats-new h2 {
+    font-size: 21px;
+  }
+  html:root body .lc-whats-new .lcf-ticket-status {
+    font-size: 10px;
+  }
 }
 @media (forced-colors: active) {
-  html:root body :is(.dashboard-calendar, .lc-whats-new, .dashboard-editorial-hero .dashboard-period-select, .dashboard-editorial-hero .dashboard-refresh) { border-color: CanvasText; }
-  html:root body .dashboard-calendar-binding i { border-color: CanvasText; }
+  html:root
+    body
+    :is(
+      .dashboard-calendar,
+      .lc-whats-new,
+      .dashboard-editorial-hero .dashboard-period-select,
+      .dashboard-editorial-hero .dashboard-refresh
+    ) {
+    border-color: CanvasText;
+  }
+  html:root body .dashboard-calendar-binding i {
+    border-color: CanvasText;
+  }
 }

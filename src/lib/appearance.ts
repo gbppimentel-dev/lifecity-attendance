@@ -1,61 +1,133 @@
-import { useEffect } from 'react'
-import { supabase } from './supabase'
-import { defaultTokens, isHex, validTokens, themeStyle, type ThemeTokens } from './theme'
-export type Appearance = { primary_color:string; secondary_color:string; highlight_color:string; use_default:boolean; revision:number; updated_at?:string; tokens?:ThemeTokens }
-export const defaultAppearance:Appearance={primary_color:defaultTokens.primary,secondary_color:defaultTokens.secondary,highlight_color:defaultTokens.highlight,use_default:true,revision:0,tokens:defaultTokens}
-export function onColor(hex:string){
- const v=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4)
- return .2126*v[0]+.7152*v[1]+.0722*v[2]>.179?'#000000':'#ffffff'
+import { useEffect } from 'react';
+import { supabase } from './supabase';
+import { defaultTokens, isHex, validTokens, themeStyle, type ThemeTokens } from './theme';
+export type Appearance = {
+  primary_color: string;
+  secondary_color: string;
+  highlight_color: string;
+  use_default: boolean;
+  revision: number;
+  updated_at?: string;
+  tokens?: ThemeTokens;
+};
+export const defaultAppearance: Appearance = {
+  primary_color: defaultTokens.primary,
+  secondary_color: defaultTokens.secondary,
+  highlight_color: defaultTokens.highlight,
+  use_default: true,
+  revision: 0,
+  tokens: defaultTokens,
+};
+export function onColor(hex: string) {
+  const v = [1, 3, 5]
+    .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map((n) => (n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2] > 0.179 ? '#000000' : '#ffffff';
 }
-export function isAppearance(x:unknown):x is Appearance {
- if(!x||typeof x!=='object')return false
- const a=x as Appearance
- return [a.primary_color,a.secondary_color,a.highlight_color].every(isHex)&&typeof a.use_default==='boolean'&&Number.isInteger(a.revision)&&(a.tokens===undefined||validTokens(a.tokens))
+export function isAppearance(x: unknown): x is Appearance {
+  if (!x || typeof x !== 'object') return false;
+  const a = x as Appearance;
+  return (
+    [a.primary_color, a.secondary_color, a.highlight_color].every(isHex) &&
+    typeof a.use_default === 'boolean' &&
+    Number.isInteger(a.revision) &&
+    (a.tokens === undefined || validTokens(a.tokens))
+  );
 }
-export function appearanceTokens(a:Appearance):ThemeTokens {
- if(a.use_default)return {...defaultTokens}
- if(a.tokens){
-  // Upgrade the old shipped default palette, including one saved as custom.
-  // Actual user-customized palettes are left intact.
-  const old={...defaultTokens,secondary:'#8f7cd1',highlight:'#e6ad4c',muted:'#718b82',placeholder:'#8ca099',warning:'#a56b16'}
-  if(Object.keys(defaultTokens).every(k=>a.tokens![k as keyof ThemeTokens].toLowerCase()===old[k as keyof ThemeTokens].toLowerCase()))return {...defaultTokens}
-  return {...a.tokens}
- }
- return {...defaultTokens,primary:a.primary_color,button:a.primary_color,secondary:a.secondary_color,highlight:a.highlight_color,onPrimary:onColor(a.primary_color)}
+export function appearanceTokens(a: Appearance): ThemeTokens {
+  if (a.use_default) return { ...defaultTokens };
+  if (a.tokens) {
+    const old = {
+      ...defaultTokens,
+      secondary: '#8f7cd1',
+      highlight: '#e6ad4c',
+      muted: '#718b82',
+      placeholder: '#8ca099',
+      warning: '#a56b16',
+    };
+    if (
+      Object.keys(defaultTokens).every(
+        (k) =>
+          a.tokens![k as keyof ThemeTokens].toLowerCase() ===
+          old[k as keyof ThemeTokens].toLowerCase(),
+      )
+    )
+      return { ...defaultTokens };
+    return { ...a.tokens };
+  }
+  return {
+    ...defaultTokens,
+    primary: a.primary_color,
+    button: a.primary_color,
+    secondary: a.secondary_color,
+    highlight: a.highlight_color,
+    onPrimary: onColor(a.primary_color),
+  };
 }
-export async function loadAppearance(){
- const next=await supabase.rpc('lc_get_appearance_v2')
- if(!next.error){if(!isAppearance(next.data))throw new Error('Invalid saved palette.');return {appearance:next.data,extended:true}}
- if(!['PGRST202','42883'].includes(next.error.code))throw next.error
- const old=await supabase.rpc('lc_get_appearance')
- if(old.error)throw old.error
- if(!isAppearance(old.data))throw new Error('Invalid saved palette.')
- return {appearance:old.data,extended:false}
+export async function loadAppearance() {
+  const next = await supabase.rpc('lc_get_appearance_v2');
+  if (!next.error) {
+    if (!isAppearance(next.data)) throw new Error('Invalid saved palette.');
+    return { appearance: next.data, extended: true };
+  }
+  if (!['PGRST202', '42883'].includes(next.error.code)) throw next.error;
+  const old = await supabase.rpc('lc_get_appearance');
+  if (old.error) throw old.error;
+  if (!isAppearance(old.data)) throw new Error('Invalid saved palette.');
+  return { appearance: old.data, extended: false };
 }
-let appliedRevision=-1
-let appliedPalette=''
-/** A demo restart can restore revision zero without discarding normal stale-write protection. */
-export function resetAppliedAppearance(){appliedRevision=-1;appliedPalette='';applyAppearance(defaultAppearance)}
-export function applyAppearance(a:Appearance){
- if(!isAppearance(a)||a.revision<appliedRevision)return
- appliedRevision=a.revision
- const root=document.documentElement,tokens=appearanceTokens(a)
- root.dataset.lcTheme=Object.keys(defaultTokens).every(k=>tokens[k as keyof ThemeTokens]===defaultTokens[k as keyof ThemeTokens])?'default':'custom'
- const signature=JSON.stringify(tokens)
- if(signature!==appliedPalette){
-  for(const [key,value] of Object.entries(themeStyle(tokens)))root.style.setProperty(key,String(value))
-  appliedPalette=signature
- }
- root.style.setProperty('--lc-on-primary',tokens.onPrimary)
+let appliedRevision = -1;
+let appliedPalette = '';
+
+export function resetAppliedAppearance() {
+  appliedRevision = -1;
+  appliedPalette = '';
+  applyAppearance(defaultAppearance);
 }
-export function useSharedAppearance(){
- useEffect(()=>{
- applyAppearance(defaultAppearance)
- let alive=true,loading=false
- async function refresh(){if(loading||document.visibilityState==='hidden')return;loading=true
- try{const {appearance}=await loadAppearance();if(alive)applyAppearance(appearance)}catch{/* Retain the last working palette when offline. */}finally{loading=false}}
- void refresh();const visible=()=>{void refresh()}
- document.addEventListener('visibilitychange',visible);const timer=window.setInterval(visible,60000)
- return()=>{alive=false;clearInterval(timer);document.removeEventListener('visibilitychange',visible)}
- },[])
+export function applyAppearance(a: Appearance) {
+  if (!isAppearance(a) || a.revision < appliedRevision) return;
+  appliedRevision = a.revision;
+  const root = document.documentElement,
+    tokens = appearanceTokens(a);
+  root.dataset.lcTheme = Object.keys(defaultTokens).every(
+    (k) => tokens[k as keyof ThemeTokens] === defaultTokens[k as keyof ThemeTokens],
+  )
+    ? 'default'
+    : 'custom';
+  const signature = JSON.stringify(tokens);
+  if (signature !== appliedPalette) {
+    for (const [key, value] of Object.entries(themeStyle(tokens)))
+      root.style.setProperty(key, String(value));
+    appliedPalette = signature;
+  }
+  root.style.setProperty('--lc-on-primary', tokens.onPrimary);
+}
+export function useSharedAppearance() {
+  useEffect(() => {
+    applyAppearance(defaultAppearance);
+    let alive = true,
+      loading = false;
+    async function refresh() {
+      if (loading || document.visibilityState === 'hidden') return;
+      loading = true;
+      try {
+        const { appearance } = await loadAppearance();
+        if (alive) applyAppearance(appearance);
+      } catch {
+      } finally {
+        loading = false;
+      }
+    }
+    void refresh();
+    const visible = () => {
+      void refresh();
+    };
+    document.addEventListener('visibilitychange', visible);
+    const timer = window.setInterval(visible, 60000);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', visible);
+    };
+  }, []);
 }

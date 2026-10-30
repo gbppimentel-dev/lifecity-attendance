@@ -1,13 +1,23 @@
-/* LC-CONTROLS-v3: shared control rhythm without changing native input behavior.
-   Gesture controls, colour tools, camera controls and pagination keep their own sizing. */
 html body {
   --lc-control-radius: 10px;
   --lc-control-border: color-mix(in srgb, var(--lc-border, #d6e7df) 78%, var(--lc-surface, #fff));
   --lc-control-focus: color-mix(in srgb, var(--lc-primary, #147d73) 16%, transparent);
 }
 
-html body :is(.content,.lmp-content,.lc-auth-body,.lc-guest,.lcf-dialog,.lpe-dialog,.mcu-select-sheet)
-  :is(input,textarea,select):not([type='checkbox'],[type='radio'],[type='range'],[type='color'],[type='file'],[type='hidden'],[type='submit'],[type='button'],[type='reset']):not(.lc-color-picker *) {
+html
+  body
+  :is(.content, .lmp-content, .lc-auth-body, .lc-guest, .lcf-dialog, .lpe-dialog, .mcu-select-sheet)
+  :is(input, textarea, select):not(
+    [type='checkbox'],
+    [type='radio'],
+    [type='range'],
+    [type='color'],
+    [type='file'],
+    [type='hidden'],
+    [type='submit'],
+    [type='button'],
+    [type='reset']
+  ):not(.lc-color-picker *) {
   box-sizing: border-box;
   min-height: 42px;
   min-width: 0;
@@ -22,46 +32,71 @@ html body :is(.content,.lmp-content,.lc-auth-body,.lc-guest,.lcf-dialog,.lpe-dia
   box-shadow: 0 1px 2px color-mix(in srgb, var(--lc-shadow, #315b53) 3%, transparent);
 }
 
-/* Form fields have one surrounding surface; search wrappers own their icon padding. */
-html body :is(.member-form,.event-form,.lpe-form,.lcr-form,.lcf-dialog form,.lc-auth-body form)
-  :is(input,textarea,select):not([type='checkbox'],[type='radio'],[type='range'],[type='color'],[type='file'],[type='hidden']) {
+html
+  body
+  :is(.member-form, .event-form, .lpe-form, .lcr-form, .lcf-dialog form, .lc-auth-body form)
+  :is(input, textarea, select):not(
+    [type='checkbox'],
+    [type='radio'],
+    [type='range'],
+    [type='color'],
+    [type='file'],
+    [type='hidden']
+  ) {
   padding: 10px 12px;
   border-radius: var(--lc-control-radius);
   border-color: var(--lc-control-border);
   background-color: var(--lc-input, #fff);
   box-shadow: 0 1px 2px color-mix(in srgb, var(--lc-shadow, #315b53) 3%, transparent);
 }
-html body :is(.member-form,.event-form,.lpe-form,.lcr-form,.lcf-dialog form,.lc-auth-body form) textarea {
+html
+  body
+  :is(.member-form, .event-form, .lpe-form, .lcr-form, .lcf-dialog form, .lc-auth-body form)
+  textarea {
   min-height: 100px;
   resize: vertical;
   line-height: 1.65;
 }
-html body :is(.member-form,.event-form,.lpe-form,.lcr-form,.lcf-dialog form,.lc-auth-body form) label {
+html
+  body
+  :is(.member-form, .event-form, .lpe-form, .lcr-form, .lcf-dialog form, .lc-auth-body form)
+  label {
   color: var(--lc-safe-text, var(--lc-text, #456d63));
   font-size: 13px;
   font-weight: 550;
   letter-spacing: 0;
 }
-html body :is(input,textarea)::placeholder {
+html body :is(input, textarea)::placeholder {
   color: var(--lc-placeholder, #657d75);
-  opacity: .9;
+  opacity: 0.9;
   font-weight: 400;
   letter-spacing: 0;
 }
-html body :is(.content,.lmp-content,.lc-auth-body,.lc-guest,.lcf-dialog,.lpe-dialog,.mcu-select-sheet)
-  :is(input,textarea,select):not([type='checkbox'],[type='radio'],[type='range'],[type='color'],[type='hidden']):not(.lc-color-picker *):focus {
+html
+  body
+  :is(.content, .lmp-content, .lc-auth-body, .lc-guest, .lcf-dialog, .lpe-dialog, .mcu-select-sheet)
+  :is(input, textarea, select):not(
+    [type='checkbox'],
+    [type='radio'],
+    [type='range'],
+    [type='color'],
+    [type='hidden']
+  ):not(.lc-color-picker *):focus {
   outline: 0;
   border-color: color-mix(in srgb, var(--lc-primary, #147d73) 64%, var(--lc-surface, #fff));
   box-shadow: 0 0 0 3px var(--lc-control-focus);
 }
-html body :is(.content,.lmp-content,.lc-auth-body,.lc-guest,.lcf-dialog,.lpe-dialog)
-  :is(input,textarea,select)[aria-invalid='true']:not(.lc-color-picker *) {
+html
+  body
+  :is(.content, .lmp-content, .lc-auth-body, .lc-guest, .lcf-dialog, .lpe-dialog)
+  :is(input, textarea, select)[aria-invalid='true']:not(.lc-color-picker *) {
   border-color: var(--lc-danger, #bd3535);
 }
 
-/* Native controls retain checked, indeterminate, disabled and high-contrast rendering. */
-html body :is(.content,.lmp-content,.lc-auth-body,.lc-guest,.lcf-dialog,.lpe-dialog)
-  :is(input[type='checkbox'],input[type='radio']):not(.service-sunday-checkbox input) {
+html
+  body
+  :is(.content, .lmp-content, .lc-auth-body, .lc-guest, .lcf-dialog, .lpe-dialog)
+  :is(input[type='checkbox'], input[type='radio']):not(.service-sunday-checkbox input) {
   appearance: auto;
   box-sizing: border-box;
   width: 18px;
@@ -76,15 +111,17 @@ html body :is(.content,.lmp-content,.lc-auth-body,.lc-guest,.lcf-dialog,.lpe-dia
   accent-color: var(--lc-primary, #147d73);
   cursor: pointer;
 }
-html body :is(input[type='checkbox'],input[type='radio']):focus-visible {
+html body :is(input[type='checkbox'], input[type='radio']):focus-visible {
   outline: 2px solid var(--lc-primary, #147d73);
   outline-offset: 3px;
 }
-html body :is(input[type='checkbox'],input[type='radio']):disabled { cursor: not-allowed; }
+html body :is(input[type='checkbox'], input[type='radio']):disabled {
+  cursor: not-allowed;
+}
 
 html body .service-form-card .event-form .event-type-toggle,
 html body .member-editor-card .ministry-options .ministry-option,
-html body :is(.lcf-anonymous,.lcr-check) {
+html body :is(.lcf-anonymous, .lcr-check) {
   border: 1px solid var(--lc-control-border);
   border-radius: 10px;
   background: color-mix(in srgb, var(--lc-surfaceAlt, #f4f9f6) 58%, var(--lc-surface, #fff));
@@ -95,38 +132,103 @@ html body .service-form-card .event-form .event-type-toggle {
   padding: 12px 14px;
   gap: 11px;
 }
-html body .service-form-card .event-type-toggle strong { font-size: 13px; font-weight: 550; }
-html body .service-form-card .event-type-toggle small { font-size: 12px; font-weight: 400; line-height: 1.55; }
+html body .service-form-card .event-type-toggle strong {
+  font-size: 13px;
+  font-weight: 550;
+}
+html body .service-form-card .event-type-toggle small {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.55;
+}
 html body .member-editor-card .ministry-options .ministry-option {
   min-height: 42px;
   justify-content: flex-start;
   padding: 10px 12px;
   text-align: left;
 }
-html body .member-editor-card .ministry-option > svg { display: none; }
-html body .member-editor-card .ministry-option > span { font-size: 13px; font-weight: 450; }
+html body .member-editor-card .ministry-option > svg {
+  display: none;
+}
+html body .member-editor-card .ministry-option > span {
+  font-size: 13px;
+  font-weight: 450;
+}
 html body .member-editor-card .ministry-options .ministry-option.selected,
 html body .service-form-card .event-form .event-type-toggle:has(input:checked) {
   border-color: color-mix(in srgb, var(--lc-primary, #147d73) 30%, var(--lc-surface, #fff));
   background: color-mix(in srgb, var(--lc-primary, #147d73) 5%, var(--lc-surface, #fff));
 }
 
-/* Composite searches remain one field rather than a border around each inner input. */
-html body :is(.search-box,.lcsp-search,.lca-search,.lcq-search,.lch-search>div,.lcf-search,.records-search-input,.rh-search,.lc-service-search,.mcu-option-search) {
+html
+  body
+  :is(
+    .search-box,
+    .lcsp-search,
+    .lca-search,
+    .lcq-search,
+    .lch-search > div,
+    .lcf-search,
+    .records-search-input,
+    .rh-search,
+    .lc-service-search,
+    .mcu-option-search
+  ) {
   border-color: var(--lc-control-border);
   border-radius: var(--lc-control-radius);
   background: var(--lc-input, #fff);
   box-shadow: 0 1px 2px color-mix(in srgb, var(--lc-shadow, #315b53) 3%, transparent);
 }
-html body :is(.search-box,.lcsp-search,.lca-search,.lcq-search,.lch-search>div,.lcf-search,.records-search-input,.rh-search,.lc-service-search,.mcu-option-search):focus-within {
+html
+  body
+  :is(
+    .search-box,
+    .lcsp-search,
+    .lca-search,
+    .lcq-search,
+    .lch-search > div,
+    .lcf-search,
+    .records-search-input,
+    .rh-search,
+    .lc-service-search,
+    .mcu-option-search
+  ):focus-within {
   outline: 0;
   border-color: color-mix(in srgb, var(--lc-primary, #147d73) 64%, var(--lc-surface, #fff));
   box-shadow: 0 0 0 3px var(--lc-control-focus);
 }
-html:root body :is(.content,.lmp-content,.lc-auth-body,.lc-guest,.lcf-dialog,.lpe-dialog,.mcu-select-sheet)
-  :is(.search-box,.lcsp-search,.lca-search,.lcq-search,.lch-search>div,.lcf-search,.records-search-input,.rh-search,.lc-service-search,.mcu-option-search) input,
-html:root body :is(.content,.lmp-content,.lc-auth-body,.lc-guest,.lcf-dialog,.lpe-dialog,.mcu-select-sheet)
-  :is(.search-box,.lcsp-search,.lca-search,.lcq-search,.lch-search>div,.lcf-search,.records-search-input,.rh-search,.lc-service-search,.mcu-option-search) input:focus {
+html:root
+  body
+  :is(.content, .lmp-content, .lc-auth-body, .lc-guest, .lcf-dialog, .lpe-dialog, .mcu-select-sheet)
+  :is(
+    .search-box,
+    .lcsp-search,
+    .lca-search,
+    .lcq-search,
+    .lch-search > div,
+    .lcf-search,
+    .records-search-input,
+    .rh-search,
+    .lc-service-search,
+    .mcu-option-search
+  )
+  input,
+html:root
+  body
+  :is(.content, .lmp-content, .lc-auth-body, .lc-guest, .lcf-dialog, .lpe-dialog, .mcu-select-sheet)
+  :is(
+    .search-box,
+    .lcsp-search,
+    .lca-search,
+    .lcq-search,
+    .lch-search > div,
+    .lcf-search,
+    .records-search-input,
+    .rh-search,
+    .lc-service-search,
+    .mcu-option-search
+  )
+  input:focus {
   min-height: 40px;
   border: 0;
   border-radius: 0;
@@ -154,15 +256,39 @@ html:root body .app-page .content .dashboard-period-select select:focus {
   box-shadow: none;
 }
 html:root body .dashboard-period-select::before,
-html:root body .dashboard-period-select::after { content: none; }
+html:root body .dashboard-period-select::after {
+  content: none;
+}
 html body .member-directory-controls .filter-select:focus-within,
 html body .dashboard-period-select:focus-within {
   border-color: color-mix(in srgb, var(--lc-primary, #147d73) 64%, var(--lc-surface, #fff));
   box-shadow: 0 0 0 3px var(--lc-control-focus);
 }
 
-/* Normal actions become light, flat controls. Dedicated gesture/icon controls are excluded. */
-html body :is(button.primary-button,button.secondary-button,button.danger-button,button.rt-button,button.lc-auth-primary,button.lc-google-button,button.lca-confirm-button,button.lcb-confirm,button.lpe-primary,button.lcf-submit,button.records-more-filter-button,button.records-clear-filters,button.dashboard-refresh):not(.hold-button,.lc-refresh-icon,.lc-page-icon,.lc-camera-icon,.scanner-camera-switch,.lc-kiosk-toggle) {
+html
+  body
+  :is(
+    button.primary-button,
+    button.secondary-button,
+    button.danger-button,
+    button.rt-button,
+    button.lc-auth-primary,
+    button.lc-google-button,
+    button.lca-confirm-button,
+    button.lcb-confirm,
+    button.lpe-primary,
+    button.lcf-submit,
+    button.records-more-filter-button,
+    button.records-clear-filters,
+    button.dashboard-refresh
+  ):not(
+    .hold-button,
+    .lc-refresh-icon,
+    .lc-page-icon,
+    .lc-camera-icon,
+    .scanner-camera-switch,
+    .lc-kiosk-toggle
+  ) {
   min-height: 42px;
   padding: 10px 16px;
   border-radius: 10px;
@@ -175,12 +301,35 @@ html body :is(button.primary-button,button.secondary-button,button.danger-button
   transform: none;
   rotate: none;
 }
-html body :is(button.primary-button,button.lc-auth-primary,button.lca-confirm-button,button.lcb-confirm,button.lpe-primary,button.lcf-submit):not(.hold-button) {
+html
+  body
+  :is(
+    button.primary-button,
+    button.lc-auth-primary,
+    button.lca-confirm-button,
+    button.lcb-confirm,
+    button.lpe-primary,
+    button.lcf-submit
+  ):not(.hold-button) {
   border: 1px solid transparent;
   background: var(--lc-button, var(--lc-primary, #147d73));
   color: var(--lc-safe-button-text, var(--lc-onPrimary, #fff));
 }
-html body :is(button.secondary-button,button.rt-button,button.records-more-filter-button,button.records-clear-filters,button.dashboard-refresh):not(.lc-refresh-icon,.lc-page-icon,.lc-camera-icon,.scanner-camera-switch,.lc-kiosk-toggle) {
+html
+  body
+  :is(
+    button.secondary-button,
+    button.rt-button,
+    button.records-more-filter-button,
+    button.records-clear-filters,
+    button.dashboard-refresh
+  ):not(
+    .lc-refresh-icon,
+    .lc-page-icon,
+    .lc-camera-icon,
+    .scanner-camera-switch,
+    .lc-kiosk-toggle
+  ) {
   border: 1px solid var(--lc-control-border);
   background: var(--lc-buttonSecondary, var(--lc-surface, #fff));
   color: var(--lc-buttonText, var(--lc-primary, #147d73));
@@ -190,21 +339,59 @@ html body button.danger-button {
   background: var(--lc-dangerBg, #fff0ef);
   color: var(--lc-danger, #bd3535);
 }
-html body :is(button.primary-button,button.secondary-button,button.danger-button,button.rt-button,button.lc-auth-primary,button.lca-confirm-button,button.lcb-confirm,button.lpe-primary,button.lcf-submit,button.records-more-filter-button,button.records-clear-filters,button.dashboard-refresh):not(.hold-button,.lc-refresh-icon,.lc-page-icon,.lc-camera-icon,.scanner-camera-switch,.lc-kiosk-toggle):is(:hover,:active) {
+html
+  body
+  :is(
+    button.primary-button,
+    button.secondary-button,
+    button.danger-button,
+    button.rt-button,
+    button.lc-auth-primary,
+    button.lca-confirm-button,
+    button.lcb-confirm,
+    button.lpe-primary,
+    button.lcf-submit,
+    button.records-more-filter-button,
+    button.records-clear-filters,
+    button.dashboard-refresh
+  ):not(
+    .hold-button,
+    .lc-refresh-icon,
+    .lc-page-icon,
+    .lc-camera-icon,
+    .scanner-camera-switch,
+    .lc-kiosk-toggle
+  ):is(:hover, :active) {
   transform: none;
   rotate: none;
   box-shadow: 0 2px 7px color-mix(in srgb, var(--lc-shadow, #315b53) 9%, transparent);
 }
-html body :is(button.primary-button,button.lc-auth-primary,button.lca-confirm-button,button.lcb-confirm,button.lpe-primary,button.lcf-submit):not(:disabled):hover {
+html
+  body
+  :is(
+    button.primary-button,
+    button.lc-auth-primary,
+    button.lca-confirm-button,
+    button.lcb-confirm,
+    button.lpe-primary,
+    button.lcf-submit
+  ):not(:disabled):hover {
   background: var(--lc-buttonHover, #0e655c);
 }
-html body :is(button,input,textarea,select,summary,a):focus-visible {
+html body :is(button, input, textarea, select, summary, a):focus-visible {
   outline-color: var(--lc-primary, #147d73);
 }
 
-/* Page hero shortcuts lose the sticker tilt and oversized hard drop shadow. */
-html body :is(.members-editorial-hero,.members-page-heading,.services-page-heading,.services-editorial-hero,.records-page-heading)
-  :is(.members-create-action,.services-create-action,.records-hero-action) {
+html
+  body
+  :is(
+    .members-editorial-hero,
+    .members-page-heading,
+    .services-page-heading,
+    .services-editorial-hero,
+    .records-page-heading
+  )
+  :is(.members-create-action, .services-create-action, .records-hero-action) {
   min-height: 92px;
   max-width: 300px;
   align-self: center;
@@ -218,23 +405,50 @@ html body :is(.members-editorial-hero,.members-page-heading,.services-page-headi
   transform: none;
   rotate: none;
 }
-html body :is(.members-editorial-hero,.members-page-heading,.services-page-heading,.services-editorial-hero,.records-page-heading)
-  :is(.members-create-action,.services-create-action,.records-hero-action):is(:hover,:focus-visible,:active) {
+html
+  body
+  :is(
+    .members-editorial-hero,
+    .members-page-heading,
+    .services-page-heading,
+    .services-editorial-hero,
+    .records-page-heading
+  )
+  :is(.members-create-action, .services-create-action, .records-hero-action):is(
+    :hover,
+    :focus-visible,
+    :active
+  ) {
   transform: none;
   rotate: none;
   border-color: color-mix(in srgb, var(--lc-primary, #147d73) 30%, var(--lc-surface, #fff));
   background: var(--lc-surface, #fff);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--lc-shadow, #315b53) 8%, transparent);
 }
-html body :is(.members-create-action,.services-create-action,.records-hero-action) strong {
+html body :is(.members-create-action, .services-create-action, .records-hero-action) strong {
   color: var(--lc-heading, #173e37);
   font-size: 16px;
   font-weight: 600;
   line-height: 1.4;
 }
-html body :is(.members-create-action-kicker,.services-create-action-kicker,.records-hero-action-kicker) { font-size: 10px; font-weight: 550; letter-spacing: .06em; color: var(--lc-primary, #147d73); }
-html body :is(.members-create-action-note,.services-create-action-note,.records-hero-action-note) { font-size: 12px; font-weight: 400; color: var(--lc-safe-muted, var(--lc-muted, #60796f)); }
-html body :is(.members-create-action-icon,.services-create-action-icon,.records-hero-action-icon) {
+html
+  body
+  :is(.members-create-action-kicker, .services-create-action-kicker, .records-hero-action-kicker) {
+  font-size: 10px;
+  font-weight: 550;
+  letter-spacing: 0.06em;
+  color: var(--lc-primary, #147d73);
+}
+html
+  body
+  :is(.members-create-action-note, .services-create-action-note, .records-hero-action-note) {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--lc-safe-muted, var(--lc-muted, #60796f));
+}
+html
+  body
+  :is(.members-create-action-icon, .services-create-action-icon, .records-hero-action-icon) {
   width: 30px;
   height: 30px;
   border-radius: 9px;
@@ -243,28 +457,73 @@ html body :is(.members-create-action-icon,.services-create-action-icon,.records-
   box-shadow: none;
   transform: none;
 }
-html body :is(.members-editorial-hero,.members-page-heading,.services-page-heading,.services-editorial-hero,.records-page-heading)
-  :is(.members-create-action,.services-create-action,.records-hero-action):is(:hover,:focus-visible,:active)
-  :is(.members-create-action-icon,.services-create-action-icon,.records-hero-action-icon) {
+html
+  body
+  :is(
+    .members-editorial-hero,
+    .members-page-heading,
+    .services-page-heading,
+    .services-editorial-hero,
+    .records-page-heading
+  )
+  :is(.members-create-action, .services-create-action, .records-hero-action):is(
+    :hover,
+    :focus-visible,
+    :active
+  )
+  :is(.members-create-action-icon, .services-create-action-icon, .records-hero-action-icon) {
   background: var(--lc-glowPrimary, #e5f5ef);
   color: var(--lc-primary, #147d73);
   transform: none;
 }
 
 @media (max-width: 900px) {
-  html body :is(.members-editorial-hero,.members-page-heading,.services-page-heading,.services-editorial-hero,.records-page-heading)
-    :is(.members-create-action,.services-create-action,.records-hero-action) {
+  html
+    body
+    :is(
+      .members-editorial-hero,
+      .members-page-heading,
+      .services-page-heading,
+      .services-editorial-hero,
+      .records-page-heading
+    )
+    :is(.members-create-action, .services-create-action, .records-hero-action) {
     min-height: 44px;
     width: auto;
     max-width: none;
     padding: 10px 12px;
   }
-  html body :is(.members-create-action,.services-create-action,.records-hero-action) strong { font-size: 12px; }
-  html body :is(.content,.lmp-content,.lc-auth-body,.lc-guest,.lcf-dialog,.lpe-dialog,.mcu-select-sheet)
-    :is(input,textarea,select):not([type='checkbox'],[type='radio'],[type='range'],[type='color'],[type='file'],[type='hidden']):not(.lc-color-picker *) { font-size: 16px; }
+  html body :is(.members-create-action, .services-create-action, .records-hero-action) strong {
+    font-size: 12px;
+  }
+  html
+    body
+    :is(
+      .content,
+      .lmp-content,
+      .lc-auth-body,
+      .lc-guest,
+      .lcf-dialog,
+      .lpe-dialog,
+      .mcu-select-sheet
+    )
+    :is(input, textarea, select):not(
+      [type='checkbox'],
+      [type='radio'],
+      [type='range'],
+      [type='color'],
+      [type='file'],
+      [type='hidden']
+    ):not(.lc-color-picker *) {
+    font-size: 16px;
+  }
 }
 
 @media (forced-colors: active) {
-  html body :is(.content,.lmp-content,.lc-auth-body,.lc-guest,.lcf-dialog,.lpe-dialog)
-    :is(input[type='checkbox'],input[type='radio']):not(.service-sunday-checkbox input) { forced-color-adjust: auto; }
+  html
+    body
+    :is(.content, .lmp-content, .lc-auth-body, .lc-guest, .lcf-dialog, .lpe-dialog)
+    :is(input[type='checkbox'], input[type='radio']):not(.service-sunday-checkbox input) {
+    forced-color-adjust: auto;
+  }
 }

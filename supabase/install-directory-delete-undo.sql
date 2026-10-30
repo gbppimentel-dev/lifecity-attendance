@@ -1,6 +1,3 @@
--- LifeCity: safe empty-ministry deletion for the directory's Undo action.
--- Run this whole file once in the Supabase SQL editor for your LifeCity project.
--- This installs one function. It does not reset data or change existing policies.
 begin;
 
 create or replace function public.lc_delete_empty_ministry(p_id uuid)
@@ -19,10 +16,6 @@ begin
     raise exception 'A ministry ID is required.' using errcode = '22023';
   end if;
 
-  -- FOR UPDATE conflicts with the FK's KEY SHARE lock for new assignments.
-  -- If an assignment committed while this lock was waiting, the next statement
-  -- sees it before DELETE. If this lock wins, a later assignment cannot commit
-  -- against a deleted parent. Keep this separate from the membership check.
   perform 1 from public.ministries where id = p_id for update;
   if not found then return null; end if;
 
@@ -39,7 +32,7 @@ $function$;
 revoke all on function public.lc_delete_empty_ministry(uuid) from public, anon;
 grant execute on function public.lc_delete_empty_ministry(uuid) to authenticated;
 comment on function public.lc_delete_empty_ministry(uuid) is
-  'LC-DIRECTORY-UNDO-v1: locks and deletes only an empty ministry, returning its complete Undo snapshot; caller RLS remains active.';
+  'Locks and deletes only an empty ministry, returning its complete Undo snapshot; caller RLS remains active.';
 
 notify pgrst, 'reload schema';
 commit;

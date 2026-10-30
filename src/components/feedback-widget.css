@@ -1,0 +1,508 @@
+html:root body dialog.lcf-dialog.lcf-compose-panel {
+  position: fixed;
+  inset: 16px 16px 16px auto;
+  display: none;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(560px, calc(100vw - 32px));
+  height: calc(100dvh - 32px);
+  min-width: 0;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid
+    color-mix(in srgb, var(--lc-primary, #147d73) 22%, var(--lc-panel-border, #dce9e4));
+  border-radius: 23px;
+  background: var(--lc-surface, #fff);
+  color: var(--lc-text, #536d67);
+  box-shadow: 0 24px 80px rgb(20 56 47 / 19%);
+  font-family: inherit;
+  isolation: isolate;
+  animation: none;
+  transform: none;
+}
+html:root body dialog.lcf-dialog.lcf-compose-panel[open] {
+  display: flex;
+}
+html:root body dialog.lcf-dialog.lcf-compose-panel::backdrop {
+  background: color-mix(in srgb, var(--lc-heading, #163c36) 22%, transparent);
+  backdrop-filter: blur(3px);
+}
+html:root body .lcf-compose-panel .lcf-compose__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  flex-shrink: 0;
+  padding: 25px 25px 22px;
+  border-bottom: 1px solid var(--lc-panel-border, #dce9e4);
+  background:
+    radial-gradient(
+      ellipse at 100% 0,
+      color-mix(in srgb, var(--lc-secondary, #7964ad) 9%, transparent),
+      transparent 64%
+    ),
+    linear-gradient(
+      110deg,
+      color-mix(in srgb, var(--lc-primary, #147d73) 6%, var(--lc-surface, #fff)),
+      var(--lc-surface, #fff)
+    );
+}
+html:root body .lcf-compose-panel .lcf-compose__art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 43px;
+  width: 43px;
+  height: 43px;
+  border: 1px solid color-mix(in srgb, var(--lc-primary, #147d73) 16%, transparent);
+  border-radius: 14px;
+  background: var(--lc-glowPrimary, #e5f5ef);
+  color: var(--lc-primary, #147d73);
+}
+html:root body .lcf-compose-panel .lcf-compose__art > svg:last-child {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  color: var(--lc-secondary, #7964ad);
+  padding: 2px;
+  box-sizing: content-box;
+  background: var(--lc-surface, #fff);
+  border-radius: 50%;
+}
+html:root body .lcf-compose-panel .lcf-compose__intro {
+  flex: 1;
+  min-width: 0;
+}
+html:root body .lcf-compose-panel .lcf-compose__eyebrow {
+  margin: 0 0 6px;
+  color: var(--lc-primary, #147d73);
+  font-size: 9px;
+  line-height: 1.5;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+html:root body .lcf-compose-panel .lcf-compose__intro h2 {
+  margin: 0;
+  color: var(--lc-heading, #163c36);
+  font-size: 22px;
+  line-height: 1.3;
+  letter-spacing: -0.035em;
+  font-weight: 650;
+  text-wrap: balance;
+}
+html:root body .lcf-compose-panel .lcf-compose__intro > p:last-child {
+  margin: 8px 0 0;
+  color: var(--lc-muted, #71877f);
+  font-size: 11px;
+  line-height: 1.6;
+}
+html:root body .lcf-compose-panel .lcf-compose__close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 33px;
+  width: 33px;
+  height: 33px;
+  min-height: 33px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--lc-panel-border, #dce9e4);
+  border-radius: 11px;
+  background: var(--lc-surface, #fff);
+  color: var(--lc-text, #536d67);
+  box-shadow: none;
+  cursor: pointer;
+}
+html:root body .lcf-compose-panel .lcf-compose__close:is(:hover, :focus-visible) {
+  color: var(--lc-primary, #147d73);
+  border-color: color-mix(in srgb, var(--lc-primary, #147d73) 38%, var(--lc-panel-border, #dce9e4));
+  background: color-mix(in srgb, var(--lc-primary, #147d73) 5%, var(--lc-surface, #fff));
+}
+html:root body .lcf-compose-panel .lcf-compose__form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+}
+html:root body .lcf-compose-panel :is(.lcf-compose__body, .lcf-compose__state-body) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px 25px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--lc-primary, #147d73) 25%, transparent) transparent;
+}
+html:root body .lcf-compose-panel fieldset {
+  display: grid;
+  gap: 21px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+html:root body .lcf-compose-panel .lcf-compose__category-section h3 {
+  margin: 0 0 12px;
+  color: var(--lc-heading, #163c36);
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+html:root body .lcf-compose-panel .lcf-compose__categories {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+html:root body .lcf-compose-panel .lcf-compose__categories > button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  min-height: 54px;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--lc-panel-border, #dce9e4);
+  border-radius: 12px;
+  background: var(--lc-surface, #fff);
+  color: var(--lc-text, #536d67);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.45;
+  font-weight: 550;
+  text-align: left;
+  box-shadow: 0 1px 2px rgb(23 62 55 / 3%);
+  cursor: pointer;
+}
+html:root
+  body
+  .lcf-compose-panel
+  .lcf-compose__categories
+  > button:is(:hover, [aria-pressed='true']) {
+  border-color: color-mix(in srgb, var(--lc-primary, #147d73) 40%, var(--lc-panel-border, #dce9e4));
+  background: color-mix(in srgb, var(--lc-primary, #147d73) 4%, var(--lc-surface, #fff));
+  color: var(--lc-primary, #147d73);
+}
+html:root body .lcf-compose-panel .lcf-compose__categories > button[aria-pressed='true'] {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--lc-primary, #147d73) 7%, transparent);
+}
+html:root body .lcf-compose-panel .lcf-compose__category-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--lc-glowPrimary, #e5f5ef);
+  color: var(--lc-primary, #147d73);
+}
+html:root body .lcf-compose-panel [data-category='idea'] .lcf-compose__category-icon {
+  color: #a17732;
+  background: #fff4de;
+}
+html:root body .lcf-compose-panel [data-category='improvement'] .lcf-compose__category-icon {
+  color: var(--lc-secondary, #7964ad);
+  background: color-mix(in srgb, var(--lc-secondary, #7964ad) 9%, var(--lc-surface, #fff));
+}
+html:root body .lcf-compose-panel .lcf-compose__selected {
+  display: grid;
+  place-items: center;
+  flex: 0 0 13px;
+  width: 13px;
+  margin-left: auto;
+  color: var(--lc-primary, #147d73);
+}
+html:root body .lcf-compose-panel .lcf-compose__field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  color: var(--lc-heading, #163c36);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.45;
+}
+html:root body dialog.lcf-dialog.lcf-compose-panel .lcf-compose__field :is(input, textarea) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 43px;
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--lc-control-border, var(--lc-panel-border, #dce9e4));
+  border-radius: 11px;
+  background: var(--lc-input, var(--lc-surface, #fff));
+  color: var(--lc-heading, #163c36);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.7;
+  font-weight: 400;
+  box-shadow: 0 1px 2px rgb(23 62 55 / 3%);
+}
+html:root body dialog.lcf-dialog.lcf-compose-panel .lcf-compose__field textarea {
+  height: 108px;
+  min-height: 108px;
+  max-height: none;
+  resize: vertical;
+}
+html:root body dialog.lcf-dialog.lcf-compose-panel .lcf-compose__field :is(input, textarea):focus {
+  outline: 0;
+  border-color: var(--lc-primary, #147d73);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lc-primary, #147d73) 10%, transparent);
+}
+html:root body .lcf-compose-panel .lcf-compose__field small {
+  justify-self: end;
+  margin-top: -3px;
+  color: var(--lc-muted, #71877f);
+  font-size: 10px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+html:root body .lcf-compose-panel .lcf-compose__anonymous {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 47px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--lc-panel-border, #dce9e4);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--lc-primary, #147d73) 3%, var(--lc-surface, #fff));
+  color: var(--lc-text, #536d67);
+  font-size: 12px;
+  font-weight: 550;
+  cursor: pointer;
+}
+html:root body .lcf-compose-panel .lcf-compose__anonymous input {
+  margin: 0;
+  flex: 0 0 17px;
+  width: 17px;
+  height: 17px;
+  accent-color: var(--lc-primary, #147d73);
+}
+html:root body .lcf-compose-panel .lcf-compose__anonymous > svg {
+  margin-left: auto;
+  color: var(--lc-muted, #71877f);
+}
+html:root body .lcf-compose-panel .lcf-compose__anonymous:has(input:checked) {
+  border-color: color-mix(in srgb, var(--lc-primary, #147d73) 30%, var(--lc-panel-border, #dce9e4));
+  background: var(--lc-glowPrimary, #e5f5ef);
+  color: var(--lc-primary, #147d73);
+}
+html:root body .lcf-compose-panel .lcf-compose__footer {
+  flex-shrink: 0;
+  padding: 17px 25px;
+  border-top: 1px solid var(--lc-panel-border, #dce9e4);
+  background: color-mix(in srgb, var(--lc-primary, #147d73) 3%, var(--lc-surface, #fff));
+}
+html:root body .lcf-compose-panel .lcf-compose__body {
+  padding-block: 20px;
+}
+html:root body .lcf-compose-panel .lcf-compose__footer .lcf-compose__anonymous {
+  margin-bottom: 12px;
+}
+html:root body .lcf-compose-panel .lcf-compose__footer .lcf-compose__error {
+  margin: 0 0 12px;
+}
+html:root body .lcf-compose-panel .lcf-compose__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 41px;
+  margin: 0;
+  padding: 10px 15px;
+  border: 1px solid var(--lc-panel-border, #dce9e4);
+  border-radius: 11px;
+  background: var(--lc-surface, #fff);
+  color: var(--lc-primary, #147d73);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgb(23 62 55 / 3%);
+  cursor: pointer;
+}
+html:root body .lcf-compose-panel .lcf-compose__button.is-primary {
+  border-color: var(--lc-primary, #147d73);
+  background: var(--lc-primary, #147d73);
+  color: var(--lc-onPrimary, #fff);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--lc-primary, #147d73) 13%, transparent);
+}
+html:root body .lcf-compose-panel .lcf-compose__button:hover:not(:disabled) {
+  background: var(--lc-glowPrimary, #e5f5ef);
+}
+html:root body .lcf-compose-panel .lcf-compose__button.is-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--lc-primary, #147d73) 90%, #123b33);
+  box-shadow: 0 5px 13px color-mix(in srgb, var(--lc-primary, #147d73) 20%, transparent);
+}
+html:root body .lcf-compose-panel .lcf-compose__submit {
+  width: 100%;
+}
+html:root body .lcf-compose-panel :is(button, input, textarea):disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+html:root body .lcf-compose-panel button:focus-visible {
+  outline: 2px solid var(--lc-primary, #147d73);
+  outline-offset: 3px;
+}
+html:root body .lcf-compose-panel .lcf-compose__error {
+  margin: 18px 0 0;
+  padding: 11px 13px;
+  border: 1px solid #edc9c5;
+  border-radius: 11px;
+  background: #fff5f3;
+  color: #a64b43;
+  font-size: 12px;
+  line-height: 1.65;
+}
+html:root body .lcf-compose-panel .lcf-compose__state-body {
+  display: grid;
+  align-content: center;
+}
+html:root body .lcf-compose-panel .lcf-compose__checking {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--lc-muted, #71877f);
+}
+html:root body .lcf-compose-panel .lcf-compose__notice {
+  display: grid;
+  justify-items: center;
+  gap: 15px;
+  padding: 25px 12px;
+  text-align: center;
+}
+html:root body .lcf-compose-panel .lcf-compose__notice-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid
+    color-mix(in srgb, var(--lc-primary, #147d73) 18%, var(--lc-panel-border, #dce9e4));
+  border-radius: 21px;
+  background: var(--lc-glowPrimary, #e5f5ef);
+  color: var(--lc-primary, #147d73);
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--lc-primary, #147d73) 6%, transparent);
+}
+html:root body .lcf-compose-panel .lcf-compose__notice h3 {
+  max-width: 330px;
+  margin: 0;
+  color: var(--lc-heading, #163c36);
+  font-size: 22px;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+  font-weight: 650;
+}
+html:root body .lcf-compose-panel .lcf-compose__notice p {
+  max-width: 355px;
+  margin: 0;
+  color: var(--lc-muted, #71877f);
+  font-size: 12px;
+  line-height: 1.8;
+}
+html:root body .lcf-compose-panel .lcf-compose__notice .lcf-compose__button {
+  margin-top: 7px;
+}
+html:root body .lcf-compose-launcher:is(:hover, :focus-visible) {
+  border-color: color-mix(in srgb, var(--lc-primary, #147d73) 40%, var(--lc-panel-border, #dce9e4));
+  box-shadow: 0 5px 16px color-mix(in srgb, var(--lc-primary, #147d73) 14%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:root[data-lc-motion='on'] body dialog.lcf-dialog.lcf-compose-panel[open] {
+    animation: lcf-compose-enter 0.24s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  html:root[data-lc-motion='on'] body dialog.lcf-dialog.lcf-compose-panel[open]::backdrop {
+    animation: lcf-compose-fade 0.18s ease-out both;
+  }
+  html:root[data-lc-motion='on'] body .lcf-compose-panel :is(button, .lcf-compose__anonymous) {
+    transition:
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      box-shadow 0.18s ease,
+      transform 0.18s ease;
+  }
+  html:root[data-lc-motion='on']
+    body
+    .lcf-compose-panel
+    .lcf-compose__button:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  html:root[data-lc-motion='on'] body .lcf-compose-panel .lcf-compose__spinner {
+    animation: lcf-compose-spin 0.9s linear infinite;
+  }
+}
+@keyframes lcf-compose-enter {
+  from {
+    opacity: 0.8;
+    transform: translateX(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lcf-compose-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes lcf-compose-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (max-width: 620px) {
+  html:root body dialog.lcf-dialog.lcf-compose-panel {
+    inset: 8px 8px 8px auto;
+    width: calc(100vw - 16px);
+    height: calc(100dvh - 16px);
+    border-radius: 19px;
+  }
+  html:root body .lcf-compose-panel .lcf-compose__header {
+    padding: 20px 17px;
+    gap: 10px;
+  }
+  html:root body .lcf-compose-panel .lcf-compose__art {
+    flex-basis: 37px;
+    width: 37px;
+    height: 37px;
+    border-radius: 12px;
+  }
+  html:root body .lcf-compose-panel .lcf-compose__intro h2 {
+    font-size: 20px;
+  }
+  html:root body .lcf-compose-panel .lcf-compose__eyebrow {
+    font-size: 8px;
+  }
+  html:root body .lcf-compose-panel :is(.lcf-compose__body, .lcf-compose__state-body) {
+    padding: 21px 17px;
+  }
+  html:root body .lcf-compose-panel .lcf-compose__categories > button {
+    gap: 6px;
+    padding: 8px;
+    font-size: 10px;
+  }
+  html:root body .lcf-compose-panel .lcf-compose__category-icon {
+    flex-basis: 28px;
+    width: 28px;
+    height: 28px;
+  }
+  html:root body dialog.lcf-dialog.lcf-compose-panel .lcf-compose__field :is(input, textarea) {
+    font-size: 16px !important;
+  }
+  html:root body .lcf-compose-panel .lcf-compose__footer {
+    padding: 15px 17px;
+  }
+}

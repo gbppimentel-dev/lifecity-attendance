@@ -1,70 +1,252 @@
-/* Phone workspace chrome. Desktop styles above 900px remain unchanged. */
 @media (max-width: 900px) {
   html:root body .lc-mobile-workspace[data-mobile-page] {
     --lc-phone-topbar-height: calc(64px + env(safe-area-inset-top, 0px));
     --lc-phone-nav-height: 72px;
     --lc-mobile-topbar-height: var(--lc-phone-topbar-height);
     --lc-mobile-nav-height: var(--lc-phone-nav-height);
-    display: flex; flex-direction: column; box-sizing: border-box;
-    min-height: 100dvh; width: 100%; min-width: 0;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-height: 100dvh;
+    width: 100%;
+    min-width: 0;
     padding-bottom: calc(var(--lc-phone-nav-height) + env(safe-area-inset-bottom, 0px) + 10px);
   }
   html:root body .lc-mobile-workspace[data-mobile-page] > .topbar {
-    position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: nowrap;
-    align-items: center; justify-content: space-between; gap: 8px;
-    width: 100%; height: var(--lc-phone-topbar-height); min-height: var(--lc-phone-topbar-height);
-    margin: 0; padding: calc(8px + env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) 8px max(14px, env(safe-area-inset-left, 0px));
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    height: var(--lc-phone-topbar-height);
+    min-height: var(--lc-phone-topbar-height);
+    margin: 0;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px))
+      8px max(14px, env(safe-area-inset-left, 0px));
     background: color-mix(in srgb, var(--lc-surface, #fff) 97%, transparent);
     box-shadow: 0 3px 14px color-mix(in srgb, var(--lc-primary, #147d73) 4%, transparent);
   }
-  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar .main-nav { display: none; }
-  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar > .brand { flex: 1; min-width: 0; gap: 8px; font-size: 14px; line-height: 1.25; letter-spacing: -.025em; }
-  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar > .brand > span { min-width: 0; white-space: nowrap; }
-  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar .brand-icon.small { width: 31px; height: 31px; min-width: 31px; border-radius: 10px; }
-  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar .brand-icon > svg { width: 19px; height: 19px; }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu { flex: none; margin: 0; }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu > summary { min-height: 44px; padding: 7px 9px; gap: 6px; border-radius: 12px; }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu > summary small { display: none; }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu > summary strong { font-size: 11px; line-height: 1.3; }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu > summary .lc-account-avatar { display: grid; place-items: center; width: 25px; height: 25px; font-size: 10px; border-radius: 8px; }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-popover { max-height: calc(100dvh - var(--lc-phone-topbar-height) - 24px); overflow-y: auto; overscroll-behavior: contain; }
-  html:root body .lc-mobile-workspace[data-mobile-page] > .content { flex: 1 0 auto; width: 100%; min-width: 0; min-height: 0; margin: 0; padding: 14px 14px 12px; }
-  html:root body .lc-mobile-workspace[data-mobile-page] > .lc-app-footer { width: 100%; margin-top: auto; padding: 14px 18px 8px; font-size: 10px; overflow-wrap: anywhere; }
-  html:root body .lc-mobile-workspace[data-mobile-page] > .lc-app-footer .lc-footer-credit { font-size: 10px; line-height: 1.55; white-space: normal; }
-  html:root body .lc-mobile-workspace[data-mobile-page] > .lc-app-footer .lc-footer-verse { max-width: 310px; font-size: 9px; line-height: 1.55; }
+  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar .main-nav {
+    display: none;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar > .brand {
+    flex: 1;
+    min-width: 0;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1.25;
+    letter-spacing: -0.025em;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar > .brand > span {
+    min-width: 0;
+    white-space: nowrap;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar .brand-icon.small {
+    width: 31px;
+    height: 31px;
+    min-width: 31px;
+    border-radius: 10px;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar .brand-icon > svg {
+    width: 19px;
+    height: 19px;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu {
+    flex: none;
+    margin: 0;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu > summary {
+    min-height: 44px;
+    padding: 7px 9px;
+    gap: 6px;
+    border-radius: 12px;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu > summary small {
+    display: none;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu > summary strong {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  html:root
+    body
+    .lc-mobile-workspace[data-mobile-page]
+    .lc-account-menu
+    > summary
+    .lc-account-avatar {
+    display: grid;
+    place-items: center;
+    width: 25px;
+    height: 25px;
+    font-size: 10px;
+    border-radius: 8px;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-popover {
+    max-height: calc(100dvh - var(--lc-phone-topbar-height) - 24px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] > .content {
+    flex: 1 0 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    padding: 14px 14px 12px;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] > .lc-app-footer {
+    width: 100%;
+    margin-top: auto;
+    padding: 14px 18px 8px;
+    font-size: 10px;
+    overflow-wrap: anywhere;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] > .lc-app-footer .lc-footer-credit {
+    font-size: 10px;
+    line-height: 1.55;
+    white-space: normal;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] > .lc-app-footer .lc-footer-verse {
+    max-width: 310px;
+    font-size: 9px;
+    line-height: 1.55;
+  }
   html:root body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav {
-    left: max(8px, env(safe-area-inset-left, 0px)); right: max(8px, env(safe-area-inset-right, 0px)); bottom: 0;
+    left: max(8px, env(safe-area-inset-left, 0px));
+    right: max(8px, env(safe-area-inset-right, 0px));
+    bottom: 0;
     min-height: calc(var(--lc-phone-nav-height) + env(safe-area-inset-bottom, 0px));
-    padding: 6px 5px calc(6px + env(safe-area-inset-bottom, 0px)); gap: 3px; border-radius: 20px 20px 0 0;
+    padding: 6px 5px calc(6px + env(safe-area-inset-bottom, 0px));
+    gap: 3px;
+    border-radius: 20px 20px 0 0;
     background: color-mix(in srgb, var(--lc-surface, #fff) 97%, transparent);
     box-shadow: 0 -5px 20px color-mix(in srgb, var(--lc-primary, #147d73) 7%, transparent);
   }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav > button { position: relative; min-height: 56px; padding: 6px 3px; gap: 4px; font-size: 10px; font-weight: 600; line-height: 1.3; border-radius: 14px; }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav > button > svg { width: 21px; height: 21px; }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav > button.is-current { background: color-mix(in srgb, var(--lc-primary, #147d73) 10%, var(--lc-surface, #fff)); color: var(--lc-primary, #147d73); }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav > button.is-current::after { content: ''; position: absolute; bottom: 3px; left: calc(50% - 7px); width: 14px; height: 2px; border-radius: 3px; background: currentColor; opacity: .5; }
-  html:root body:has(.lc-mobile-workspace[data-mobile-page]) .lcf-floating { width: 44px; height: 44px; min-height: 44px; padding: 0; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); border-radius: 15px; box-shadow: 0 3px 12px color-mix(in srgb, var(--lc-primary, #147d73) 10%, transparent); }
-  html:root body:has(.lc-mobile-workspace[data-mobile-page]) .lcf-floating > svg { width: 19px; height: 19px; }
-  html:root body .lcm-menu { width: calc(100% - 16px); max-height: min(620px, calc(100dvh - 24px)); overflow-y: auto; border-radius: 22px 22px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px)); }
-  html:root body .lcm-menu-heading h2 { font-size: 21px; }
-  html:root body .lcm-menu-intro { font-size: 12px; }
-  html:root body .lcm-menu-links > button { min-height: 62px; padding: 12px; }
-  html:root body .lcm-menu-links strong { font-size: 14px; }
-  html:root body .lcm-menu-links small { font-size: 11px; line-height: 1.4; }
-  html:root body .lcm-close { min-width: 44px; min-height: 44px; }
-  html:root.lc-keyboard-editing body .lc-mobile-workspace[data-mobile-page] { padding-bottom: 12px; }
+  html:root body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav > button {
+    position: relative;
+    min-height: 56px;
+    padding: 6px 3px;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.3;
+    border-radius: 14px;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav > button > svg {
+    width: 21px;
+    height: 21px;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav > button.is-current {
+    background: color-mix(in srgb, var(--lc-primary, #147d73) 10%, var(--lc-surface, #fff));
+    color: var(--lc-primary, #147d73);
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav > button.is-current::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: calc(50% - 7px);
+    width: 14px;
+    height: 2px;
+    border-radius: 3px;
+    background: currentColor;
+    opacity: 0.5;
+  }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page]) .lcf-floating {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    right: 16px;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    border-radius: 15px;
+    box-shadow: 0 3px 12px color-mix(in srgb, var(--lc-primary, #147d73) 10%, transparent);
+  }
+  html:root body:has(.lc-mobile-workspace[data-mobile-page]) .lcf-floating > svg {
+    width: 19px;
+    height: 19px;
+  }
+  html:root body .lcm-menu {
+    width: calc(100% - 16px);
+    max-height: min(620px, calc(100dvh - 24px));
+    overflow-y: auto;
+    border-radius: 22px 22px 0 0;
+    padding: 18px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+  html:root body .lcm-menu-heading h2 {
+    font-size: 21px;
+  }
+  html:root body .lcm-menu-intro {
+    font-size: 12px;
+  }
+  html:root body .lcm-menu-links > button {
+    min-height: 62px;
+    padding: 12px;
+  }
+  html:root body .lcm-menu-links strong {
+    font-size: 14px;
+  }
+  html:root body .lcm-menu-links small {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  html:root body .lcm-close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  html:root.lc-keyboard-editing body .lc-mobile-workspace[data-mobile-page] {
+    padding-bottom: 12px;
+  }
   html:root.lc-keyboard-editing body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav,
-  html:root.lc-keyboard-editing body:has(.lc-mobile-workspace[data-mobile-page]) .lcf-floating { display: none; }
-  html:root body .lc-mobile-workspace[data-mobile-page]:has(.scanner-layout.is-kiosk-mode) .lcm-bottom-nav,
-  html:root body:has(.lc-mobile-workspace[data-mobile-page] .scanner-layout.is-kiosk-mode) .lcf-floating { display: none; }
+  html:root.lc-keyboard-editing body:has(.lc-mobile-workspace[data-mobile-page]) .lcf-floating {
+    display: none;
+  }
+  html:root
+    body
+    .lc-mobile-workspace[data-mobile-page]:has(.scanner-layout.is-kiosk-mode)
+    .lcm-bottom-nav,
+  html:root
+    body:has(.lc-mobile-workspace[data-mobile-page] .scanner-layout.is-kiosk-mode)
+    .lcf-floating {
+    display: none;
+  }
 }
 @media (max-width: 350px) {
-  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar { gap: 6px; padding-inline: 10px; }
-  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar > .brand { gap: 7px; font-size: 12px; }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu > summary { padding: 7px; }
-  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu > summary .lc-account-avatar { display: none; }
+  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar {
+    gap: 6px;
+    padding-inline: 10px;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] > .topbar > .brand {
+    gap: 7px;
+    font-size: 12px;
+  }
+  html:root body .lc-mobile-workspace[data-mobile-page] .lc-account-menu > summary {
+    padding: 7px;
+  }
+  html:root
+    body
+    .lc-mobile-workspace[data-mobile-page]
+    .lc-account-menu
+    > summary
+    .lc-account-avatar {
+    display: none;
+  }
 }
 @media (max-width: 900px) and (prefers-reduced-motion: no-preference) {
-  html[data-lc-motion='on'] body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav > button { transition: background-color .18s ease, color .18s ease, transform .16s ease; }
-  html[data-lc-motion='on'] body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav > button:active { transform: scale(.96); }
+  html[data-lc-motion='on'] body .lc-mobile-workspace[data-mobile-page] .lcm-bottom-nav > button {
+    transition:
+      background-color 0.18s ease,
+      color 0.18s ease,
+      transform 0.16s ease;
+  }
+  html[data-lc-motion='on']
+    body
+    .lc-mobile-workspace[data-mobile-page]
+    .lcm-bottom-nav
+    > button:active {
+    transform: scale(0.96);
+  }
 }

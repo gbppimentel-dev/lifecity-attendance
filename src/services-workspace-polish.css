@@ -1,100 +1,565 @@
-/* Services shares the directory's scale, control rhythm and teal identity. */
 html:root body .services-editorial-hero .services-create-action {
-  position:relative;isolation:isolate;overflow:hidden;min-width:238px;min-height:106px;padding:18px 62px 18px 20px;
-  border:1px solid color-mix(in srgb,var(--lc-primary,#147d73) 68%,var(--lc-heading,#173e37));border-radius:14px;
-  background:linear-gradient(125deg,var(--lc-primary,#147d73),color-mix(in srgb,var(--lc-primary,#147d73) 78%,var(--lc-heading,#173e37)));
-  color:var(--lc-onPrimary,#fff);box-shadow:0 7px 20px color-mix(in srgb,var(--lc-primary,#147d73) 20%,transparent);font-family:inherit;text-align:left;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-width: 238px;
+  min-height: 106px;
+  padding: 18px 62px 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--lc-primary, #147d73) 68%, var(--lc-heading, #173e37));
+  border-radius: 14px;
+  background: linear-gradient(
+    125deg,
+    var(--lc-primary, #147d73),
+    color-mix(in srgb, var(--lc-primary, #147d73) 78%, var(--lc-heading, #173e37))
+  );
+  color: var(--lc-onPrimary, #fff);
+  box-shadow: 0 7px 20px color-mix(in srgb, var(--lc-primary, #147d73) 20%, transparent);
+  font-family: inherit;
+  text-align: left;
 }
-html:root body .services-create-action::after{content:'';position:absolute;z-index:-1;width:125px;height:125px;right:-54px;bottom:-65px;border:1px solid color-mix(in srgb,var(--lc-onPrimary,#fff) 24%,transparent);border-radius:50%;background:color-mix(in srgb,var(--lc-onPrimary,#fff) 7%,transparent);pointer-events:none}
-html:root body .services-editorial-hero .services-create-action strong{font-size:19px;font-weight:650;color:inherit}
-html:root body .services-editorial-hero :is(.services-create-action-kicker,.services-create-action-note){color:inherit;opacity:.88}
-html:root body .services-editorial-hero .services-create-action-kicker{font-size:9px;letter-spacing:.09em}
-html:root body .services-editorial-hero .services-create-action-icon{width:35px;height:35px;top:18px;right:17px;border:1px solid color-mix(in srgb,var(--lc-onPrimary,#fff) 22%,transparent);background:color-mix(in srgb,var(--lc-onPrimary,#fff) 14%,transparent);color:inherit}
-html:root body .services-editorial-hero .services-create-action:is(:hover,:focus-visible){box-shadow:0 9px 25px color-mix(in srgb,var(--lc-primary,#147d73) 25%,transparent);background:linear-gradient(125deg,color-mix(in srgb,var(--lc-primary,#147d73) 94%,var(--lc-heading,#173e37)),color-mix(in srgb,var(--lc-primary,#147d73) 74%,var(--lc-heading,#173e37)))}
-html:root body .lc-services-directory.lcsp-directory{padding:0;overflow:visible;scroll-margin-top:94px}
-html:root body .lcsp-directory .directory-toolbar.services-directory-toolbar{display:block;margin:0;padding:24px 24px 18px;border:0;border-radius:16px 16px 0 0;background:linear-gradient(110deg,color-mix(in srgb,var(--lc-primary,#147d73) 3%,var(--lc-surface,#fff)),var(--lc-surface,#fff) 65%)}
-html:root body .services-directory-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
-html:root body .services-directory-heading .services-directory-kicker{margin:0 0 5px;color:var(--lc-primary,#147d73);font-size:9px;font-weight:650;letter-spacing:.1em;text-transform:uppercase}
-html:root body .services-directory-heading h2{margin:0;color:var(--lc-heading,#173e37);font-size:21px;font-weight:650;letter-spacing:-.035em}
-html:root body .services-directory-heading .services-directory-count{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin:6px 0 0;color:var(--lc-muted,#71877f);font-size:11px;line-height:1.5}
-html:root body .services-directory-count strong{color:var(--lc-primary,#147d73);font-weight:600}
-html:root body .services-directory-timezone{color:var(--lc-muted,#71877f);font-size:10px}
-html:root body .lcsp-directory .lcsp-search-tools{display:grid;grid-template-columns:minmax(230px,1.5fr) minmax(0,4fr);align-items:end;gap:12px;width:100%;max-width:none}
-html:root body .lcsp-directory .lcsp-search-field{display:grid;gap:7px;min-width:0}
-html:root body .lcsp-search-field>label,html:root body .lcsp-directory .filter-select>span{margin:0;color:var(--lc-muted,#71877f);font-size:10px;font-weight:550;line-height:1.3}
-html:root body .lcsp-directory .lcsp-search{display:flex;align-items:center;gap:9px;width:100%;min-width:0;height:42px;min-height:42px;margin:0;padding:0 11px;border:1px solid var(--lc-control-border,var(--lc-panel-border,#d6e7df));border-radius:10px;background:var(--lc-surface,#fff);color:var(--lc-muted,#71877f);box-shadow:0 1px 2px rgb(23 62 55 / 3%)}
-html:root body .lcsp-search>svg{flex:none}
-html:root body .lcsp-directory #service-directory-search{flex:1;min-width:0;width:100%;height:40px;min-height:40px;max-height:40px;box-sizing:border-box;margin:0;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;outline:0!important;box-shadow:none!important;color:var(--lc-heading,#173e37);font-family:inherit;font-size:12px;line-height:normal}
-html:root body .lcsp-directory #service-directory-search::placeholder{color:var(--lc-muted,#71877f);font:inherit;opacity:1}
-html:root body .lcsp-directory #service-directory-search::-webkit-search-cancel-button{-webkit-appearance:none}
-html:root body .lcsp-directory .lcsp-search:focus-within{border-color:var(--lc-primary,#147d73);outline:0;box-shadow:0 0 0 3px color-mix(in srgb,var(--lc-primary,#147d73) 10%,transparent)}
-html:root body .lcsp-search>button{display:grid;place-items:center;flex:none;width:24px;height:24px;min-height:24px;margin:0;padding:0;border:0;border-radius:7px;background:var(--lc-surfaceAlt,#f4f8f6);color:var(--lc-muted,#71877f);box-shadow:none}
-html:root body .lcsp-search>button:hover{background:var(--lc-glowPrimary,#e5f5ef);color:var(--lc-primary,#147d73)}
-html:root body .lcsp-directory .service-directory-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:end;gap:12px;min-width:0;margin:0;padding:0}
-html:root body .lcsp-directory .service-directory-controls>.filter-select{display:grid;gap:7px;min-width:0;margin:0;font-size:10px}
-html:root body .lcsp-directory .filter-select .glide-select{width:100%}
-html:root body .lcsp-directory .filter-select button.glide-select__trigger{font-size:11px}
-html:root body .lcsp-directory .lcsp-filter-toggle{display:none}
-html:root body .services-directory-scope{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:25px;padding:0 24px;margin:0}
-html:root body .services-directory-scope>p{margin:0;color:var(--lc-muted,#71877f);font-size:10px;line-height:1.5}
-html:root body .services-filter-chips{display:flex;gap:6px;flex-wrap:wrap;min-width:0}
-html:root body .services-filter-chips>button{display:flex;align-items:center;gap:6px;max-width:250px;min-height:27px;margin:0;padding:4px 8px;border:1px solid color-mix(in srgb,var(--lc-primary,#147d73) 16%,var(--lc-panel-border,#d6e7df));border-radius:7px;background:var(--lc-glowPrimary,#e5f5ef);color:var(--lc-primary,#147d73);font:inherit;font-size:10px;box-shadow:none}
-html:root body .services-filter-chips>button>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-html:root body .services-filter-chips>button>svg{flex:none}
-html:root body .services-clear-filters{flex:none;margin:0;padding:4px 0;border:0;background:transparent;color:var(--lc-primary,#147d73);font:inherit;font-size:10px;text-decoration:underline;text-underline-offset:3px;box-shadow:none}
-html:root body .lcsp-directory .lc-export-panel{margin:15px 24px 20px}
-html:root body .lcsp-directory .lcsv-heading{font-weight:600;font-size:9px;letter-spacing:.07em}
-html:root body .lcsp-directory .service-inline-confirmation{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0;padding:17px 24px;border-top:1px solid color-mix(in srgb,var(--lc-warning,#946d2c) 18%,var(--lc-panel-border,#d6e7df));background:color-mix(in srgb,var(--lc-warningBg,#fff5dd) 50%,var(--lc-surface,#fff));color:var(--lc-heading,#173e37)}
-html:root body .lcsp-directory .service-inline-confirmation.delete{border-color:color-mix(in srgb,var(--lc-danger,#b94444) 15%,var(--lc-panel-border,#d6e7df));background:color-mix(in srgb,var(--lc-dangerBg,#fceceb) 55%,var(--lc-surface,#fff))}
-html:root body .lcsp-directory .service-inline-confirmation>div:first-child{display:grid;gap:5px;min-width:0}
-html:root body .lcsp-directory .service-inline-confirmation strong{font-size:12px;font-weight:600;line-height:1.6;overflow-wrap:anywhere}
-html:root body .lcsp-directory .service-inline-confirmation>div>span{font-size:10px;line-height:1.7;color:var(--lc-muted,#71877f)}
-html:root body .lcsp-directory .service-inline-confirmation-actions{display:flex;align-items:center;gap:9px;flex:none}
-html:root body .lcsp-directory .service-inline-confirmation-actions>button{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;height:44px;min-width:95px;margin:0;padding:10px 14px;border-radius:10px;font-family:inherit;font-size:11px;font-weight:600;line-height:1.4}
-html:root body .lcsp-directory .lcsp-footer{margin:0;padding:16px 24px;border-top:1px solid var(--lc-panel-border,#d6e7df)}
-html:root body .lcsp-directory .services-directory-refresh-error{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:0 24px 18px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--lc-warning,#946d2c) 25%,var(--lc-panel-border,#d6e7df));border-radius:11px;background:var(--lc-warningBg,#fff5dd)}
-html:root body .services-directory-refresh-error strong{color:var(--lc-heading,#173e37);font-size:11px;font-weight:600}
-html:root body .services-directory-refresh-error p{margin:3px 0 0;color:var(--lc-muted,#71877f);font-size:10px;line-height:1.5}
-html:root body .services-directory-refresh-error button{flex:none;min-height:36px;margin:0;padding:7px 10px;border:1px solid var(--lc-panel-border,#d6e7df);border-radius:9px;background:var(--lc-surface,#fff);color:var(--lc-primary,#147d73);font:inherit;font-size:11px;font-weight:550;box-shadow:none}
-html:root body .lcsp-directory :is(button,input):focus-visible{outline:2px solid var(--lc-primary,#147d73);outline-offset:3px}
-@media(prefers-reduced-motion:no-preference){
- html[data-lc-motion='on'] body .services-editorial-hero .services-create-action{transition:transform 220ms cubic-bezier(.2,.75,.25,1),box-shadow 220ms ease}
- html[data-lc-motion='on'] body .services-create-action-icon,html[data-lc-motion='on'] body .services-create-action::after{transition:transform 240ms cubic-bezier(.2,.75,.25,1)}
- html[data-lc-motion='on'] body .services-editorial-hero .services-create-action:focus-visible{transform:translateY(-3px)}
- html[data-lc-motion='on'] body .services-editorial-hero .services-create-action:focus-visible .services-create-action-icon{transform:scale(1.08)}
- html[data-lc-motion='on'] body .lcsp-directory .lcsp-search{transition:border-color 180ms ease,box-shadow 180ms ease}
+html:root body .services-create-action::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 125px;
+  height: 125px;
+  right: -54px;
+  bottom: -65px;
+  border: 1px solid color-mix(in srgb, var(--lc-onPrimary, #fff) 24%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--lc-onPrimary, #fff) 7%, transparent);
+  pointer-events: none;
 }
-@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
- html[data-lc-motion='on'] body .services-editorial-hero .services-create-action:hover{transform:translateY(-3px)}
- html[data-lc-motion='on'] body .services-editorial-hero .services-create-action:hover .services-create-action-icon{transform:scale(1.08)}
- html[data-lc-motion='on'] body .services-create-action:hover::after{transform:scale(1.18)}
+html:root body .services-editorial-hero .services-create-action strong {
+  font-size: 19px;
+  font-weight: 650;
+  color: inherit;
 }
-@media(max-width:1150px) and (min-width:901px){
- html:root body .lcsp-directory .lcsp-search-tools{grid-template-columns:minmax(0,1fr)}
+html:root
+  body
+  .services-editorial-hero
+  :is(.services-create-action-kicker, .services-create-action-note) {
+  color: inherit;
+  opacity: 0.88;
 }
-@media(max-width:900px){
- html:root body .lc-mobile-workspace:has(.lcsp-directory){overflow-x:clip}
- html:root body .services-editorial-hero .services-create-action{display:flex;align-items:center;gap:8px;min-width:0;min-height:44px;padding:10px 12px;border-radius:11px}
- html:root body .services-editorial-hero .services-create-action strong{font-size:12px;margin:0}
- html:root body .services-editorial-hero .services-create-action-icon{width:20px!important;height:20px!important;border:0;background:transparent;color:inherit}
- html:root body .lcsp-directory .directory-toolbar.services-directory-toolbar{padding:18px 16px 14px}
- html:root body .services-directory-heading{gap:10px;margin-bottom:16px}
- html:root body .services-directory-heading h2{font-size:19px}
- html:root body .services-directory-timezone{max-width:90px;text-align:right;font-size:9px;line-height:1.6}
- html:root body .lcsp-directory .lcsp-search-tools{grid-template-columns:minmax(0,1fr);gap:10px}
- html:root body .lcsp-directory #service-directory-search{font-size:16px}
- html:root body .lcsp-directory #service-directory-search::placeholder{font-size:12px}
- html:root body .lcsp-directory .lcsp-filter-toggle{display:flex;align-items:center;gap:8px;min-height:38px;padding:8px 10px;border:1px solid var(--lc-panel-border,#d6e7df);border-radius:9px;background:var(--lc-surfaceAlt,#f4f8f6);font:inherit;font-size:11px;color:var(--lc-primary,#147d73);box-shadow:none}
- html:root body .lcsp-filter-toggle>span{margin-left:auto;font-size:9px;color:var(--lc-muted,#71877f)}
- html:root body .lcsp-filter-toggle[aria-expanded='true']>svg{transform:rotate(180deg)}
- html:root body .lcsp-directory .service-directory-controls{display:none}
- html:root body .lcsp-directory .service-directory-controls.is-open{display:block}
- html:root body .lcsp-directory .service-directory-controls>.filter-select{display:none}
- html:root body .services-directory-scope{padding:0 16px}
- html:root body .lcsp-directory .lc-export-panel{margin:14px 16px 18px}
- html:root body .lcsp-directory .services-recovered-list.lcsv-list{padding:0 12px 12px;box-sizing:border-box}
- html:root body .lcsp-directory .service-inline-confirmation{display:grid;padding:14px;gap:12px}
- html:root body .lcsp-directory .service-inline-confirmation-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
- html:root body .lcsp-directory .service-inline-confirmation-actions>button{min-width:0;width:100%;padding:9px;font-size:11px}
- html:root body .lcsp-directory .lcsp-footer{padding:14px 16px}
+html:root body .services-editorial-hero .services-create-action-kicker {
+  font-size: 9px;
+  letter-spacing: 0.09em;
+}
+html:root body .services-editorial-hero .services-create-action-icon {
+  width: 35px;
+  height: 35px;
+  top: 18px;
+  right: 17px;
+  border: 1px solid color-mix(in srgb, var(--lc-onPrimary, #fff) 22%, transparent);
+  background: color-mix(in srgb, var(--lc-onPrimary, #fff) 14%, transparent);
+  color: inherit;
+}
+html:root body .services-editorial-hero .services-create-action:is(:hover, :focus-visible) {
+  box-shadow: 0 9px 25px color-mix(in srgb, var(--lc-primary, #147d73) 25%, transparent);
+  background: linear-gradient(
+    125deg,
+    color-mix(in srgb, var(--lc-primary, #147d73) 94%, var(--lc-heading, #173e37)),
+    color-mix(in srgb, var(--lc-primary, #147d73) 74%, var(--lc-heading, #173e37))
+  );
+}
+html:root body .lc-services-directory.lcsp-directory {
+  padding: 0;
+  overflow: visible;
+  scroll-margin-top: 94px;
+}
+html:root body .lcsp-directory .directory-toolbar.services-directory-toolbar {
+  display: block;
+  margin: 0;
+  padding: 24px 24px 18px;
+  border: 0;
+  border-radius: 16px 16px 0 0;
+  background: linear-gradient(
+    110deg,
+    color-mix(in srgb, var(--lc-primary, #147d73) 3%, var(--lc-surface, #fff)),
+    var(--lc-surface, #fff) 65%
+  );
+}
+html:root body .services-directory-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+html:root body .services-directory-heading .services-directory-kicker {
+  margin: 0 0 5px;
+  color: var(--lc-primary, #147d73);
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+html:root body .services-directory-heading h2 {
+  margin: 0;
+  color: var(--lc-heading, #173e37);
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.035em;
+}
+html:root body .services-directory-heading .services-directory-count {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 6px 0 0;
+  color: var(--lc-muted, #71877f);
+  font-size: 11px;
+  line-height: 1.5;
+}
+html:root body .services-directory-count strong {
+  color: var(--lc-primary, #147d73);
+  font-weight: 600;
+}
+html:root body .services-directory-timezone {
+  color: var(--lc-muted, #71877f);
+  font-size: 10px;
+}
+html:root body .lcsp-directory .lcsp-search-tools {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.5fr) minmax(0, 4fr);
+  align-items: end;
+  gap: 12px;
+  width: 100%;
+  max-width: none;
+}
+html:root body .lcsp-directory .lcsp-search-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+html:root body .lcsp-search-field > label,
+html:root body .lcsp-directory .filter-select > span {
+  margin: 0;
+  color: var(--lc-muted, #71877f);
+  font-size: 10px;
+  font-weight: 550;
+  line-height: 1.3;
+}
+html:root body .lcsp-directory .lcsp-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  min-height: 42px;
+  margin: 0;
+  padding: 0 11px;
+  border: 1px solid var(--lc-control-border, var(--lc-panel-border, #d6e7df));
+  border-radius: 10px;
+  background: var(--lc-surface, #fff);
+  color: var(--lc-muted, #71877f);
+  box-shadow: 0 1px 2px rgb(23 62 55 / 3%);
+}
+html:root body .lcsp-search > svg {
+  flex: none;
+}
+html:root body .lcsp-directory #service-directory-search {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  color: var(--lc-heading, #173e37);
+  font-family: inherit;
+  font-size: 12px;
+  line-height: normal;
+}
+html:root body .lcsp-directory #service-directory-search::placeholder {
+  color: var(--lc-muted, #71877f);
+  font: inherit;
+  opacity: 1;
+}
+html:root body .lcsp-directory #service-directory-search::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+html:root body .lcsp-directory .lcsp-search:focus-within {
+  border-color: var(--lc-primary, #147d73);
+  outline: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--lc-primary, #147d73) 10%, transparent);
+}
+html:root body .lcsp-search > button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: var(--lc-surfaceAlt, #f4f8f6);
+  color: var(--lc-muted, #71877f);
+  box-shadow: none;
+}
+html:root body .lcsp-search > button:hover {
+  background: var(--lc-glowPrimary, #e5f5ef);
+  color: var(--lc-primary, #147d73);
+}
+html:root body .lcsp-directory .service-directory-controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: end;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+html:root body .lcsp-directory .service-directory-controls > .filter-select {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  font-size: 10px;
+}
+html:root body .lcsp-directory .filter-select .glide-select {
+  width: 100%;
+}
+html:root body .lcsp-directory .filter-select button.glide-select__trigger {
+  font-size: 11px;
+}
+html:root body .lcsp-directory .lcsp-filter-toggle {
+  display: none;
+}
+html:root body .services-directory-scope {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 25px;
+  padding: 0 24px;
+  margin: 0;
+}
+html:root body .services-directory-scope > p {
+  margin: 0;
+  color: var(--lc-muted, #71877f);
+  font-size: 10px;
+  line-height: 1.5;
+}
+html:root body .services-filter-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+html:root body .services-filter-chips > button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 250px;
+  min-height: 27px;
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid
+    color-mix(in srgb, var(--lc-primary, #147d73) 16%, var(--lc-panel-border, #d6e7df));
+  border-radius: 7px;
+  background: var(--lc-glowPrimary, #e5f5ef);
+  color: var(--lc-primary, #147d73);
+  font: inherit;
+  font-size: 10px;
+  box-shadow: none;
+}
+html:root body .services-filter-chips > button > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html:root body .services-filter-chips > button > svg {
+  flex: none;
+}
+html:root body .services-clear-filters {
+  flex: none;
+  margin: 0;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: var(--lc-primary, #147d73);
+  font: inherit;
+  font-size: 10px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  box-shadow: none;
+}
+html:root body .lcsp-directory .lc-export-panel {
+  margin: 15px 24px 20px;
+}
+html:root body .lcsp-directory .lcsv-heading {
+  font-weight: 600;
+  font-size: 9px;
+  letter-spacing: 0.07em;
+}
+html:root body .lcsp-directory .service-inline-confirmation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0;
+  padding: 17px 24px;
+  border-top: 1px solid
+    color-mix(in srgb, var(--lc-warning, #946d2c) 18%, var(--lc-panel-border, #d6e7df));
+  background: color-mix(in srgb, var(--lc-warningBg, #fff5dd) 50%, var(--lc-surface, #fff));
+  color: var(--lc-heading, #173e37);
+}
+html:root body .lcsp-directory .service-inline-confirmation.delete {
+  border-color: color-mix(in srgb, var(--lc-danger, #b94444) 15%, var(--lc-panel-border, #d6e7df));
+  background: color-mix(in srgb, var(--lc-dangerBg, #fceceb) 55%, var(--lc-surface, #fff));
+}
+html:root body .lcsp-directory .service-inline-confirmation > div:first-child {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+html:root body .lcsp-directory .service-inline-confirmation strong {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+html:root body .lcsp-directory .service-inline-confirmation > div > span {
+  font-size: 10px;
+  line-height: 1.7;
+  color: var(--lc-muted, #71877f);
+}
+html:root body .lcsp-directory .service-inline-confirmation-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: none;
+}
+html:root body .lcsp-directory .service-inline-confirmation-actions > button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  height: 44px;
+  min-width: 95px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+html:root body .lcsp-directory .lcsp-footer {
+  margin: 0;
+  padding: 16px 24px;
+  border-top: 1px solid var(--lc-panel-border, #d6e7df);
+}
+html:root body .lcsp-directory .services-directory-refresh-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin: 0 24px 18px;
+  padding: 12px 14px;
+  border: 1px solid
+    color-mix(in srgb, var(--lc-warning, #946d2c) 25%, var(--lc-panel-border, #d6e7df));
+  border-radius: 11px;
+  background: var(--lc-warningBg, #fff5dd);
+}
+html:root body .services-directory-refresh-error strong {
+  color: var(--lc-heading, #173e37);
+  font-size: 11px;
+  font-weight: 600;
+}
+html:root body .services-directory-refresh-error p {
+  margin: 3px 0 0;
+  color: var(--lc-muted, #71877f);
+  font-size: 10px;
+  line-height: 1.5;
+}
+html:root body .services-directory-refresh-error button {
+  flex: none;
+  min-height: 36px;
+  margin: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--lc-panel-border, #d6e7df);
+  border-radius: 9px;
+  background: var(--lc-surface, #fff);
+  color: var(--lc-primary, #147d73);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 550;
+  box-shadow: none;
+}
+html:root body .lcsp-directory :is(button, input):focus-visible {
+  outline: 2px solid var(--lc-primary, #147d73);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html[data-lc-motion='on'] body .services-editorial-hero .services-create-action {
+    transition:
+      transform 220ms cubic-bezier(0.2, 0.75, 0.25, 1),
+      box-shadow 220ms ease;
+  }
+  html[data-lc-motion='on'] body .services-create-action-icon,
+  html[data-lc-motion='on'] body .services-create-action::after {
+    transition: transform 240ms cubic-bezier(0.2, 0.75, 0.25, 1);
+  }
+  html[data-lc-motion='on'] body .services-editorial-hero .services-create-action:focus-visible {
+    transform: translateY(-3px);
+  }
+  html[data-lc-motion='on']
+    body
+    .services-editorial-hero
+    .services-create-action:focus-visible
+    .services-create-action-icon {
+    transform: scale(1.08);
+  }
+  html[data-lc-motion='on'] body .lcsp-directory .lcsp-search {
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  html[data-lc-motion='on'] body .services-editorial-hero .services-create-action:hover {
+    transform: translateY(-3px);
+  }
+  html[data-lc-motion='on']
+    body
+    .services-editorial-hero
+    .services-create-action:hover
+    .services-create-action-icon {
+    transform: scale(1.08);
+  }
+  html[data-lc-motion='on'] body .services-create-action:hover::after {
+    transform: scale(1.18);
+  }
+}
+@media (max-width: 1150px) and (min-width: 901px) {
+  html:root body .lcsp-directory .lcsp-search-tools {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  html:root body .lc-mobile-workspace:has(.lcsp-directory) {
+    overflow-x: clip;
+  }
+  html:root body .services-editorial-hero .services-create-action {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 11px;
+  }
+  html:root body .services-editorial-hero .services-create-action strong {
+    font-size: 12px;
+    margin: 0;
+  }
+  html:root body .services-editorial-hero .services-create-action-icon {
+    width: 20px !important;
+    height: 20px !important;
+    border: 0;
+    background: transparent;
+    color: inherit;
+  }
+  html:root body .lcsp-directory .directory-toolbar.services-directory-toolbar {
+    padding: 18px 16px 14px;
+  }
+  html:root body .services-directory-heading {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  html:root body .services-directory-heading h2 {
+    font-size: 19px;
+  }
+  html:root body .services-directory-timezone {
+    max-width: 90px;
+    text-align: right;
+    font-size: 9px;
+    line-height: 1.6;
+  }
+  html:root body .lcsp-directory .lcsp-search-tools {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  html:root body .lcsp-directory #service-directory-search {
+    font-size: 16px;
+  }
+  html:root body .lcsp-directory #service-directory-search::placeholder {
+    font-size: 12px;
+  }
+  html:root body .lcsp-directory .lcsp-filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 8px 10px;
+    border: 1px solid var(--lc-panel-border, #d6e7df);
+    border-radius: 9px;
+    background: var(--lc-surfaceAlt, #f4f8f6);
+    font: inherit;
+    font-size: 11px;
+    color: var(--lc-primary, #147d73);
+    box-shadow: none;
+  }
+  html:root body .lcsp-filter-toggle > span {
+    margin-left: auto;
+    font-size: 9px;
+    color: var(--lc-muted, #71877f);
+  }
+  html:root body .lcsp-filter-toggle[aria-expanded='true'] > svg {
+    transform: rotate(180deg);
+  }
+  html:root body .lcsp-directory .service-directory-controls {
+    display: none;
+  }
+  html:root body .lcsp-directory .service-directory-controls.is-open {
+    display: block;
+  }
+  html:root body .lcsp-directory .service-directory-controls > .filter-select {
+    display: none;
+  }
+  html:root body .services-directory-scope {
+    padding: 0 16px;
+  }
+  html:root body .lcsp-directory .lc-export-panel {
+    margin: 14px 16px 18px;
+  }
+  html:root body .lcsp-directory .services-recovered-list.lcsv-list {
+    padding: 0 12px 12px;
+    box-sizing: border-box;
+  }
+  html:root body .lcsp-directory .service-inline-confirmation {
+    display: grid;
+    padding: 14px;
+    gap: 12px;
+  }
+  html:root body .lcsp-directory .service-inline-confirmation-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+  html:root body .lcsp-directory .service-inline-confirmation-actions > button {
+    min-width: 0;
+    width: 100%;
+    padding: 9px;
+    font-size: 11px;
+  }
+  html:root body .lcsp-directory .lcsp-footer {
+    padding: 14px 16px;
+  }
 }

@@ -1,8 +1,3 @@
--- LifeCity attendance removal with exact historical Undo.
--- Run this entire file once in the Supabase SQL editor; it is safe to rerun.
--- Requires the existing attendance reporting/snapshot installation and accounts.
--- No attendance data is reset. Existing table grants, RLS policies, snapshot
--- capture and activity logging remain in place.
 begin;
 
 do $check$
@@ -14,9 +9,6 @@ begin
 end;
 $check$;
 
--- Receipts are server-only. They contain the actual DELETE RETURNING row,
--- never historical details supplied by a browser. The browser gets only its
--- own receipt token and the row returned by its removal request.
 create table if not exists public.lc_attendance_undo_receipts (
   token uuid primary key default gen_random_uuid(),
   actor_id uuid not null references auth.users(id) on delete cascade,
@@ -32,10 +24,6 @@ create index if not exists lc_attendance_undo_receipts_expiry
 alter table public.lc_attendance_undo_receipts enable row level security;
 revoke all on table public.lc_attendance_undo_receipts from public, anon, authenticated;
 
--- Normal inserts still run capture_attendance_snapshot_v3 first. Only the
--- guarded restore RPC sets this transaction-local context and marks a locked
--- receipt as restoring. Preserve every other trigger's decisions: if another
--- field differs, refuse restoration rather than bypassing that guard.
 create or replace function public.lc_apply_attendance_undo_snapshot()
 returns trigger
 language plpgsql
@@ -145,8 +133,7 @@ begin
       select (jsonb_populate_record(null::public.attendance, receipt.row_data)).*
       on conflict do nothing returning * into restored;
     if not found then
-      -- A competing insert may have committed while the unique check waited.
-      -- Accept only the identical original row; never update a replacement.
+
       select * into restored from public.attendance where id = receipt.attendance_id;
       if not found or to_jsonb(restored) is distinct from receipt.row_data then
         raise exception 'Another check-in already exists. Undo did not replace it.' using errcode = '23505';
@@ -171,8 +158,8 @@ revoke all on function public.lc_restore_attendance(uuid) from public, anon;
 grant execute on function public.lc_remove_attendance_with_undo(uuid) to authenticated;
 grant execute on function public.lc_restore_attendance(uuid) to authenticated;
 comment on function public.lc_remove_attendance_with_undo(uuid) is
-  'LC-ATTENDANCE-UNDO-v1: active staff removal and an actor-bound server receipt; no browser-supplied historical snapshot.';
+  'Active staff removal and an actor-bound server receipt; no browser-supplied historical snapshot.';
 comment on function public.lc_restore_attendance(uuid) is
-  'LC-ATTENDANCE-UNDO-v1: restores the original row and historical snapshot once; exact retry is idempotent and conflicts are never overwritten.';
+  'Restores the original row and historical snapshot once; exact retry is idempotent and conflicts are never overwritten.';
 notify pgrst, 'reload schema';
 commit;
