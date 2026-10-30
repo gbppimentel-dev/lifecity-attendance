@@ -11,6 +11,7 @@
     "demo:sql": "node scripts/build-demo-reset.mjs",
     "test:demo": "node scripts/test-demo-data.mjs",
     "test:demo:sql": "node scripts/test-demo-reset.mjs",
+    "test:showcase": "node --test scripts/test-demo-boundary.mjs scripts/test-demo-client.mjs",
     "test:services": "node scripts/test-service-actions.mjs",
     "test:motion": "node scripts/test-workspace-motion.mjs",
     "test:navigation": "node scripts/test-workspace-navigation.mjs",

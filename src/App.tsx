@@ -58,6 +58,8 @@ import ScannerServicePicker from './components/ScannerServicePicker'
 import MobileAdminNav from './components/MobileAdminNav'
 import { useSharedAppearance } from './lib/appearance'
 import { supabase } from './lib/supabase'
+import { isDemoMode } from './demo/mode'
+import { getDemoRole } from './demo/client'
 import ScreenBoundary from './components/ScreenBoundary'
 import WorkspacePanel from './components/WorkspacePanel'
 
@@ -195,6 +197,7 @@ function AccountShell({ children, compact = false }: { children: ReactNode; comp
 export default function App(){return <><AppContent/><FeedbackWidget/></>}
 
 function AppContent() {
+  const demo = isDemoMode()
   useSharedAppearance()
   const { clear: clearToasts } = useToast()
   const [session, setSession] = useState<Session | null>(null)
@@ -208,7 +211,7 @@ function AppContent() {
   const [resolved, setResolved] = useState<{ uid: string; account: LifeCityAccount | null; error: string } | null>(null)
   const [retry, setRetry] = useState(0)
   const [working, setWorking] = useState(false)
-  const [showGuest, setShowGuest] = useState(false)
+  const [showGuest, setShowGuest] = useState(() => isDemoMode() && getDemoRole() === 'guest')
   const [oauthError,setOauthError] = useState(()=>{
     const query=new URLSearchParams(window.location.search)
     const hash=new URLSearchParams(window.location.hash.slice(1))
@@ -222,7 +225,7 @@ function AppContent() {
     try {
       const {error}=await supabase.auth.signInWithOAuth({provider:'google',options:{redirectTo:authRedirect(),queryParams:{prompt:'select_account'}}})
       if(error)throw error
-    } catch {setAuthError('Google sign-in could not start. Please try again or contact your church administrator.')}
+    } catch {setAuthError(demo ? 'The demo member account could not open. Please try again.' : 'Google sign-in could not start. Please try again or contact your church administrator.')}
     finally {authWriteLock.current=false;setWorking(false)}
   }
 
@@ -293,14 +296,14 @@ function AppContent() {
         <p className="lc-auth-intro">Connect with your LifeCity family. Sign in to view your member QR code and get ready for our next gathering.</p><p className="lc-mobile-welcome-intro">Your member ID, attendance, and gatherings in one place.</p>
         <button type="button" className="lc-google-button lc-google-only-button" disabled={working} aria-busy={working} onClick={()=>void googleSignIn()}>
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48"><path fill="#4285F4" d="M43.6 24.5c0-1.5-.1-2.9-.4-4.3H24v8.1h11a9.4 9.4 0 0 1-4.1 6.2v5.2h6.7c3.9-3.6 6-8.9 6-15.2Z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.7-5.2c-1.8 1.2-4.1 1.9-6.8 1.9-5.3 0-9.8-3.6-11.4-8.4H5.7v5.4A20.4 20.4 0 0 0 24 44Z"/><path fill="#FBBC05" d="M12.6 27.4a12.2 12.2 0 0 1 0-7.8v-5.4H5.7a20.3 20.3 0 0 0 0 18.6l6.9-5.4Z"/><path fill="#EA4335" d="M24 11.2c3 0 5.6 1 7.6 3l5.7-5.7A19.3 19.3 0 0 0 24 3 20.4 20.4 0 0 0 5.7 14.2l6.9 5.4c1.6-4.8 6.1-8.4 11.4-8.4Z"/></svg>
-          <span>{working ? 'Connecting to Google…' : 'Continue with Google'}</span>
+          <span>{working ? (demo ? 'Opening Demo…' : 'Connecting to Google…') : (demo ? 'Try Member Sign-In' : 'Continue with Google')}</span>
           {working ? <RefreshCw size={18} className="lc-auth-spin"/> : <ArrowRight size={18} className="lc-google-arrow"/>}
         </button>
         {(oauthError || authError) && <p className="lc-auth-error" role="alert">{oauthError || authError}</p>}
         <button type="button" className="lcg-welcome-link" disabled={working} onClick={()=>setShowGuest(true)}>Explore as a Guest <ArrowRight size={16}/></button>
-        <details className="lc-mobile-signin-help"><summary>New here?</summary><p>Google creates your account on first sign-in. Then request to connect your existing member profile.</p></details><div className="lc-google-welcome-note">
+        <details className="lc-mobile-signin-help"><summary>New here?</summary><p>{demo ? 'Demo sign-in opens a fictional member account in this tab. No personal account is required.' : 'Google creates your account on first sign-in. Then request to connect your existing member profile.'}</p></details><div className="lc-google-welcome-note">
           <span className="lc-google-note-icon" aria-hidden="true"><ShieldCheck size={22}/></span>
-          <div><strong>Secure sign-in with Google.</strong><p>Use your Google account to get started. New to LifeCity Attendance? Your account is created when you first sign in—no extra password needed.</p></div>
+          <div><strong>{demo ? 'Simulated Member Sign-In' : 'Secure sign-in with Google.'}</strong><p>{demo ? 'Try a fictional member account. This demo does not use Google or create a real login account.' : 'Use your Google account to get started. New to LifeCity Attendance? Your account is created when you first sign in—no extra password needed.'}</p></div>
         </div>
         <p className="lc-auth-help">Already registered at church? After signing in, request to connect your existing member profile. Your member ID and attendance stay together.</p>
       </div>

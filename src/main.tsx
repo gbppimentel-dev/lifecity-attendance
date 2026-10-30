@@ -14,6 +14,8 @@ import './mobile-motion-polish.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import DemoExperience from './demo/DemoExperience'
+import { isDemoMode, prepareDemoDocument } from './demo/mode'
 import { MotionRuntime } from './lib/motion'
 import { ToastProvider } from './lib/toasts'
 import './desktop-workspace.css'
@@ -32,6 +34,8 @@ import './mobile-dashboard-phone.css'
 import './mobile-services-phone.css'
 import './mobile-scanner-phone.css'
 
+prepareDemoDocument()
+
 createRoot(document.getElementById('root')!).render(
-  <StrictMode><MotionRuntime /><ToastProvider><App /></ToastProvider></StrictMode>,
+  <StrictMode><MotionRuntime /><ToastProvider>{isDemoMode() ? <DemoExperience><App /></DemoExperience> : <App />}</ToastProvider></StrictMode>,
 )

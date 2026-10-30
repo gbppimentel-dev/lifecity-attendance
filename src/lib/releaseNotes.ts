@@ -8,6 +8,10 @@ const signedIn:ReleaseAudience[]=['user','admin','owner']
 const staff:ReleaseAudience[]=['admin','owner']
 const note=(text:string,audiences:readonly ReleaseAudience[]=all):Highlight=>({text,audiences})
 export const releaseNotes:Release[] = [
+ {version:'Pre-Launch · Portfolio Demo v27',title:'Explore the Complete App',highlights:[
+  note('The separate /demo/ showcase keeps the app’s design, animations and features, with fictional members, services, attendance, requests and feedback.'),
+  note('Demo Options switches between Owner, Admin, Member and Guest views. Changes stay in a private browser-tab workspace; Restart Demo restores sample data and the original palette. The demo landing links to the original website.')
+ ]},
  {version:'Pre-Launch · Service Notes v26',title:'A Playful Corner Detail',highlights:[
   note('Member and guest service cards show their status and Sunday label as small paper notes overlapping the corner, with soft colors and a subtle hover tilt.')
  ]},

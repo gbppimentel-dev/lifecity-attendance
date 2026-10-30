@@ -34,6 +34,8 @@ export async function loadAppearance(){
 }
 let appliedRevision=-1
 let appliedPalette=''
+/** A demo restart can restore revision zero without discarding normal stale-write protection. */
+export function resetAppliedAppearance(){appliedRevision=-1;appliedPalette='';applyAppearance(defaultAppearance)}
 export function applyAppearance(a:Appearance){
  if(!isAppearance(a)||a.revision<appliedRevision)return
  appliedRevision=a.revision

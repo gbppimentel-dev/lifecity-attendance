@@ -26,6 +26,7 @@ function runtime({ enabled = true, reduced = false, supportsAnimation = true } =
       if (name === 'react/jsx-runtime') return {}
       if (name === 'react-dom') return { flushSync(update) { flushes++; update() } }
       if (name === '../components/AnimatedContent') return {}
+      if (name === '../demo/mode') return { demoPreferenceKey: key => key }
       throw Error('Unexpected module: ' + name)
     },
     document: { documentElement, querySelector: () => page },

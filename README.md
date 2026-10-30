@@ -20,6 +20,7 @@ Members get a personal space for their profile, QR, attendance history, and feed
 - [Architecture](#architecture)
 - [Technology Stack](#technology-stack)
 - [Local Development](#local-development)
+- [Portfolio Demo](#portfolio-demo)
 - [Backend Setup](#backend-setup)
 - [Data, QR Codes, and Privacy](#data-qr-codes-and-privacy)
 - [CSV Imports and Exports](#csv-imports-and-exports)
@@ -581,3 +582,19 @@ No project license file was present in the audited repository. Confirm reuse and
 Mobile styles load with the initial app styles. `public/viewport-recovery.js` runs before the React entry and checks for a narrow touch device unexpectedly using a desktop-width viewport on startup, page restoration, and app resume. It re-evaluates viewport metadata without reloading or disabling zoom. Actual Google OAuth return behavior must still be verified on the target browser or app wrapper.
 
 The scanner uses the switch-camera icon. Flashlight functionality and the camera dropdown have been removed. Camera permission, lens switching, and native fullscreen still depend on the browser and device.
+
+## Portfolio Demo
+
+The portfolio entry is **`/demo/`**, on the same deployment as the original app. During local development, open `http://localhost:5173/demo/` using the port printed by Vite. The original application remains at `/` with its existing Supabase sign-in and access rules.
+
+The demo landing page explains that all records are fictional and links to the original website. **Explore the Demo** opens the same app components, styles, animations, forms, and workspaces. Start as Owner for full access, or use **Demo Options** to switch to Admin, Member, or Guest. Role changes and Google sign-in are simulated locally; they never create or modify real accounts.
+
+Each browser tab has a private sample workspace. Edits persist across refreshes in that tab where session storage is available. **Restart Demo** restores fresh sample data and the default appearance. The demo client implements the app's data operations locally; it does not initialize the real Supabase auth, database, or realtime client. No SQL import, database reset, or additional Supabase project is needed. The existing demo-data generation and reset SQL scripts are separate development utilities and are not used by this showcase.
+
+The camera and file downloads retain their normal browser behavior. Attendance, feedback, approvals, permissions, and palette changes affect only the visitor's local demo data. They do not send messages to the actual app owner or update the live site. The demo has a distinct PWA manifest and app identity under `/demo/`.
+
+`vercel.json` routes `/demo` and its subpaths to the app entry. The route chooses the isolated client before the app boots. Future UI changes therefore appear in both versions without maintaining a second copy of the screens; new backend operations must also be implemented in `src/demo/client.ts`.
+
+For an optional dedicated demo deployment, set `VITE_APP_MODE=demo` in that deployment's environment. Supabase settings are unnecessary in that mode. `VITE_ORIGINAL_SITE_URL` can override the HTTPS link to the original application; it defaults to `https://lifecity-attendance.vercel.app/`.
+
+Run `npm run test:showcase` to verify demo isolation and data workflows. The existing build and feature tests continue to validate the shared app.

@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import AnimatedContent, { animateContent, type AnimatedContentHandle } from '../components/AnimatedContent'
+import { demoPreferenceKey } from '../demo/mode'
 
-const KEY = 'lifecity-motion-enabled'
+const KEY = demoPreferenceKey('lifecity-motion-enabled')
 const EVENT = 'lifecity-motion-change'
 const preference = () => { try { return localStorage.getItem(KEY) !== 'off' } catch { return true } }
 export function motionEnabled() {
