@@ -100,7 +100,7 @@ test('every named RPC used by a shared screen has an explicit local demo impleme
 
 test('Vercel demo rewrites and the demo PWA identity leave the real root route separate', () => {
   const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'))
-  assert.deepEqual(config.rewrites, [{ source: '/demo', destination: '/index.html' }, { source: '/demo/:path*', destination: '/index.html' }])
+  assert.deepEqual(config.rewrites, [{ source: '/demo', destination: '/index.html' }, { source: '/demo/', destination: '/index.html' }, { source: '/demo/:path*', destination: '/index.html' }])
   const demo = JSON.parse(readFileSync(new URL('../public/manifest-demo.webmanifest', import.meta.url), 'utf8'))
   assert.equal(demo.id, '/demo/'); assert.equal(demo.start_url, '/demo/'); assert.equal(demo.scope, '/demo/')
   assert.equal(demo.name, 'LifeCity Attendance Demo')
