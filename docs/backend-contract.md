@@ -2,12 +2,13 @@
 
 The frontend depends on the functions below. This inventory is not a migration; it does not establish database permissions or cover dynamic calls.
 
-The tracked `supabase/schema.sql` and `supabase/add-sunday-service-to-events.sql` do not define these RPCs. Obtain the full deployed migrations before creating a new backend.
+The SQL in `supabase/` contains targeted directory-deletion and attendance-Undo updates, not a complete schema. Obtain the deployed schema and migrations before creating a new backend.
 
 | RPC                                | Frontend callers                                                                                                                                                 |
 | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `attendance_catalog_v4`            | [src/components/AttendanceRecords.tsx](../src/components/AttendanceRecords.tsx)                                                                                  |
 | `attendance_report_v4`             | [src/components/AttendanceRecords.tsx](../src/components/AttendanceRecords.tsx)                                                                                  |
+| `lc_delete_empty_ministry`         | [src/lib/directoryActions.ts](../src/lib/directoryActions.ts) · [one-time installer](../supabase/install-directory-delete-undo.sql)                              |
 | `lc_remove_attendance_with_undo`   | [src/lib/attendanceActions.ts](../src/lib/attendanceActions.ts) · [one-time installer](../supabase/install-attendance-delete-undo.sql)                           |
 | `lc_restore_attendance`            | [src/lib/attendanceActions.ts](../src/lib/attendanceActions.ts) · [one-time installer](../supabase/install-attendance-delete-undo.sql)                           |
 | `lc_cancel_member_request`         | [src/components/MemberLinkRequests.tsx](../src/components/MemberLinkRequests.tsx)                                                                                |
@@ -52,8 +53,8 @@ The tracked `supabase/schema.sql` and `supabase/add-sunday-service-to-events.sql
 
 ## Direct table access
 
-The frontend also queries or mutates `members`, `events`, `attendance`, `branches`, `ministries`, `member_branches`, and `member_ministries`. These operations require appropriate deployed RLS policies. The initial schema covers only the first three tables.
+The frontend also queries or mutates `members`, `events`, `attendance`, `branches`, `ministries`, `member_branches`, and `member_ministries`. These operations require appropriate deployed RLS policies.
 
 ## Reproducing a backend
 
-Export and review the deployed schema, functions, triggers, grants, policies, and required seed/configuration data. Exclude member data, credentials, and auth secrets from public commits. Track ordered migrations, then validate them against a separate empty project. Do not treat the initial schema as a complete or repeatable installer.
+Export and review the deployed schema, functions, triggers, grants, policies, and required configuration. Exclude member data, credentials, and auth secrets from public commits. Track ordered migrations and validate them against a separate empty project before using them for a new installation.

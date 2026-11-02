@@ -1,5 +1,5 @@
 import './fonts.css';
-import './mobile-keyboard';
+import './lib/mobileKeyboard';
 import './mobile-workspaces.css';
 import './styles.css';
 import './landing.css';

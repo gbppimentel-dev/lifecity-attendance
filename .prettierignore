@@ -1,6 +1,5 @@
 node_modules/
 dist/
 coverage/
-demo-data/generated/
-apps/
+demo-data/
 package-lock.json

@@ -8,4 +8,4 @@ Thumbs.db
 npm-debug.log*
 *.tsbuildinfo
 coverage/
-demo-data/generated/
+/demo-data/

@@ -26,6 +26,6 @@ npm test
 npm run build
 ```
 
-`npm test` runs the self-contained suites. The optional `test:demo:sql` suite requires a private schema report and runs separately. Test camera access, sign-in, downloads, and responsive layouts in the browser when those areas change.
+`npm test` runs the self-contained suites, including isolated SQL checks for attendance Undo. `npm run test:demo` checks the portfolio demo and its separation from Supabase. Test camera access, sign-in, downloads, and responsive layouts in the browser when those areas change.
 
 Keep demo data isolated from Supabase, retain authorization checks, and avoid changing backend protocol versions during cleanup. New data operations also need a local demo implementation. The original app should not advertise the demo URL.

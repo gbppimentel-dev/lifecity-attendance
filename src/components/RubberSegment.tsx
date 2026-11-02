@@ -352,8 +352,6 @@ export default function RubberSegment({
       active = false;
       observer.disconnect();
     };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listKey, size, inset, equalSlots]);
   useLayoutEffect(() => {
     if (committed.current !== index) {

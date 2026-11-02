@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const scriptsDirectory = new URL('./', import.meta.url);
 const suites = readdirSync(scriptsDirectory)
-  .filter((file) => /^test-.*\.mjs$/.test(file) && file !== 'test-demo-reset.mjs')
+  .filter((file) => /^test-.*\.mjs$/.test(file))
   .sort()
   .map((file) => fileURLToPath(new URL(file, scriptsDirectory)));
 

@@ -92,8 +92,6 @@ test('attendance Undo installer preserves exact historical records and guards re
         event_id uuid not null references public.events(id),checked_in_at timestamptz not null default now(),
         status public.attendance_status not null default 'present',scanned_by uuid references auth.users(id),notes text,
         created_at timestamptz not null default now(),report_snapshot jsonb not null,unique(member_id,event_id));
-      -- This is the deployed v3 trigger from the supplied read-only schema report.
-      -- In particular, it ALWAYS replaces a supplied snapshot on INSERT.
       create or replace function public.capture_attendance_snapshot_v3() returns trigger language plpgsql set search_path='public','pg_temp' as $$
       declare m public.members%rowtype; e public.events%rowtype; churches jsonb; ministries jsonb;
       begin
