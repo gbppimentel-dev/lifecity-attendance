@@ -1,12 +1,14 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useContext, useLayoutEffect, useRef } from 'react';
 import { motionEnabled } from '../lib/motion';
+import { WorkspaceVisibilityContext } from '../lib/workspaceVisibility';
 import './fold-text.css';
 
 export default function FoldText({ text }: { text: string }) {
+  const visible = useContext(WorkspaceVisibilityContext);
   const root = useRef<HTMLSpanElement>(null);
   useLayoutEffect(() => {
     const element = root.current;
-    if (!element) return;
+    if (!visible || !element) return;
     const pieces = Array.from(element.querySelectorAll<HTMLElement>('.fold-text-piece'));
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
     const animations = new Map<HTMLElement, Animation>();
@@ -79,7 +81,7 @@ export default function FoldText({ text }: { text: string }) {
       element.removeEventListener('pointermove', tilt);
       element.removeEventListener('pointerleave', leave);
     };
-  }, [text]);
+  }, [text, visible]);
 
   return (
     <span ref={root} className="fold-text">

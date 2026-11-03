@@ -1,5 +1,6 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useContext, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { motionEnabled } from '../lib/motion';
+import { WorkspaceVisibilityContext } from '../lib/workspaceVisibility';
 import './workspace-panel.css';
 
 export default function WorkspacePanel({
@@ -19,6 +20,7 @@ export default function WorkspacePanel({
   retain?: boolean;
   tabs?: boolean;
 }) {
+  const parentVisible = useContext(WorkspaceVisibilityContext);
   const [visited, setVisited] = useState(active);
   const surface = useRef<HTMLDivElement>(null);
 
@@ -60,7 +62,9 @@ export default function WorkspacePanel({
       aria-label={labelledBy ? undefined : label}
       aria-labelledby={labelledBy}
     >
-      {children}
+      <WorkspaceVisibilityContext.Provider value={active && parentVisible}>
+        {children}
+      </WorkspaceVisibilityContext.Provider>
     </div>
   );
 }

@@ -10,6 +10,20 @@ const note = (text: string, audiences: readonly ReleaseAudience[] = all): Highli
 });
 export const releaseNotes: Release[] = [
   {
+    version: 'Pre-Launch · Workspace Animations',
+    title: 'Headings Unfold on Return',
+    highlights: [
+      note(
+        'Dashboard and Attendance Records headings unfold each time you return, while your filters stay in place. Animation preferences and reduced-motion settings still apply.',
+        staff,
+      ),
+      note(
+        'Settings headings unfold again when switching sections or returning to Settings, with unsaved palette edits preserved.',
+        ['owner'],
+      ),
+    ],
+  },
+  {
     version: 'Pre-Launch · Service Notes v26',
     title: 'A Playful Corner Detail',
     highlights: [
