@@ -32,7 +32,13 @@ export default function ScannerStart({ services, counts, now, loading, onSelect 
   const visible = available.slice(0, 3);
 
   return (
-    <section className="lc-scanner-start" aria-labelledby={`${id}-title`} aria-busy={loading}>
+    <section
+      className="lc-scanner-start"
+      aria-labelledby={`${id}-title`}
+      aria-busy={loading}
+      data-lc-reveal
+      data-lc-loading={loading}
+    >
       <div className="lc-scanner-start__services">
         <header>
           <div>

@@ -11,8 +11,12 @@ const note = (text: string, audiences: readonly ReleaseAudience[] = all): Highli
 export const releaseNotes: Release[] = [
   {
     version: 'Pre-Launch · Workspace Animations',
-    title: 'Headings Unfold on Return',
+    title: 'Smoother Tabs and Returning Headings',
     highlights: [
+      note(
+        'Workspace changes use a slower fade and a staggered entrance for individual Dashboard cards. Lists ease in when their first results are ready, including on slower connections. Filters and drafts stay in place; reduced motion and animation preferences still apply.',
+        staff,
+      ),
       note(
         'Dashboard and Attendance Records headings unfold each time you return, while your filters stay in place. Animation preferences and reduced-motion settings still apply.',
         staff,

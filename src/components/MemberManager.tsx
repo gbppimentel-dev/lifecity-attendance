@@ -2313,6 +2313,7 @@ export default function MemberManager() {
         className="directory-card members-directory-workspace"
         ref={directoryListRef}
         aria-label="Member Directory"
+        data-lc-loading={directoryBusy && dataKey !== requestKey}
       >
         <div className="directory-toolbar member-toolbar members-directory-toolbar">
           <div className="members-directory-heading">

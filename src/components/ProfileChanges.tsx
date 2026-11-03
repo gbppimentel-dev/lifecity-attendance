@@ -885,6 +885,7 @@ export function OwnerProfileRequests() {
       className="lpe-owner-panel lcsa-request-panel"
       ref={section}
       aria-busy={busy}
+      data-lc-loading={!visible && (loading || searching)}
       aria-labelledby="lcsa-profile-title"
     >
       <header className="lcsa-panel-heading">

@@ -1603,6 +1603,7 @@ function AdminWorkspace({
                     ref={servicesListRef}
                     aria-labelledby="service-directory-title"
                     aria-busy={servicesBusy}
+                    data-lc-loading={servicesReadBlocking}
                   >
                     <div className="directory-toolbar services-directory-toolbar">
                       <div className="services-directory-heading">

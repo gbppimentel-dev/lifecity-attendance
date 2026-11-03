@@ -191,7 +191,11 @@ export default function FeedbackInbox() {
   const current = hasSnapshot ? data.page : page,
     pages = Math.max(1, Math.ceil(total / (data?.page_size ?? 20)));
   return (
-    <section className="lcf-inbox lcsp-panel" aria-labelledby="lcf-inbox-title">
+    <section
+      className="lcf-inbox lcsp-panel"
+      aria-labelledby="lcf-inbox-title"
+      data-lc-loading={!hasSnapshot && (loading || filtering)}
+    >
       <header className="lcf-heading lcsp-heading">
         <div>
           <p className="eyebrow">Settings · Private Inbox</p>

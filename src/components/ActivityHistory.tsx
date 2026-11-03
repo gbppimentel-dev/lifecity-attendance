@@ -294,7 +294,12 @@ export default function ActivityHistory() {
     setPage(1);
   }
   return (
-    <section className="lch-panel lcsp-panel" ref={top} aria-labelledby="lch-title">
+    <section
+      className="lch-panel lcsp-panel"
+      ref={top}
+      aria-labelledby="lch-title"
+      data-lc-loading={!hasSnapshot && busy}
+    >
       <header className="lch-heading lcsp-heading">
         <div>
           <p className="eyebrow">Settings · Owner History</p>

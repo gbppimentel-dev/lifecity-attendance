@@ -52,7 +52,7 @@ function panelVisibility(active, parentVisible = true) {
           useLayoutEffect: () => {},
         };
       if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx };
-      if (name === '../lib/motion') return {};
+      if (name === '../lib/workspaceEntrance') return {};
       if (name === '../lib/workspaceVisibility') return { WorkspaceVisibilityContext: visibility };
       if (name.endsWith('.css')) return {};
       throw Error(name);

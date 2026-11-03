@@ -270,7 +270,13 @@ export default function AccountsSettings({
           onLinkChanged();
         }}
       />
-      <section className="lca-panel" ref={listRef} aria-labelledby="lca-heading" aria-busy={busy}>
+      <section
+        className="lca-panel"
+        ref={listRef}
+        aria-labelledby="lca-heading"
+        aria-busy={busy}
+        data-lc-loading={!hasCurrentData && (loading || searching)}
+      >
         <header className="lca-heading">
           <span className="lcsa-section-icon">
             <UsersRound size={21} />

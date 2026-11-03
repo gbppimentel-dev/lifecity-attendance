@@ -811,7 +811,7 @@ export default function AttendanceRecords(_props: Props) {
     }
   }
   return (
-    <section className="lcr-workspace" aria-label="Attendance Ledger">
+    <section className="lcr-workspace" aria-label="Attendance Ledger" data-lc-loading={blocking}>
       <header className="lcr-header">
         <div>
           <p className="lcr-eyebrow">Attendance Ledger</p>

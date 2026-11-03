@@ -138,6 +138,7 @@ export default function AppearanceSettings() {
     <section
       className="lct-panel lc-appearance-studio lcsp-panel"
       aria-labelledby="lc-appearance-title"
+      data-lc-loading={loading}
     >
       <header className="lcsp-heading">
         <div>

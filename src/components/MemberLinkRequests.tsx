@@ -194,7 +194,11 @@ export default function MemberLinkRequests({
   const visible = !owner || (loadedKey === viewKey && !searching);
   const busy = loading || saving || searching;
   return (
-    <section className={'lcr-panel' + (owner ? ' lcr-owner lcsa-request-panel' : '')} ref={heading}>
+    <section
+      className={'lcr-panel' + (owner ? ' lcr-owner lcsa-request-panel' : '')}
+      ref={heading}
+      data-lc-loading={((loading || searching) && !visible) || (!owner && loading)}
+    >
       {owner ? (
         <header className="lcsa-panel-heading">
           <span className="lcsa-section-icon">

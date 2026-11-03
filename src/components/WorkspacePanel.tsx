@@ -1,5 +1,5 @@
 import { useContext, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { motionEnabled } from '../lib/motion';
+import { animateWorkspaceEntrance } from '../lib/workspaceEntrance';
 import { WorkspaceVisibilityContext } from '../lib/workspaceVisibility';
 import './workspace-panel.css';
 
@@ -21,6 +21,7 @@ export default function WorkspacePanel({
   tabs?: boolean;
 }) {
   const parentVisible = useContext(WorkspaceVisibilityContext);
+  const visible = active && parentVisible;
   const [visited, setVisited] = useState(active);
   const surface = useRef<HTMLDivElement>(null);
 
@@ -28,26 +29,9 @@ export default function WorkspacePanel({
 
   useLayoutEffect(() => {
     const node = surface.current;
-    if (!active || !node || !motionEnabled() || typeof node.animate !== 'function') return;
-
-    const entrance = node.animate([{ opacity: 0.64 }, { opacity: 1 }], {
-      duration: 220,
-      easing: 'cubic-bezier(.2,.75,.25,1)',
-    });
-    const media = matchMedia('(prefers-reduced-motion: reduce)');
-    const settle = () => {
-      if (!motionEnabled()) entrance.cancel();
-    };
-    window.addEventListener('lifecity-motion-change', settle);
-    window.addEventListener('storage', settle);
-    media.addEventListener('change', settle);
-    return () => {
-      entrance.cancel();
-      window.removeEventListener('lifecity-motion-change', settle);
-      window.removeEventListener('storage', settle);
-      media.removeEventListener('change', settle);
-    };
-  }, [active, visited]);
+    if (!visible || !node) return;
+    return animateWorkspaceEntrance(node);
+  }, [visible, visited]);
 
   if (!active && (!retain || !visited)) return null;
   return (
@@ -62,7 +46,7 @@ export default function WorkspacePanel({
       aria-label={labelledBy ? undefined : label}
       aria-labelledby={labelledBy}
     >
-      <WorkspaceVisibilityContext.Provider value={active && parentVisible}>
+      <WorkspaceVisibilityContext.Provider value={visible}>
         {children}
       </WorkspaceVisibilityContext.Provider>
     </div>
